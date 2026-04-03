@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: storefront-shubham-agrawal-classes
+  namespace: storefront-shubham-agrawal-classes
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - saclasses.appwallah.com
+        - shubhamagrawalclasses.com
+        - www.shubhamagrawalclasses.com
+      secretName: storefront-shubham-agrawal-classes-tls
+  rules:
+    - host: saclasses.appwallah.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: storefront-shubham-agrawal-classes
+                port:
+                  number: 80
+    - host: shubhamagrawalclasses.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: storefront-shubham-agrawal-classes
+                port:
+                  number: 80
+    - host: www.shubhamagrawalclasses.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: storefront-shubham-agrawal-classes
+                port:
+                  number: 80

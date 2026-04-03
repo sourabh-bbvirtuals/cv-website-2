@@ -1,0 +1,15 @@
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.18.0 (Ubuntu)
+Date: Fri, 20 Mar 2026 19:25:17 GMT
+Content-Type: text/html
+Content-Length: 178
+Connection: keep-alive
+Location: https://c3-prod.grepvideos.com/shop-api
+
+<html>
+<head><title>301 Moved Permanently</title></head>
+<body>
+<center><h1>301 Moved Permanently</h1></center>
+<hr><center>nginx/1.18.0 (Ubuntu)</center>
+</body>
+</html>

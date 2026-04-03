@@ -1,0 +1,116 @@
+import React, { useRef } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
+import { SliderArrow } from './Icons';
+
+export interface TeamMember {
+  name: string;
+  designation: string;
+  experience: string;
+  image: string;
+}
+
+export interface TeamSectionProps {
+  title: string;
+  members: TeamMember[];
+}
+
+const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
+  const swiperRef = useRef<SwiperType | null>(null);
+
+  if (!members || members.length === 0) return null;
+
+  return (
+    <section className="my-10 lg:my-12 xl:my-25 4xl:mt-50! overflow-hidden">
+      <div className="custom-container">
+        <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-8 sm:mb-12 md:mb-16">
+          <div className="text-left max-sm:text-center">
+            <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
+              Our Team
+            </p>
+            <h2 className="section-heading text-lightgray">
+              {title || 'They are best at what they do'}
+            </h2>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => swiperRef.current?.slidePrev()}
+              className="size-8 sm:size-12 flex items-center justify-center rounded-[42px] bg-[rgba(8,22,39,0.03)] duration-300 hover:bg-[rgba(8,22,39,0.06)] cursor-pointer"
+              aria-label="Previous"
+            >
+              <SliderArrow />
+            </button>
+            <button
+              type="button"
+              onClick={() => swiperRef.current?.slideNext()}
+              className="size-8 sm:size-12 flex items-center justify-center rounded-[42px] bg-[rgba(8,22,39,0.03)] duration-300 hover:bg-[rgba(8,22,39,0.06)] cursor-pointer rotate-180"
+              aria-label="Next"
+            >
+              <SliderArrow />
+            </button>
+          </div>
+        </div>
+
+        <div className="w-full overflow-hidden">
+          <Swiper
+            modules={[Autoplay]}
+            onBeforeInit={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            loop
+            speed={550}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            spaceBetween={0}
+            slidesPerView={1}
+            breakpoints={{
+              480: { slidesPerView: 1, spaceBetween: 0 },
+              640: { slidesPerView: 2.6, spaceBetween: 18 },
+              768: { slidesPerView: 2.6, spaceBetween: 26 },
+              1024: { slidesPerView: 3.2, spaceBetween: 30 },
+              1280: { slidesPerView: 4, spaceBetween: 36 },
+            }}
+            className="w-full"
+          >
+            {members.map((member, index) => (
+              <SwiperSlide key={index}>
+                <article
+                  className={`group flex flex-col items-center px-1 text-center ${
+                    index % 2 !== 0 ? 'mt-0 md:mt-17.75' : 'mt-0'
+                  }`}
+                >
+                  <div className="relative mb-5 flex w-70 h-75 4xl:w-84.75! 4xl:h-87.75!">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      loading="lazy"
+                      className="w-full h-full object-contain object-bottom"
+                    />
+                  </div>
+
+                  <h3 className="text-xl font-semibold leading-snug tracking-tight text-lightgray sm:text-2xl 4xl:text-3xl!">
+                    {member.name}
+                  </h3>
+                  <p className="4xl:mt-2! mt-1 text-sm font-normal leading-[120%] text-lightgray/60 sm:text-base">
+                    {member.designation}
+                  </p>
+                  <span className="4xl:mt-3! mt-1 inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-2 py-1 4xl:text-base! text-sm leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
+                    {member.experience}
+                  </span>
+                </article>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default TeamSection;

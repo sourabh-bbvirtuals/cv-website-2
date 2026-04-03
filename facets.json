@@ -1,0 +1,446 @@
+[
+  {
+    "name": "Attempt",
+    "code": "attempt",
+    "valueList": {
+      "items": [
+        {
+          "name": "May 2025",
+          "code": "may-2025"
+        },
+        {
+          "name": "Sep 2025",
+          "code": "sep-2025"
+        },
+        {
+          "name": "Jan 2026",
+          "code": "jan-2026"
+        },
+        {
+          "name": "May 2026",
+          "code": "may-2026"
+        },
+        {
+          "name": "Sep 2026",
+          "code": "sep-2026"
+        },
+        {
+          "name": "Dec 2025",
+          "code": "dec-2025"
+        },
+        {
+          "name": "Jun 2026",
+          "code": "jun-2026"
+        },
+        {
+          "name": "Dec 2026",
+          "code": "dec-2026"
+        },
+        {
+          "name": "May 2028",
+          "code": "may-28"
+        },
+        {
+          "name": "Jan 2028",
+          "code": "jan-28"
+        },
+        {
+          "name": "Jan 2027",
+          "code": "jan-27"
+        },
+        {
+          "name": "May 2027",
+          "code": "mays-27"
+        },
+        {
+          "name": "Sep 2027",
+          "code": "sep-27"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Level",
+    "code": "level",
+    "valueList": {
+      "items": [
+        {
+          "name": "CA Final",
+          "code": "ca-final"
+        },
+        {
+          "name": "CA Foundation",
+          "code": "ca-foundation"
+        },
+        {
+          "name": "CMA Intermediate",
+          "code": "cma-intermediate"
+        },
+        {
+          "name": "CMA Final",
+          "code": "cma-final"
+        },
+        {
+          "name": "CA INTER",
+          "code": "ca-inter"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Product Type",
+    "code": "product-type",
+    "valueList": {
+      "items": [
+        {
+          "name": "Video Lecture",
+          "code": "video-lecture"
+        },
+        {
+          "name": "Book",
+          "code": "book"
+        },
+        {
+          "name": "Live + Recorded",
+          "code": "live-+-recorded"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Language",
+    "code": "language",
+    "valueList": {
+      "items": [
+        {
+          "name": "English",
+          "code": "english"
+        },
+        {
+          "name": "Hindi English",
+          "code": "hindi-english"
+        },
+        {
+          "name": "Hindi",
+          "code": "hindi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Faculty",
+    "code": "faculty",
+    "valueList": {
+      "items": [
+        {
+          "name": "CA Vishal Bhattad",
+          "code": "ca-vishal-bhattad"
+        },
+        {
+          "name": "CA Yash Khandelwal",
+          "code": "ca-yash-khandelwal"
+        },
+        {
+          "name": "Amol Sir",
+          "code": "amol-sir"
+        },
+        {
+          "name": "CA Parag Gupta Sir",
+          "code": "ca-parag-gupta-sir"
+        },
+        {
+          "name": "Vishal Sir",
+          "code": "vishal-sir"
+        },
+        {
+          "name": "Bhanwar Sir",
+          "code": "bhanwar-sir"
+        },
+        {
+          "name": "Amit Tated Sir",
+          "code": "amit-tated-sir"
+        },
+        {
+          "name": "Vinod Reddy Sir",
+          "code": "vinod-reddy-sir"
+        },
+        {
+          "name": "Prashant Sarda Sir",
+          "code": "prashant-sarda-sir"
+        },
+        {
+          "name": "Pavan Sir",
+          "code": "pavan-sir"
+        },
+        {
+          "name": "Yash Sir",
+          "code": "yash-sir"
+        },
+        {
+          "name": "Nipurn Sir",
+          "code": "nipurn-sir"
+        },
+        {
+          "name": "Vishal Sir",
+          "code": "vishal-sir"
+        },
+        {
+          "name": "Jai Chawla Sir",
+          "code": "jai-chawla-sir"
+        },
+        {
+          "name": "Ravi Taori",
+          "code": "ravi-taori"
+        },
+        {
+          "name": "Jai chawla",
+          "code": "jai-chawla"
+        },
+        {
+          "name": "Prashant Sarda",
+          "code": "prashant-sarda"
+        },
+        {
+          "name": "Amit Tated",
+          "code": "amit-tated"
+        },
+        {
+          "name": "Nipurn Modi",
+          "code": "nipurn-modi"
+        },
+        {
+          "name": "Darshan Khare",
+          "code": "darshan-khare"
+        },
+        {
+          "name": "Vijay Sarda",
+          "code": "vijay-sarda"
+        },
+        {
+          "name": "Pavan Karmele",
+          "code": "pavan-karmele"
+        },
+        {
+          "name": "Vishal Bhattad",
+          "code": "vishal-bhattad"
+        },
+        {
+          "name": "Harshad Jaju",
+          "code": "harshad-jaju"
+        },
+        {
+          "name": "Vinod Reddy",
+          "code": "vinod-reddy"
+        },
+        {
+          "name": "Bhanwar Borana",
+          "code": "bhanwar-borana"
+        },
+        {
+          "name": "Parag Gupta",
+          "code": "parag-gupta"
+        },
+        {
+          "name": "CA Aakash Kandoi",
+          "code": "ca-aakash-kandoi"
+        },
+        {
+          "name": "CA Shubham Keswani",
+          "code": "ca-shubham-keswani"
+        },
+        {
+          "name": "Shirish Vyas",
+          "code": "shirish-vyas"
+        },
+        {
+          "name": "Rishabh Jain",
+          "code": "rishabh-jain"
+        },
+        {
+          "name": "Yash Khandelwal",
+          "code": "yash-khandelwal"
+        },
+        {
+          "name": "Shubham Singhal",
+          "code": "shubham-singhal"
+        },
+        {
+          "name": "Amol Jain",
+          "code": "amol-jain"
+        },
+        {
+          "name": "Abhijit Sengupta",
+          "code": "abhijit-sengupta"
+        },
+        {
+          "name": "Aman Khedia",
+          "code": "aman-khedia"
+        },
+        {
+          "name": "Trushal Gondaliya",
+          "code": "trushal-gondaliya"
+        },
+        {
+          "name": "Apurva Deshpande",
+          "code": "apurva-deshpande"
+        },
+        {
+          "name": "Rahul Garg",
+          "code": "rahul-garg"
+        },
+        {
+          "name": "Rohit Shroff",
+          "code": "rohit-shroff"
+        },
+        {
+          "name": "Hrishikesh Jadhav",
+          "code": "hrishikesh-jadhav"
+        },
+        {
+          "name": "Pankaj Aswani",
+          "code": "pankaj-aswani"
+        },
+        {
+          "name": "Shubham Agrawal",
+          "code": "shubham-agrawal"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Subject",
+    "code": "subject",
+    "valueList": {
+      "items": [
+        {
+          "name": "Direct Tax",
+          "code": "direct-tax"
+        },
+        {
+          "name": "Indirect Tax",
+          "code": "indirect-tax"
+        },
+        {
+          "name": "Financial Management",
+          "code": "financial-management"
+        },
+        {
+          "name": "Accounts",
+          "code": "accounts"
+        },
+        {
+          "name": "Strategic Management",
+          "code": "strategic-management"
+        },
+        {
+          "name": "Quantitative Aptitude (Maths, LR & Stat)",
+          "code": "quantitative-aptitude-(maths,-lr-&-stat)"
+        },
+        {
+          "name": "Business Economics",
+          "code": "business-economics"
+        },
+        {
+          "name": "Paper 2 - Business Laws",
+          "code": "paper-2---business-laws"
+        },
+        {
+          "name": "Business LAWs",
+          "code": "business-laws"
+        },
+        {
+          "name": "Accounting",
+          "code": "accounting"
+        },
+        {
+          "name": "Advanced Accounting",
+          "code": "advanced-accounting"
+        },
+        {
+          "name": "Math",
+          "code": "math"
+        },
+        {
+          "name": "Corporate and Other Laws",
+          "code": "corporate-and-other-laws"
+        },
+        {
+          "name": "GST Certification",
+          "code": "gst-certification"
+        },
+        {
+          "name": "Cost and Management Accounting",
+          "code": "cost-and-management-accounting"
+        },
+        {
+          "name": "Auditing and Assurance",
+          "code": "auditing-and-assurance"
+        },
+        {
+          "name": "Financial Reporting",
+          "code": "financial-reporting"
+        },
+        {
+          "name": "Advanced Financial Management",
+          "code": "advanced-financial-management"
+        },
+        {
+          "name": "Advanced Auditing, Assurance and Professional Ethics",
+          "code": "advanced-auditing,-assurance-and-professional-ethics"
+        },
+        {
+          "name": "LAW",
+          "code": "law"
+        },
+        {
+          "name": "DT+IDT",
+          "code": "dt+idt"
+        },
+        {
+          "name": "FM-SM",
+          "code": "fm-sm"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Type",
+    "code": "type",
+    "valueList": {
+      "items": [
+        {
+          "name": "Combo",
+          "code": "combo"
+        },
+        {
+          "name": "Single",
+          "code": "single"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Batch Type",
+    "code": "batch-type",
+    "valueList": {
+      "items": [
+        {
+          "name": "Exam Oriented",
+          "code": "exam-oriented"
+        },
+        {
+          "name": "Regular",
+          "code": "regular"
+        },
+        {
+          "name": "Fast Track",
+          "code": "fast-track"
+        },
+        {
+          "name": "Regular In Depth",
+          "code": "regular-in-depth"
+        }
+      ]
+    }
+  }
+]

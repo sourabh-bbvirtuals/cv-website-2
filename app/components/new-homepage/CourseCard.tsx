@@ -1,0 +1,117 @@
+import React from 'react';
+
+export type FeaturedCourse = {
+  id: string;
+  title: string;
+  meta: string[];
+  enrolled: string;
+  image: string;
+  badge?: string;
+  starts: string;
+  ends: string;
+  price: string;
+  wasPrice: string;
+  language?: string;
+  type?: string;
+};
+export function CourseCard({
+  course,
+  isAlternate,
+}: {
+  course: FeaturedCourse;
+  isAlternate: boolean;
+}) {
+  const isPrimary = course.id === '1';
+
+  return (
+    <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[20px] overflow-hidden shadow-[0px_4px_8px_0px_rgba(0,0,0,0.03),0px_15px_15px_0px_rgba(0,0,0,0.02)]">
+      {/* Top Header */}
+      <div className="flex flex-col justify-between h-full">
+        <div className="p-[15px] pb-0 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+              {course.language || 'Hindi'}
+            </span>
+            {course.type === 'Recorded' ? (
+              <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden
+                >
+                  <path
+                    d="M15.7356 4.5625C15.6559 4.51976 15.5661 4.49946 15.4757 4.50375C15.3853 4.50804 15.2978 4.53677 15.2225 4.58687L13 6.06563V4.5C13 4.23478 12.8946 3.98043 12.7071 3.79289C12.5196 3.60536 12.2652 3.5 12 3.5H2C1.73478 3.5 1.48043 3.60536 1.29289 3.79289C1.10536 3.98043 1 4.23478 1 4.5V11.5C1 11.7652 1.10536 12.0196 1.29289 12.2071C1.48043 12.3946 1.73478 12.5 2 12.5H12C12.2652 12.5 12.5196 12.3946 12.7071 12.2071C12.8946 12.0196 13 11.7652 13 11.5V9.9375L15.2225 11.4194C15.305 11.473 15.4016 11.501 15.5 11.5C15.6326 11.5 15.7598 11.4473 15.8536 11.3536C15.9473 11.2598 16 11.1326 16 11V5C15.9994 4.91004 15.9745 4.82191 15.9279 4.74491C15.8814 4.66791 15.815 4.60489 15.7356 4.5625ZM12 11.5H2V4.5H12V11.5ZM15 10.0656L13 8.7325V7.2675L15 5.9375V10.0656Z"
+                    fill="#081627"
+                  />
+                </svg>
+                Recorded
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                <span className="inline-block size-2 rounded-full bg-[#606060]" />
+                {course.type || 'Live'}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="font-semibold text-xl text-lightgray leading-[150%]">
+              {course.title}
+            </h3>
+          </div>
+        </div>
+
+        {/* Image Container with Original Primary Logic */}
+        <div className="px-[15px] pt-3">
+          <div className="relative h-[240px] rounded-2xl bg-[#faeae5] overflow-hidden">
+            {isPrimary ? (
+              <img
+                src={course.image}
+                alt={course.title}
+                className="absolute left-1/2 top-[25px] -translate-x-1/2 h-[375px] w-[250px] max-w-none object-cover object-top"
+              />
+            ) : (
+              <img
+                src={course.image}
+                alt={course.title}
+                className="absolute inset-0 w-full h-full object-cover object-top"
+              />
+            )}
+            {course.badge && (
+              <div className="absolute left-2 top-2 flex items-center rounded-full border border-[rgba(8,22,39,0.1)] bg-white/60 backdrop-blur-sm px-2 py-1">
+                <span className="text-sm font-medium text-lightgray/50 leading-[1.2]">
+                  {course.badge}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing & Info Table Style */}
+      <div className="mt-4 border-t border-[rgba(8,22,39,0.1)] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+        <div className="flex-1 space-y-2 sm:space-y-4 text-sm leading-[1.2] text-lightgray min-w-0 p-4 pb-0 sm:pb-4">
+          <div className="flex sm:ap-0.5 justify-between">
+            <span className="font-normal opacity-50 shrink-0">Starts on</span>
+            <span className="font-medium">{course.starts}</span>
+          </div>
+          <div className="flex sm:gap-0.5 justify-between">
+            <span className="font-normal opacity-50 shrink-0">Ends on</span>
+            <span className="font-medium">{course.ends}</span>
+          </div>
+        </div>
+        <div className="hidden sm:block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3" />
+        <div className="flex items-center gap-2 sm:justify-end sm:min-w-[140px] pt-0 sm:pt-4 p-4 pl-4 sm:pl-0 sm:pb-4">
+          <span className="font-bold text-xl text-lightgray leading-[1.2]">
+            {course.price}
+          </span>
+          <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
+            {course.wasPrice}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}

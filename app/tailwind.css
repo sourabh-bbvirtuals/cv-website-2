@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-lightgray: #081627;
+  --breakpoint-4xl: 1600px; 
+}
+
+/* Base Styles */
+@layer base {
+  button {
+    cursor: pointer;
+  }
+  body,html {
+    font-family: "Geist", sans-serif !important;
+  }
+}
+
+/* Components */
+@layer components {
+  .custom-container {
+    /* v4 mein direct pixel value ke liye brackets use karein */
+    @apply w-full max-w-[1320px] mx-auto px-3 sm:px-4;
+  }
+
+  .primary-btn {
+    @apply bg-[#3A6BFC] text-white rounded-full font-medium
+           shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE]
+           active:scale-95 transition-all;
+  }
+
+  .section-heading {
+    @apply text-[28px] md:text-3xl lg:text-4xl 4xl:text-5xl! font-bold text-lightgray leading-[120%]!;
+  }
+
+  .score-text {
+    @apply text-[14px] 4xl:text-2xl! font-bold text-lightgray leading-[120%];
+  }
+
+  .home-section-y {
+    @apply py-7 xl:py-[50px] 4xl:py-[100px]!;
+  }
+  .section-title {
+    @apply text-xs sm:text-xl md:text-2xl lg:text-3xl font-semibold sm:font-medium tracking-tight leading-[120%] sm:text-lightgray uppercase sm:normal-case text-lightgray/50 flex items-center gap-2.5 whitespace-nowrap
+  }
+}
+/* Utilities */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and old Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/new Edge */
+  }
+}

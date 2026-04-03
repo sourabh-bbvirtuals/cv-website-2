@@ -1,0 +1,41 @@
+[
+  {
+    "id": "note-1",
+    "title": "CA Final Law Notes - SPOM Module 1",
+    "slug": "ca-final-law-spom-module-1",
+    "description": "Complete notes for CA Final Law SPOM Module 1 with important questions.",
+    "fileUrl": "https://example.com/notes/spom-module-1.pdf",
+    "thumbnail": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da",
+    "category": "Law",
+    "author": "Shubham Agrawal",
+    "date": "2026-03-19",
+    "tags": ["CA Final", "Law", "SPOM"],
+    "downloads": 1200
+  },
+  {
+    "id": "note-2",
+    "title": "Audit Important Questions & Answers",
+    "slug": "audit-important-questions",
+    "description": "Handpicked important questions for CA Final Audit exam preparation.",
+    "fileUrl": "https://example.com/notes/audit-questions.pdf",
+    "thumbnail": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40",
+    "category": "Audit",
+    "author": "Shubham Agrawal",
+    "date": "2026-03-18",
+    "tags": ["Audit", "Important Questions"],
+    "downloads": 980
+  },
+  {
+    "id": "note-3",
+    "title": "IDT Summary Notes",
+    "slug": "idt-summary-notes",
+    "description": "Quick revision notes for Indirect Tax (IDT).",
+    "fileUrl": "https://example.com/notes/idt-summary.pdf",
+    "thumbnail": "https://images.unsplash.com/photo-1517842645767-c639042777db",
+    "category": "Tax",
+    "author": "Shubham Agrawal",
+    "date": "2026-03-17",
+    "tags": ["IDT", "Tax", "Revision"],
+    "downloads": 1500
+  }
+]

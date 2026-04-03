@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: storefront-shubham-agrawal-classes-config
+  namespace: storefront-shubham-agrawal-classes
+data:
+  NODE_ENV: "production"
+  PORT: "8080"
+  GRAPHQL_API_URL: "https://websiteadmin.appwallah.com/shop-api?vendure-token=shubham-agrawal-classes"
+  VENDURE_API_URL: "https://websiteadmin.appwallah.com/shop-api?vendure-token=shubham-agrawal-classes"
+  # Optional customizations
+  META_TITLE: "Shubham Agrawal Classes - CA Shubham Agrawal"
+
+

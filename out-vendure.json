@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "Variable \"$input\" got invalid value { emailAddress: \"testcase999@example.com\", firstName: \"Test\", lastName: \"User\", phoneNumber: \"+919416583303\", password: \"123456\", customFields: { dateOfBirth: \"2026-03-08\", gender: \"Male\", board: \"CBSE\", studentClass: \"11th\" } }; Field \"customFields\" is not defined by type \"RegisterCustomerInput\".",
+      "locations": [
+        {
+          "line": 2,
+          "column": 38
+        }
+      ],
+      "extensions": {
+        "code": "BAD_USER_INPUT"
+      }
+    }
+  ]
+}

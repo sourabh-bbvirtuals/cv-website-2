@@ -1,0 +1,6 @@
+name = "modiclasses"
+compatibility_date = "2025-09-10"
+compatibility_flags = ["nodejs_compat"]
+vars = { VENDURE_API_URL="https://websiteadmin.appwallah.com/shop-api?vendure-token=nipurn-modi", NODE_ENV="production", APP_ENV="production", META_TITLE="Shubham Agrawal Classes - CA Shubham Agrawal" }
+
+pages_build_output_dir = "./public"
