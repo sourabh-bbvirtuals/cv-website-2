@@ -133,7 +133,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
 
   return (
     <section className="bg-[url('/assets/images/homepage/hero-bg.png')] bg-no-repeat bg-cover bg-center relative">
-      <div className="custom-container pb-10 lg:pb-12 4xl:pb-28! pt-32.5 md:pt-57.5 xl:pt-65.75 w-full">
+      <div className="custom-container pb-10 lg:pb-12 4xl:pb-28! pt-28.5 md:pt-57.5 xl:pt-65.75 w-full">
         <div className="flex flex-col lg:flex-row gap-8 sm:gap-4">
           {/* Left Column: Content & Stats */}
           <div
@@ -153,10 +153,10 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
             }}
           >
             {/* card content */}
-            <div className="flex flex-col h-full">
-              <div className="flex-1 flex flex-col items-center justify-center sm:items-start sm:justify-start">
+            <div className="flex flex-col h-full gap-6 md:gap-16">
+              <div className="flex-1 gap-5 md:gap-12 flex flex-col items-center justify-center sm:items-start sm:justify-start">
                 {/* Pill Tag */}
-                <div className="inline-flex items-center gap-2 px-4 leading-[120%] py-1.5 rounded-full bg-[#0816270D] text-xs  sm:text-base font-medium text-gray-700 mb-3 xl:mb-6 border border-[#0816270D]">
+                <div className="inline-flex items-center gap-2 px-2 py-1 leading-[120%] rounded-full bg-[#0816270D] text-xs  sm:text-base font-medium text-gray-700 border border-[#0816270D]">
                   <span>MH Board</span>
                   <span className="w-1 h-1 rounded-full bg-slate-400"></span>
                   <span>CBSE</span>
@@ -165,19 +165,19 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 </div>
 
                 {/* Headline */}
-                <h1 className="text-2xl md:text-3xl xl:text-6xl font-semibold mb-2 sm:mb-4 leading-[100%]">
+                <h1 className="text-3xl xl:text-[64px] font-semibold leading-[100%]">
                   Commerce made <br className="max-sm:hidden" /> clear.
                 </h1>
 
                 {/* Subheadline */}
-                <p className="text-sm sm:text-base xl:text-xl text-lightgray mb-3 sm:mb-8 xl:mb-12 leading-[150%] max-w-lg">
+                <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-[523px] leading-[150%]">
                   Free videos, notes, formula cards, and past papers for Class
                   11-12, CA Foundation, and CUET - all in one place.
                 </p>
 
                 {/* CTA Button */}
                 <div className="flex justify-center w-full sm:justify-start">
-                  <button className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-2 sm:py-3 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-xs sm:text-base lg:text-lg 4xl:text-xl!">
+                  <button className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-3  md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-base lg:text-lg 4xl:text-xl!">
                     <svg
                       className="max-sm:max-w-4 h-auto"
                       width="24"
@@ -198,7 +198,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
 
               {/* Stats Row */}
               <div
-                className={`grid grid-cols-2 xl:grid-cols-4 gap-6 whitespace-nowrap pt-8 sm:pt-12 xl:pt-2 justify-center sm:justify-start ${
+                className={`grid grid-cols-2 xl:grid-cols-4 gap-6 whitespace-nowrap justify-center sm:justify-start ${
                   isLoggedIn ? 'w-full' : ''
                 }`}
               >
@@ -248,7 +248,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   '0px 4px 10px 0px #A7B2E236, 0px 18px 18px 0px #A7B2E230, 0px 40px 24px 0px #A7B2E21C, 0px 70px 28px 0px #A7B2E208, 0px 110px 31px 0px #A7B2E200',
               }}
             >
-              <h3 className="text-xl :md:text-3xl leading-[120%] font-medium text-lightgray mb-4 lg:mb-6 4xl:mb-9!">
+              <h3 className="text-xl md:text-3xl leading-[120%] font-medium text-lightgray mb-4 lg:mb-6 4xl:mb-9!">
                 What are you studying?
               </h3>
               <form className="grow flex flex-col" onSubmit={handleSubmit}>

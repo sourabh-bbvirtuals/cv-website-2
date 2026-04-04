@@ -8,7 +8,7 @@ const TopHeader = () => {
 
   return (
     <header
-      className={`pt-2 md:pt-7 pb-2 md:pb-7.75 hidden md:flex ${
+      className={`pt-2 md:pt-7 pb-2 md:pb-4 hidden md:flex ${
         isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
       }`}
     >
@@ -20,7 +20,7 @@ const TopHeader = () => {
             className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
           >
             <Phone size={14} className="text-lightgray" />
-            <span>7718866966</span>
+            <span className="text-base">7718866966</span>
           </a>
 
           <a
@@ -28,7 +28,7 @@ const TopHeader = () => {
             className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
           >
             <Mail size={14} className="text-lightgray" />
-            <span>global@bbvirtuals.com</span>
+            <span className="text-base">global@bbvirtuals.com</span>
           </a>
         </div>
 

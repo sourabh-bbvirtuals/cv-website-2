@@ -301,12 +301,9 @@ export default function CourseListings({
   // States for all filters
   const [selectedSort, setSelectedSort] = useState<string>('Relevant');
   const [selectedPricing, setSelectedPricing] = useState<string>('All');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
-  const [selectedFaculties, setSelectedFaculties] = useState<string[]>([
-    'CA Ashish Medicala',
-    'Pratik Mahajan',
-  ]);
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<string[]>([]);
+  const [selectedSubjects, setSelectedSubjects] = useState<string>('');
+  const [selectedFaculties, setSelectedFaculties] = useState<string[]>([]);
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -331,9 +328,9 @@ export default function CourseListings({
   const handleResetFilters = () => {
     setSelectedSort('Relevant');
     setSelectedPricing('All');
-    setSelectedLanguage('English');
+    setSelectedLanguage([]);
+    setSelectedSubjects('');
     setSelectedFaculties([]);
-    setSelectedSubjects([]);
     setActiveModal(null);
   };
 
@@ -343,7 +340,7 @@ export default function CourseListings({
   );
 
   const getBtnClass = (isActive: boolean) =>
-    `flex items-center px-4 py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
+    `flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
       isActive
         ? 'bg-lightgray text-white border-lightgray'
         : 'bg-white text-lightgray border-lightgray/10 hover:border-lightgray/30'
@@ -377,7 +374,7 @@ export default function CourseListings({
                 onClick={() => toggleModal('sort')}
                 className={getBtnClass(activeModal === 'sort')}
               >
-                Sort By: <span className="font-semibold">{selectedSort}</span>
+                <span className="font-semibold">{selectedSort}</span>
                 <ChevronDown isOpen={activeModal === 'sort'} />
               </button>
               {activeModal === 'sort' && (
@@ -416,11 +413,10 @@ export default function CourseListings({
                 onClick={() => toggleModal('subjects')}
                 className={getBtnClass(activeModal === 'subjects')}
               >
-                Subjects{' '}
-                {selectedSubjects.length > 0 && (
-                  <span className="font-semibold">
-                    ({selectedSubjects.length})
-                  </span>
+                {selectedSubjects ? (
+                  <span className="font-semibold">{selectedSubjects}</span>
+                ) : (
+                  'Subjects'
                 )}{' '}
                 <ChevronDown isOpen={activeModal === 'subjects'} />
               </button>
@@ -433,16 +429,17 @@ export default function CourseListings({
                     <button
                       key={subject}
                       onClick={() => {
-                        setSelectedSubjects((prev) =>
-                          prev.includes(subject)
-                            ? prev.filter((s) => s !== subject)
-                            : [...prev, subject],
-                        );
+                        setSelectedSubjects(subject);
+                        setActiveModal(null);
                       }}
-                      className="w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray"
+                      className={`w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                        selectedSubjects === subject
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
                     >
                       {subject}
-                      {selectedSubjects.includes(subject) && <CheckIcon />}
+                      {selectedSubjects === subject && <CheckIcon />}
                     </button>
                   ))}
                 </div>
@@ -455,19 +452,40 @@ export default function CourseListings({
                 onClick={() => toggleModal('faculty')}
                 className={getBtnClass(activeModal === 'faculty')}
               >
-                Faculty{' '}
-                {selectedFaculties.length > 0 && (
-                  <span className="font-semibold">
-                    ({selectedFaculties.length})
-                  </span>
-                )}{' '}
-                <ChevronDown isOpen={activeModal === 'faculty'} />
+                Faculty <ChevronDown isOpen={activeModal === 'faculty'} />
               </button>
               {activeModal === 'faculty' && (
                 <div
-                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0 max-h-[300px] overflow-y-auto"
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[300px] sm:translate-x-0 sm:translate-y-0 max-h-[400px] overflow-y-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {/* "All" Option */}
+                  <button
+                    onClick={() => {
+                      setSelectedFaculties([]);
+                    }}
+                    className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${
+                      selectedFaculties.length === 0
+                        ? 'bg-lightgray/5 text-lightgray font-medium'
+                        : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-sm border border-gray-100 flex items-center justify-center ${
+                        selectedFaculties.length === 0
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'border-lightgray/30 bg-white'
+                      }`}
+                    >
+                      {selectedFaculties.length === 0 && <CheckIcon />}
+                    </div>
+                    <span>All</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="border-t border-lightgray/10" />
+
+                  {/* Faculty Options */}
                   {facultyOptions.map((faculty) => (
                     <button
                       key={faculty}
@@ -478,10 +496,27 @@ export default function CourseListings({
                             : [...prev, faculty],
                         );
                       }}
-                      className="w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray"
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-3 ${
+                        selectedFaculties.includes(faculty)
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
                     >
-                      {faculty}
-                      {selectedFaculties.includes(faculty) && <CheckIcon />}
+                      <div
+                        className={`w-5 h-5 rounded-sm border border-gray-100 flex items-center justify-center flex-shrink-0 ${
+                          selectedFaculties.includes(faculty)
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-lightgray/30 bg-white'
+                        }`}
+                      >
+                        {selectedFaculties.includes(faculty) && <CheckIcon />}
+                      </div>
+                      <img
+                        src={FACULTY_AVATAR_BY_NAME[faculty]}
+                        alt={faculty}
+                        className="w-7 h-7 rounded-full border bg-blue-500 border-transparent object-cover flex-shrink-0"
+                      />
+                      <span>{faculty}</span>
                     </button>
                   ))}
                 </div>
@@ -494,29 +529,76 @@ export default function CourseListings({
                 onClick={() => toggleModal('language')}
                 className={getBtnClass(activeModal === 'language')}
               >
-                Language:{' '}
-                <span className="font-semibold">{selectedLanguage}</span>{' '}
+                {selectedLanguage.length > 0 ? (
+                  <span className="font-semibold flex items-center gap-2">
+                    Language{' '}
+                    <span className="text-white text-xs bg-blue-500 px-2.5 py-1 rounded-full">
+                      {selectedLanguage.length}
+                    </span>
+                  </span>
+                ) : (
+                  'Language'
+                )}{' '}
                 <ChevronDown isOpen={activeModal === 'language'} />
               </button>
               {activeModal === 'language' && (
                 <div
-                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[300px] sm:translate-x-0 sm:translate-y-0 max-h-[400px] overflow-y-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {/* "All" Option */}
+                  <button
+                    onClick={() => {
+                      setSelectedLanguage([]);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-3 ${
+                      selectedLanguage.length === 0
+                        ? 'bg-lightgray/5 text-lightgray font-medium'
+                        : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-sm border border-gray-100 flex items-center justify-center ${
+                        selectedLanguage.length === 0
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'border-lightgray/30 bg-white'
+                      }`}
+                    >
+                      {selectedLanguage.length === 0 && <CheckIcon />}
+                    </div>
+                    <span>All</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="border-t border-lightgray/10" />
+
+                  {/* Language Options */}
                   {['English', 'Hindi', 'Hinglish'].map((lang) => (
                     <button
                       key={lang}
                       onClick={() => {
-                        setSelectedLanguage(lang);
-                        setActiveModal(null);
+                        setSelectedLanguage((prev) =>
+                          prev.includes(lang)
+                            ? prev.filter((l) => l !== lang)
+                            : [...prev, lang],
+                        );
                       }}
-                      className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${
-                        selectedLanguage === lang
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-3 ${
+                        selectedLanguage.includes(lang)
                           ? 'bg-lightgray/5 text-lightgray font-medium'
                           : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
                       }`}
                     >
-                      {lang}
+                      <div
+                        className={`w-5 h-5 rounded-sm border border-gray-100 flex items-center justify-center flex-shrink-0 ${
+                          selectedLanguage.includes(lang)
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-lightgray/30 bg-white'
+                        }`}
+                      >
+                        {selectedLanguage.includes(lang) && <CheckIcon />}
+                      </div>
+                      <span>{lang}</span>
                     </button>
                   ))}
                 </div>
@@ -529,7 +611,6 @@ export default function CourseListings({
                 onClick={() => toggleModal('pricing')}
                 className={getBtnClass(activeModal === 'pricing')}
               >
-                Pricing:{' '}
                 <span className="font-semibold">{selectedPricing}</span>{' '}
                 <ChevronDown isOpen={activeModal === 'pricing'} />
               </button>

@@ -16,17 +16,15 @@ import {
 } from './metaShared';
 import { QUIZ_LIST, type QuizDifficulty } from './quiz/quizData';
 import { QuizListingCard } from './quiz/QuizListingCard';
+import {
+  FormulaCardsIcon,
+  FreeVideosIcon,
+  MockTestsIcon,
+  PastPapersIcon,
+  QuizzesIcon,
+  StudyNotesIcon,
+} from '../new-homepage/Icons';
 
-const IMG_TAB_MOCK =
-  'https://www.figma.com/api/mcp/asset/5973916e-f28b-47c7-a8d8-cdaff74f9475';
-const IMG_TAB_NOTES =
-  'https://www.figma.com/api/mcp/asset/17fd8be8-1b2e-4d91-ae41-fb040dd6e42a';
-const IMG_TAB_PAPERS =
-  'https://www.figma.com/api/mcp/asset/df469be0-e92a-4469-81ba-2dd40eed6f33';
-const IMG_TAB_QUIZZES =
-  'https://www.figma.com/api/mcp/asset/e2110efc-35ce-4abe-bcad-14838e10c3ab';
-const IMG_TAB_VIDEOS =
-  'https://www.figma.com/api/mcp/asset/7206f8f3-c2a3-4930-bfe8-fc4f5d672467';
 /** Figma 1:4995 — video card thumbnail */
 const IMG_FREE_VIDEO_THUMB =
   'https://www.figma.com/api/mcp/asset/b353da9b-34c2-4e9f-8683-1284119d1c73';
@@ -90,6 +88,39 @@ const TAB_PATH_BY_ID: Record<TabId, string> = {
   videos: '/free-resources/free-videos',
 };
 
+const resources = [
+  {
+    title: 'Study Notes',
+    icon: <StudyNotesIcon />,
+    bgColor: 'bg-[#EEF2FF]',
+  },
+  {
+    title: 'Mock Tests',
+    icon: <MockTestsIcon />,
+    bgColor: 'bg-[#FFEEF8]',
+  },
+  {
+    title: 'Past Papers',
+    icon: <PastPapersIcon />,
+    bgColor: 'bg-[#EDF9FF]',
+  },
+  {
+    title: 'Formula Cards',
+    icon: <FormulaCardsIcon />,
+    bgColor: 'bg-[#FAEEFF]',
+  },
+  {
+    title: 'Quizzes',
+    icon: <QuizzesIcon />,
+    bgColor: 'bg-[#FFF1EE]',
+  },
+  {
+    title: 'Free Videos',
+    icon: <FreeVideosIcon />,
+    bgColor: 'bg-[#EEF0FF]',
+  },
+];
+
 const TABS: Array<{
   id: TabId;
   label: string;
@@ -104,15 +135,7 @@ const TABS: Array<{
     count: 230,
     borderActive: 'border-[#f5a0ad]',
     iconWrap: 'bg-[#ffeef8]',
-    icon: (
-      <img
-        src={IMG_TAB_MOCK}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: resources[1].icon,
   },
   {
     id: 'formula',
@@ -120,7 +143,7 @@ const TABS: Array<{
     count: 120,
     borderActive: 'border-[#b794d4]',
     iconWrap: 'bg-[#faeeff]',
-    icon: <Calculator className="size-7 text-[#b794d4]" strokeWidth={1.75} />,
+    icon: resources[3].icon,
   },
   {
     id: 'notes',
@@ -128,15 +151,7 @@ const TABS: Array<{
     count: 42,
     borderActive: 'border-[#9caaf0]',
     iconWrap: 'bg-[#eef2ff]',
-    icon: (
-      <img
-        src={IMG_TAB_NOTES}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: resources[0].icon,
   },
   {
     id: 'papers',
@@ -144,15 +159,7 @@ const TABS: Array<{
     count: 120,
     borderActive: 'border-[#7ec8ee]',
     iconWrap: 'bg-[#edf9ff]',
-    icon: (
-      <img
-        src={IMG_TAB_PAPERS}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: resources[2].icon,
   },
   {
     id: 'quizzes',
@@ -160,15 +167,7 @@ const TABS: Array<{
     count: 50,
     borderActive: 'border-[#f0a090]',
     iconWrap: 'bg-[#fff1ee]',
-    icon: (
-      <img
-        src={IMG_TAB_QUIZZES}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: resources[4].icon,
   },
   {
     id: 'videos',
@@ -176,15 +175,7 @@ const TABS: Array<{
     count: 500,
     borderActive: 'border-[#8aadd4]',
     iconWrap: 'bg-[#eef0ff]',
-    icon: (
-      <img
-        src={IMG_TAB_VIDEOS}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: resources[5].icon,
   },
 ];
 
@@ -1027,15 +1018,15 @@ function FigmaListingCard({
     metaLine != null ? (
       <MetaLineWithBullets
         text={metaLine}
-        className="line-clamp-2 text-sm font-normal leading-[150%] text-lightgray/70 lg:text-base lg:leading-[150%]"
+        className="line-clamp-2 text-sm font-medium leading-[150%] text-lightgray/50 lg:text-base lg:leading-[150%]"
       />
     ) : (
       <div className="flex min-w-0 items-center gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
-        <span className="min-w-0 truncate font-normal leading-[150%] text-lightgray/80">
+        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/80">
           {metaLeft!}
         </span>
         <span className={metaSepDotClass} aria-hidden />
-        <span className="min-w-0 truncate font-normal leading-[150%] text-lightgray/80">
+        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/80">
           {metaRight!}
         </span>
       </div>
@@ -1128,7 +1119,7 @@ function PillSelect({
               type="button"
               role="option"
               aria-selected={opt === value}
-              className={`w-full whitespace-nowrap px-4 py-2.5 text-left text-sm leading-[150%] ${
+              className={`w-full whitespace-nowrap px-4 py-2.5 text-left text-base leading-[150%] ${
                 opt === value
                   ? 'bg-lightgray/5 font-medium text-lightgray'
                   : 'text-lightgray/80 hover:bg-lightgray/5'
@@ -1153,7 +1144,7 @@ function PillSelect({
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-9 items-center gap-2 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-2 text-sm font-medium leading-[150%] text-lightgray sm:px-4 sm:text-base sm:leading-[150%]"
+        className="flex h-9 items-center gap-2 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-2 text-base font-medium leading-[150%] text-lightgray sm:px-4 sm:leading-[150%]"
       >
         <span className="max-w-[140px] truncate">{value}</span>
         <ChevronDown className="size-4 shrink-0 opacity-60" />
@@ -1296,9 +1287,11 @@ export default function FreeResourcesPage({
 
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
           <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
-            <div className="max-w-244 space-y-3 md:space-y-4 text-lightgray">
-              <h1 className="section-heading">Free Resources</h1>
-              <p className="max-w-[1000px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
+            <div className="space-y-3 md:space-y-4 text-lightgray">
+              <h1 className="section-heading font-semibold text-4xl">
+                Free Resources
+              </h1>
+              <p className="max-w-[1280px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
                 Test your knowledge with code challenges based on real-world
                 technical interviews from companies like Google, Amazon, and
                 Meta. Practice for your job search — or for fun. Don’t worry if
@@ -1309,7 +1302,7 @@ export default function FreeResourcesPage({
 
           <div className="sticky top-0 z-30 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
             <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
-              <div className="scrollbar-hide flex min-h-24 sm:min-h-30 w-full flex-1 overflow-x-auto">
+              <div className="scrollbar-hide flex min-h-18 w-full flex-1 overflow-x-auto">
                 {TABS.map((t) => {
                   const isActive = t.id === tab;
                   return (
@@ -1317,7 +1310,7 @@ export default function FreeResourcesPage({
                       key={t.id}
                       to={TAB_PATH_BY_ID[t.id]}
                       onClick={() => setTab(t.id)}
-                      className={`flex min-w-28 flex-1 flex-col items-center justify-between gap-3 sm:gap-2 border-b-[3px] px-2 pb-2 sm:pb-4 py-4 transition-colors sm:min-w-34 sm:px-4 ${
+                      className={`flex flex-row items-center justify-center gap-4 border-b-[3px] pb-2 sm:pb-4 py-4 px-4 transition-colors w-[260px] flex-shrink-0 ${
                         isActive
                           ? `${t.borderActive} bg-white`
                           : 'border-transparent bg-white hover:bg-[#fafbff]'
@@ -1329,7 +1322,7 @@ export default function FreeResourcesPage({
                         {t.icon}
                       </div>
                       <span
-                        className={`text-center text-sm leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
+                        className={`text-center text-base font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
                           t.id === 'mock' && isActive
                             ? 'font-semibold text-lightgray'
                             : 'font-medium text-lightgray'
@@ -1346,13 +1339,13 @@ export default function FreeResourcesPage({
         </div>
       </section>
 
-      <div className="border-b border-[rgba(8,22,39,0.08)] bg-[rgba(255,255,255,0.75)] py-4 backdrop-blur-md">
+      <div className="border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-4 backdrop-blur-md">
         <div className="custom-container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xl font-medium leading-[150%] tracking-tight text-lightgray md:text-2xl md:leading-[150%] md:tracking-[-0.24px]">
+          <p className="text-xl font-medium leading-[150%] tracking-tight text-lightgray md:leading-[150%] md:tracking-[-0.24px]">
             {active.label} ({active.count})
           </p>
           <div className="flex flex-wrap items-center gap-3 md:gap-3">
-            <span className="text-base font-medium leading-[150%] text-lightgray/50 sm:text-lg sm:leading-[150%] md:text-xl md:leading-[150%]">
+            <span className="text-base font-medium leading-[150%] text-lightgray/50  sm:leading-[150%] md:text-xl md:leading-[150%]">
               Filter by:
             </span>
             <PillSelect
@@ -1560,7 +1553,7 @@ export default function FreeResourcesPage({
                     </button>
                     <button
                       type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
+                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] text-sm font-medium leading-[150%] text-gray-700 transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
                     >
                       <Download className="size-5 shrink-0" />
                       Answers

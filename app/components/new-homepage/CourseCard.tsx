@@ -74,9 +74,16 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
               />
             )}
             {course.badge && (
-              <div className="absolute left-2 top-2 flex items-center rounded-full border border-[rgba(8,22,39,0.1)] bg-white/60 backdrop-blur-sm px-2 py-1">
+              <div className="absolute left-2 top-2 flex items-center rounded-full border border-[rgba(8,22,39,0.1)] bg-white/60 backdrop-blur-sm px-2 py-1 mb-2">
                 <span className="text-sm font-medium text-lightgray/50 leading-[1.2]">
                   {course.badge}
+                </span>
+              </div>
+            )}
+            {course.meta && course.meta[2] && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm border border-gray-400 px-4 py-1">
+                <span className="text-sm md:text-base font-medium text-white leading-[1.2]">
+                  {course.meta[2]}
                 </span>
               </div>
             )}
