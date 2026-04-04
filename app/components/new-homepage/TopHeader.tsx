@@ -1,9 +1,17 @@
 import React from 'react';
 import { Phone, Mail, Instagram, Youtube } from 'lucide-react';
+import { useLocation } from '@remix-run/react';
 
 const TopHeader = () => {
+  const location = useLocation();
+  const isOurCoursesPage = location.pathname === '/our-courses';
+
   return (
-    <header className="pt-2 md:pt-7 pb-2 md:pb-7.75">
+    <header
+      className={`pt-2 md:pt-7 pb-2 md:pb-7.75 hidden md:flex ${
+        isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
+      }`}
+    >
       <div className="flex justify-between items-center gap-2 w-full custom-container">
         {/* Left Side: Contact Info */}
         <div className="flex items-center space-x-3 sm:space-x-5 text-lightgray text-base leading-[100%]">

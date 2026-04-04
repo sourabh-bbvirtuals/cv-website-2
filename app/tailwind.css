@@ -40,6 +40,9 @@
   .home-section-y {
     @apply py-7 xl:py-[50px] 4xl:py-[100px]!;
   }
+  .design-heading {
+    @apply text-[150px] font-semibold leading-[120%] -tracking-[3%];
+  }
   .section-title {
     @apply text-xs sm:text-xl md:text-2xl lg:text-3xl font-semibold sm:font-medium tracking-tight leading-[120%] sm:text-lightgray uppercase sm:normal-case text-lightgray/50 flex items-center gap-2.5 whitespace-nowrap
   }

@@ -76,7 +76,7 @@ const OurTeam: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
 
   return (
-    <section className="my-10 lg:my-12 xl:my-25 4xl:mt-50! overflow-hidden">
+    <section className="overflow-hidden">
       <div className="custom-container">
         <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-8 sm:mb-12 md:mb-16">
           <div className="text-left max-sm:text-center">

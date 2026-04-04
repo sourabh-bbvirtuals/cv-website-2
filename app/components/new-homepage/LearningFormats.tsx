@@ -25,6 +25,8 @@ const notesRows = [
 const LearningFormats: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
 
+  const CARD_WIDTH = 420; // Fixed card width in pixels
+
   const cards = [
     {
       id: 'video',
@@ -33,7 +35,7 @@ const LearningFormats: React.FC = () => {
       wrapperClass: 'bg-[#eef2ff]',
       borderClass: 'border-[#d8e0f9]',
       content: (
-        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#d8e0f9] rounded-[20px] p-4 w-full max-w-105 flex flex-col h-75 overflow-hidden">
+        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#d8e0f9] rounded-[20px] p-4 w-full flex flex-col h-80 overflow-hidden">
           <div className="flex-1 min-h-0 rounded-[12px] overflow-hidden relative bg-lightgray">
             <div className="absolute inset-0 opacity-80">
               <img
@@ -80,7 +82,7 @@ const LearningFormats: React.FC = () => {
       wrapperClass: 'bg-[#eefaff]',
       borderClass: 'border-[#cfedfa]',
       content: (
-        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#cfedfa] rounded-[20px] p-4 w-full max-w-105 flex flex-col gap-3 sm:gap-5 h-75 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#cfedfa] rounded-[20px] p-4 w-full flex flex-col gap-3 sm:gap-5 h-80 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {notesRows.map((row) => (
             <div
               key={row.title}
@@ -113,7 +115,7 @@ const LearningFormats: React.FC = () => {
       wrapperClass: 'bg-[#fff1ee]',
       borderClass: 'border-[#f5dbd6]',
       content: (
-        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#f5dbd6] rounded-[20px] p-4 w-full max-w-105 flex flex-col gap-3 sm:gap-5">
+        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#f5dbd6] rounded-[20px] p-4 w-full flex flex-col gap-3 sm:gap-5 h-80">
           <div className="border-b border-[rgba(8,22,39,0.1)] pb-3 sm:pb-5 flex flex-col gap-1 sm:gap-3">
             <div className="flex flex-col gap-2">
               <div className="flex gap-2.5 items-center">
@@ -168,7 +170,7 @@ const LearningFormats: React.FC = () => {
       wrapperClass: 'bg-[#eef2ff]',
       borderClass: 'border-[#d8e0f9]',
       content: (
-        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#d8e0f9] rounded-[20px] p-4 w-full max-w-[420px] flex flex-col h-[300px] overflow-hidden">
+        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#d8e0f9] rounded-[20px] p-4 w-full flex flex-col h-80 overflow-hidden">
           <div className="flex-1 min-h-0 rounded-[12px] overflow-hidden relative bg-lightgray">
             <div className="absolute inset-0 opacity-80">
               <img
@@ -215,7 +217,7 @@ const LearningFormats: React.FC = () => {
       wrapperClass: 'bg-[#eefaff]',
       borderClass: 'border-[#cfedfa]',
       content: (
-        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#cfedfa] rounded-[20px] p-4 w-full max-w-[420px] flex flex-col gap-5 h-[300px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#cfedfa] rounded-[20px] p-4 w-full flex flex-col gap-5 h-80 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {notesRows.map((row) => (
             <div
               key={row.title}
@@ -248,7 +250,7 @@ const LearningFormats: React.FC = () => {
       wrapperClass: 'bg-[#fff1ee]',
       borderClass: 'border-[#f5dbd6]',
       content: (
-        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#f5dbd6] rounded-[20px] p-4 w-full max-w-[420px] flex flex-col gap-3 sm:gap-5">
+        <div className="backdrop-blur-[17px] bg-[rgba(255,255,255,0.8)] border border-[#f5dbd6] rounded-[20px] p-4 w-full flex flex-col gap-3 sm:gap-5 h-80">
           <div className="border-b border-[rgba(8,22,39,0.1)] pb-3 sm:pb-5 flex flex-col gap-1 sm:gap-3">
             <div className="flex flex-col gap-2">
               <div className="flex gap-2.5 items-center">
@@ -270,7 +272,7 @@ const LearningFormats: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2 items-start">
-            <div className="border border-[#e8f1fc] rounded-[36px] size-[38px] shrink-0 overflow-hidden">
+            <div className="border border-[#e8f1fc] rounded-[36px] size-9.5 shrink-0 overflow-hidden">
               <img
                 src={imgAvatar}
                 alt=""
@@ -279,15 +281,15 @@ const LearningFormats: React.FC = () => {
             </div>
             <div className="flex flex-col gap-2.5 min-w-0 flex-1">
               <div className="flex gap-2 items-center flex-wrap">
-                <span className="font-medium text-xl text-lightgray leading-[1.2]">
+                <span className="font-medium text-base sm:text-xl text-lightgray leading-[120%]">
                   Abhishek Bajaj
                 </span>
-                <span className="size-[3px] rounded-full bg-lightgray/30 shrink-0" />
+                <span className="size-0.75 rounded-full bg-lightgray/30 shrink-0" />
                 <span className="text-xs text-lightgray/30 leading-[1.2]">
                   1h ago
                 </span>
               </div>
-              <p className="text-base font-normal text-lightgray leading-normal">
+              <p className="text-sm sm:text-base font-normal text-lightgray leading-[150%]">
                 The amount already received on forfeited shares is transferred
                 to the Share Forfeiture Account.
               </p>
@@ -299,18 +301,18 @@ const LearningFormats: React.FC = () => {
   ];
 
   return (
-    <section className="bg-white overflow-hidden home-section-y pt-0! max-lg:py-10!">
+    <section className="bg-white overflow-hidden">
       <div className="custom-container">
         <div className="flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-2 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
-          <div className="text-left max-sm:text-center max-w-180 4xl:max-w-183.75! flex flex-col text-lightgray">
+          <div className="text-left max-sm:text-center max-w-190 4xl:max-w-183.75! flex flex-col text-lightgray">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Why Commerce Virtual
             </p>
-            <h2 className="section-heading text-lightgray">
+            <h2 className="section-heading text-2xl md:text-5xl text-lightgray">
               Everything a Commerce Student Actually Needs.
             </h2>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => swiperRef.current?.slidePrev()}
@@ -329,35 +331,59 @@ const LearningFormats: React.FC = () => {
             </button>
           </div>
         </div>
-
-        <div className="relative">
+        {/* Mobile Grid View */}
+        <div className="sm:hidden grid grid-cols-1 gap-6 mb-8 p-2">
+          {cards.slice(0, 3).map((card) => (
+            <div key={card.id} className="flex flex-col gap-4">
+              <div
+                className={`${card.wrapperClass} rounded-3xl overflow-hidden relative flex items-center justify-center p-4 min-h-64 flex-shrink-0`}
+              >
+                {card.content}
+              </div>
+              <div className="flex flex-col gap-3 text-lightgray px-1">
+                <h3 className="text-xl font-semibold text-gray-900 leading-tight">
+                  {card.title}
+                </h3>
+                <p className="text-sm text-gray-900 font-normal leading-relaxed">
+                  {card.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Desktop Carousel View */}
+        <div className="hidden sm:block relative">
           <Swiper
             modules={[Navigation]}
             onBeforeInit={(swiper) => {
               swiperRef.current = swiper;
             }}
-            spaceBetween={16}
-            slidesPerView={1.1}
+            spaceBetween={80}
+            slidesPerView={3}
             speed={600}
             breakpoints={{
-              640: { slidesPerView: 1.2, spaceBetween: 16 },
-              768: { slidesPerView: 1.7, spaceBetween: 16 },
-              1024: { slidesPerView: 2.5, spaceBetween: 20 },
-              1280: { slidesPerView: 3.2, spaceBetween: 20 },
+              320: { slidesPerView: 1 },
+              768: { slidesPerView: 2 },
+              1280: { slidesPerView: 3 },
             }}
             className="w-full overflow-visible!"
           >
             {cards.map((card) => (
               <SwiperSlide key={card.id} className="h-auto!">
-                <div className="flex flex-col 4xl:gap-16! gap-4 lg:gap-10 w-full min-w-0">
+                <div
+                  className="flex flex-col gap-6 h-full"
+                  style={{ width: `${CARD_WIDTH}px` }}
+                >
                   <div
-                    className={`${card.wrapperClass} rounded-3xl overflow-hidden relative flex items-center justify-center px-3 4xl:py-6! py-4!`}
+                    className={`${card.wrapperClass} rounded-3xl overflow-hidden relative flex items-center justify-center p-4 min-h-72 flex-shrink-0`}
                   >
                     {card.content}
                   </div>
-                  <div className="flex flex-col 4xl:gap-3! gap-2! text-lightgray">
-                    <h3 className="score-text">{card.title}</h3>
-                    <p className="text-xs md:text-lg 4xl:text-xl font-normal leading-normal">
+                  <div className="flex flex-col gap-3 text-lightgray px-1">
+                    <h3 className="text-2xl font-semibold text-gray-900 leading-tight mt-6">
+                      {card.title}
+                    </h3>
+                    <p className="text-sm md:text-base text-gray-900 font-normal leading-relaxed">
                       {card.desc}
                     </p>
                   </div>

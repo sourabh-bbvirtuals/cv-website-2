@@ -1,19 +1,33 @@
 import React, { useState } from 'react';
-import { useNavigate } from '@remix-run/react';
-import { Search, ChevronDown, Menu, X, User } from 'lucide-react';
+import { useNavigate, useLocation } from '@remix-run/react';
+import {
+  Search,
+  ChevronDown,
+  Menu,
+  X,
+  User,
+  ShoppingBasket,
+  ShoppingCart,
+} from 'lucide-react';
 import BoardDropdown from './BoardDropdown';
 import { useRootLoader } from '~/utils/use-root-loader';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { activeCustomer: customerData } = useRootLoader();
   const isLoggedIn = !!customerData?.activeCustomer;
+  const isOurCoursesPage = location.pathname === '/our-courses';
 
   return (
-    <nav className="w-full py-1 sm:py-3 relative z-20">
+    <nav
+      className={`w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
+        isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
+      }`}
+    >
       <div className="absolute h-px w-full left-0 bg-[#0816271A] top-1/2 -translate-y-1/2"></div>
-      <div className="custom-container bg-white/50 backdrop-blur-[50px] rounded-full border border-[#E2E4E9] py-1 md:py-5.25 flex items-center justify-between">
+      <div className="custom-container backdrop-blur-[50px] rounded-full border border-[#E2E4E9] py-1 md:py-3.25 flex items-center justify-between bg-white/50">
         {/* Left Side: Logo & Desktop Nav */}
         <div className="flex items-center gap-4 xl:gap-15.75">
           <div className="shrink-0">
@@ -54,8 +68,12 @@ const Navbar = () => {
           </div>
 
           {/* Search Icon - Desktop */}
-          <button className="hidden xl:block p-2 text-lightgray hover:bg-gray-100 rounded-full transition-colors">
+          <button className="hidden xl:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors">
             <Search size={20} />
+          </button>
+
+          <button className="hidden xl:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors">
+            <ShoppingCart size={20} />
           </button>
 
           {/* Login - Desktop */}

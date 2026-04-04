@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link } from '@remix-run/react';
 import { Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { CourseCard } from '../new-homepage/CourseCard';
 
 // --- Types ---
 export type FeaturedCourse = {
@@ -159,95 +160,95 @@ const subjectOptions = subjectsList.filter((s) => s !== 'All Subjects');
 
 // --- Sub-components ---
 
-function CourseCard({ course }: { course: FeaturedCourse }) {
-  const detailTo = `/our-courses/${course.slug}`;
+// function CourseCard({ course }: { course: FeaturedCourse }) {
+//   const detailTo = `/our-courses/${course.slug}`;
 
-  return (
-    <Link
-      to={detailTo}
-      className="block h-full rounded-[20px] text-inherit no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2962ff] focus-visible:ring-offset-2"
-    >
-      <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[20px] overflow-hidden shadow-[0px_4px_8px_0px_rgba(0,0,0,0.03),0px_15px_15px_0px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-1">
-        <div className="p-[15px] pb-0 flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
-              {course.language}
-            </span>
-            <span
-              className={`flex items-center gap-1 rounded-full text-lightgray border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium ${course.type}`}
-            >
-              {course.type === 'Live' ? (
-                <span className="inline-block size-2 rounded-full bg-[#535150]" />
-              ) : (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                >
-                  <path
-                    d="M15.7356 4.5625C15.6559 4.51976 15.5661 4.49946 15.4757 4.50375C15.3853 4.50804 15.2978 4.53677 15.2225 4.58687L13 6.06563V4.5C13 4.23478 12.8946 3.98043 12.7071 3.79289C12.5196 3.60536 12.2652 3.5 12 3.5H2C1.73478 3.5 1.48043 3.60536 1.29289 3.79289C1.10536 3.98043 1 4.23478 1 4.5V11.5C1 11.7652 1.10536 12.0196 1.29289 12.2071C1.48043 12.3946 1.73478 12.5 2 12.5H12C12.2652 12.5 12.5196 12.3946 12.7071 12.2071C12.8946 12.0196 13 11.7652 13 11.5V9.9375L15.2225 11.4194C15.305 11.473 15.4016 11.501 15.5 11.5C15.6326 11.5 15.7598 11.4473 15.8536 11.3536C15.9473 11.2598 16 11.1326 16 11V5C15.9994 4.91004 15.9745 4.82191 15.9279 4.74491C15.8814 4.66791 15.815 4.60489 15.7356 4.5625ZM12 11.5H2V4.5H12V11.5ZM15 10.0656L13 8.7325V7.2675L15 5.9375V10.0656Z"
-                    fill="#081627"
-                  />
-                </svg>
-              )}
-              {course.type}
-            </span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="font-semibold text-xl text-lightgray leading-[120%] line-clamp-1">
-              {course.title}
-            </h3>
-          </div>
-        </div>
+//   return (
+//     <Link
+//       to={detailTo}
+//       className="block h-full rounded-[20px] text-inherit no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2962ff] focus-visible:ring-offset-2"
+//     >
+//       <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[20px] overflow-hidden shadow-[0px_4px_8px_0px_rgba(0,0,0,0.03),0px_15px_15px_0px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-1">
+//         <div className="p-[15px] pb-0 flex flex-col gap-3">
+//           <div className="flex flex-wrap items-center gap-2">
+//             <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+//               {course.language}
+//             </span>
+//             <span
+//               className={`flex items-center gap-1 rounded-full text-lightgray border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium ${course.type}`}
+//             >
+//               {course.type === 'Live' ? (
+//                 <span className="inline-block size-2 rounded-full bg-[#535150]" />
+//               ) : (
+//                 <svg
+//                   width="16"
+//                   height="16"
+//                   viewBox="0 0 16 16"
+//                   fill="none"
+//                   xmlns="http://www.w3.org/2000/svg"
+//                   aria-hidden
+//                 >
+//                   <path
+//                     d="M15.7356 4.5625C15.6559 4.51976 15.5661 4.49946 15.4757 4.50375C15.3853 4.50804 15.2978 4.53677 15.2225 4.58687L13 6.06563V4.5C13 4.23478 12.8946 3.98043 12.7071 3.79289C12.5196 3.60536 12.2652 3.5 12 3.5H2C1.73478 3.5 1.48043 3.60536 1.29289 3.79289C1.10536 3.98043 1 4.23478 1 4.5V11.5C1 11.7652 1.10536 12.0196 1.29289 12.2071C1.48043 12.3946 1.73478 12.5 2 12.5H12C12.2652 12.5 12.5196 12.3946 12.7071 12.2071C12.8946 12.0196 13 11.7652 13 11.5V9.9375L15.2225 11.4194C15.305 11.473 15.4016 11.501 15.5 11.5C15.6326 11.5 15.7598 11.4473 15.8536 11.3536C15.9473 11.2598 16 11.1326 16 11V5C15.9994 4.91004 15.9745 4.82191 15.9279 4.74491C15.8814 4.66791 15.815 4.60489 15.7356 4.5625ZM12 11.5H2V4.5H12V11.5ZM15 10.0656L13 8.7325V7.2675L15 5.9375V10.0656Z"
+//                     fill="#081627"
+//                   />
+//                 </svg>
+//               )}
+//               {course.type}
+//             </span>
+//           </div>
+//           <div className="flex flex-col gap-2">
+//             <h3 className="font-semibold text-xl text-lightgray leading-[120%] line-clamp-1">
+//               {course.title}
+//             </h3>
+//           </div>
+//         </div>
 
-        <div className="px-[15px] pt-3">
-          <div
-            className="relative h-[240px] rounded-2xl overflow-hidden"
-            style={{ backgroundColor: course.imageBg }}
-          >
-            <img
-              src={course.image}
-              alt={course.title}
-              className="absolute inset-0 h-full w-full object-cover object-top"
-            />
-            {course.badge && (
-              <div className="absolute left-3 top-3 flex items-center rounded-full border border-[rgba(8,22,39,0.1)] bg-white/80 backdrop-blur-sm px-3 py-1.5 shadow-sm">
-                <span className="text-sm font-semibold text-lightgray leading-[1.2]">
-                  {course.badge}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+//         <div className="px-[15px] pt-3">
+//           <div
+//             className="relative h-[240px] rounded-2xl overflow-hidden"
+//             style={{ backgroundColor: course.imageBg }}
+//           >
+//             <img
+//               src={course.image}
+//               alt={course.title}
+//               className="absolute inset-0 h-full w-full object-cover object-top"
+//             />
+//             {course.badge && (
+//               <div className="absolute left-3 top-3 flex items-center rounded-full border border-[rgba(8,22,39,0.1)] bg-white/80 backdrop-blur-sm px-3 py-1.5 shadow-sm">
+//                 <span className="text-sm font-semibold text-lightgray leading-[1.2]">
+//                   {course.badge}
+//                 </span>
+//               </div>
+//             )}
+//           </div>
+//         </div>
 
-        <div className="mt-4 border-t border-[rgba(8,22,39,0.1)] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 bg-white">
-          <div className="flex-1 space-y-2 sm:space-y-4 text-sm leading-[1.2] text-lightgray min-w-0 p-4 pb-0 sm:pb-4">
-            <div className="flex sm:gap-0.5 justify-between">
-              <span className="font-normal opacity-50 shrink-0">Starts on</span>
-              <span className="font-medium">{course.starts}</span>
-            </div>
-            <div className="flex sm:gap-0.5 justify-between">
-              <span className="font-normal opacity-50 shrink-0">Ends on</span>
-              <span className="font-medium">{course.ends}</span>
-            </div>
-          </div>
-          <div className="hidden sm:block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3 min-h-[60px]" />
-          <div className="flex items-center gap-2 sm:justify-end sm:min-w-[140px] pt-0 sm:pt-4 p-4 pl-4 sm:pl-0 sm:pb-4">
-            <span className="font-bold text-xl text-lightgray leading-[1.2]">
-              {course.price}
-            </span>
-            <span className="font-medium text-sm line-through text-lightgray/40 decoration-solid">
-              {course.wasPrice}
-            </span>
-          </div>
-        </div>
-      </article>
-    </Link>
-  );
-}
+//         <div className="mt-4 border-t border-[rgba(8,22,39,0.1)] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 bg-white">
+//           <div className="flex-1 space-y-2 sm:space-y-4 text-sm leading-[1.2] text-lightgray min-w-0 p-4 pb-0 sm:pb-4">
+//             <div className="flex sm:gap-0.5 justify-between">
+//               <span className="font-normal opacity-50 shrink-0">Starts on</span>
+//               <span className="font-medium">{course.starts}</span>
+//             </div>
+//             <div className="flex sm:gap-0.5 justify-between">
+//               <span className="font-normal opacity-50 shrink-0">Ends on</span>
+//               <span className="font-medium">{course.ends}</span>
+//             </div>
+//           </div>
+//           <div className="hidden sm:block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3 min-h-[60px]" />
+//           <div className="flex items-center gap-2 sm:justify-end sm:min-w-[140px] pt-0 sm:pt-4 p-4 pl-4 sm:pl-0 sm:pb-4">
+//             <span className="font-bold text-xl text-lightgray leading-[1.2]">
+//               {course.price}
+//             </span>
+//             <span className="font-medium text-sm line-through text-lightgray/40 decoration-solid">
+//               {course.wasPrice}
+//             </span>
+//           </div>
+//         </div>
+//       </article>
+//     </Link>
+//   );
+// }
 
 // Icons
 const ChevronDown = ({ isOpen }: { isOpen?: boolean }) => (
@@ -342,7 +343,7 @@ export default function CourseListings({
   );
 
   const getBtnClass = (isActive: boolean) =>
-    `flex items-center px-4 py-2.5 rounded-full border text-sm font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
+    `flex items-center px-4 py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
       isActive
         ? 'bg-lightgray text-white border-lightgray'
         : 'bg-white text-lightgray border-lightgray/10 hover:border-lightgray/30'
@@ -365,18 +366,18 @@ export default function CourseListings({
           className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-20 mb-8"
           ref={filterRef}
         >
-          <span className="font-semibold text-lightgray text-lg">
+          <span className="font-semibold text-lightgray text-2xl">
             {mappedCourses.length} Courses
           </span>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* SortBy Dropdown example */}
+            {/* SortBy Dropdown */}
             <div className="relative flex-1 sm:flex-none">
               <button
                 onClick={() => toggleModal('sort')}
                 className={getBtnClass(activeModal === 'sort')}
               >
-                Sort By: {selectedSort}{' '}
+                Sort By: <span className="font-semibold">{selectedSort}</span>
                 <ChevronDown isOpen={activeModal === 'sort'} />
               </button>
               {activeModal === 'sort' && (
@@ -409,9 +410,157 @@ export default function CourseListings({
               )}
             </div>
 
+            {/* Subjects Dropdown */}
+            <div className="relative flex-1 sm:flex-none">
+              <button
+                onClick={() => toggleModal('subjects')}
+                className={getBtnClass(activeModal === 'subjects')}
+              >
+                Subjects{' '}
+                {selectedSubjects.length > 0 && (
+                  <span className="font-semibold">
+                    ({selectedSubjects.length})
+                  </span>
+                )}{' '}
+                <ChevronDown isOpen={activeModal === 'subjects'} />
+              </button>
+              {activeModal === 'subjects' && (
+                <div
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {subjectOptions.map((subject) => (
+                    <button
+                      key={subject}
+                      onClick={() => {
+                        setSelectedSubjects((prev) =>
+                          prev.includes(subject)
+                            ? prev.filter((s) => s !== subject)
+                            : [...prev, subject],
+                        );
+                      }}
+                      className="w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray"
+                    >
+                      {subject}
+                      {selectedSubjects.includes(subject) && <CheckIcon />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Faculty Dropdown */}
+            <div className="relative flex-1 sm:flex-none">
+              <button
+                onClick={() => toggleModal('faculty')}
+                className={getBtnClass(activeModal === 'faculty')}
+              >
+                Faculty{' '}
+                {selectedFaculties.length > 0 && (
+                  <span className="font-semibold">
+                    ({selectedFaculties.length})
+                  </span>
+                )}{' '}
+                <ChevronDown isOpen={activeModal === 'faculty'} />
+              </button>
+              {activeModal === 'faculty' && (
+                <div
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0 max-h-[300px] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {facultyOptions.map((faculty) => (
+                    <button
+                      key={faculty}
+                      onClick={() => {
+                        setSelectedFaculties((prev) =>
+                          prev.includes(faculty)
+                            ? prev.filter((f) => f !== faculty)
+                            : [...prev, faculty],
+                        );
+                      }}
+                      className="w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray"
+                    >
+                      {faculty}
+                      {selectedFaculties.includes(faculty) && <CheckIcon />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Language Dropdown */}
+            <div className="relative flex-1 sm:flex-none">
+              <button
+                onClick={() => toggleModal('language')}
+                className={getBtnClass(activeModal === 'language')}
+              >
+                Language:{' '}
+                <span className="font-semibold">{selectedLanguage}</span>{' '}
+                <ChevronDown isOpen={activeModal === 'language'} />
+              </button>
+              {activeModal === 'language' && (
+                <div
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {['English', 'Hindi', 'Hinglish'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => {
+                        setSelectedLanguage(lang);
+                        setActiveModal(null);
+                      }}
+                      className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${
+                        selectedLanguage === lang
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Pricing Dropdown */}
+            <div className="relative flex-1 sm:flex-none">
+              <button
+                onClick={() => toggleModal('pricing')}
+                className={getBtnClass(activeModal === 'pricing')}
+              >
+                Pricing:{' '}
+                <span className="font-semibold">{selectedPricing}</span>{' '}
+                <ChevronDown isOpen={activeModal === 'pricing'} />
+              </button>
+              {activeModal === 'pricing' && (
+                <div
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {['All', 'Free', 'Paid'].map((price) => (
+                    <button
+                      key={price}
+                      onClick={() => {
+                        setSelectedPricing(price);
+                        setActiveModal(null);
+                      }}
+                      className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${
+                        selectedPricing === price
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
+                    >
+                      {price}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleResetFilters}
-              className="text-sm font-medium text-lightgray/60 hover:text-lightgray px-2 ml-2 transition-colors cursor-pointer"
+              className="text-base font-medium text-lightgray/60 hover:text-lightgray px-2 ml-2 transition-colors cursor-pointer"
             >
               Reset Filter
             </button>

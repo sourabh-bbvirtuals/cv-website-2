@@ -28,7 +28,7 @@ const Faq = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="custom-container home-section-y max-lg:py-10!">
+    <section className="custom-container">
       <div className="text-center mb-8 lg:mb-12 4xl:mb-16!">
         <p className="sm:text-xl font-medium text-lightgray mb-3 4xl:mb-4!">
           FAQs

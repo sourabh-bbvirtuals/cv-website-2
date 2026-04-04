@@ -17,12 +17,12 @@ const FAQSection: React.FC<FAQSectionProps> = ({ title, faqs }) => {
   if (!faqs || faqs.length === 0) return null;
 
   return (
-    <section className="custom-container home-section-y max-lg:py-10!">
+    <section className="custom-container">
       <div className="text-center mb-8 lg:mb-12 4xl:mb-16!">
         <p className="sm:text-xl font-medium text-lightgray mb-3 4xl:mb-4!">
           FAQs
         </p>
-        <h2 className="section-heading">{title || 'Common Questions'}</h2>
+        <h2 className="section-heading font-semibold">{'Common Questions'}</h2>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -51,12 +51,12 @@ const FAQSection: React.FC<FAQSectionProps> = ({ title, faqs }) => {
                 </div>
 
                 <div
-                  className={`shrink-0 w-9 h-9 rounded-full bg-[#F8F9FA] flex items-center justify-center transition-all duration-300 ${
+                  className={`shrink-0 w-7 h-7 md:w-9 md:h-9 rounded-full bg-[#F8F9FA] flex items-center justify-center transition-all duration-300 ${
                     isOpen ? 'rotate-90 bg-blue-50' : 'rotate-0'
                   }`}
                 >
                   <ChevronRight
-                    size={20}
+                    size={14}
                     className={`transition-colors duration-300 ${
                       isOpen ? 'text-blue-600' : 'text-lightgray'
                     }`}

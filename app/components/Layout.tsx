@@ -16,7 +16,7 @@ export default function Layout({ children, bare }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-ful">
+    <div className="min-h-full">
       {/* Header */}
       <header className="absolute top-0 left-0 right-0 z-50 px-3">
         {/* Top Header */}

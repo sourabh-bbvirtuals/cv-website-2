@@ -199,8 +199,8 @@ export default function App() {
         <link rel="icon" href="/favicon.ico" type="image/png"></link>
         <title>{title}</title>
       </head>
-      <body>
-        <main>
+      <body className="flex flex-col min-h-screen">
+        <main className="flex-1">
           <Outlet
             context={{
               activeOrderFetcher,

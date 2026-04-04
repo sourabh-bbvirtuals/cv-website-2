@@ -20,6 +20,7 @@ import {
 } from '~/context/BoardSelectionContext';
 
 import { API_URL } from '~/constants';
+import HowItWorks from '~/components/new-homepage/HowItWorks';
 
 function gqlFetch(query: string) {
   return fetch(API_URL, {
@@ -220,33 +221,55 @@ export default function Index() {
       boardOptions={boardOptions}
     >
       <Layout>
-        <Hero isLoggedIn={isLoggedIn} />
+        <div className="flex flex-col">
+          <Hero isLoggedIn={isLoggedIn} />
 
-        {homePageData?.teamSection?.members?.length > 0 ? (
-          <TeamSection
-            title={homePageData.teamSection.title}
-            members={homePageData.teamSection.members}
+          <div className="my-16 md:my-24 lg:my-20" />
+
+          {homePageData?.teamSection?.members?.length > 0 ? (
+            <TeamSection
+              title={homePageData.teamSection.title}
+              members={homePageData.teamSection.members}
+            />
+          ) : (
+            <OurTeam />
+          )}
+
+          <div className="my-16 md:my-24 lg:my-20" />
+
+          <LearningFormats />
+
+          <div className="my-16 md:my-24 lg:my-20" />
+
+          <HowItWorks />
+
+          <div className="my-16 md:my-24 lg:my-20" />
+
+          <FeaturedCourses courses={featuredCourses} />
+
+          <div className="my-16 md:my-24 lg:my-20" />
+
+          <FreeResources />
+
+          <div className="my-16 md:my-24 lg:my-20" />
+
+          <Testimonials
+            title={homePageData?.testimonialSection?.title}
+            testimonials={homePageData?.testimonialSection?.testimonials}
           />
-        ) : (
-          <OurTeam />
-        )}
 
-        <LearningFormats />
-        <FeaturedCourses courses={featuredCourses} />
-        <FreeResources />
-        <Testimonials
-          title={homePageData?.testimonialSection?.title}
-          testimonials={homePageData?.testimonialSection?.testimonials}
-        />
+          <div className="my-16 md:my-24 lg:my-20" />
 
-        {homePageData?.faqSection?.faqs?.length > 0 ? (
-          <FAQSection
-            title={homePageData.faqSection.title}
-            faqs={homePageData.faqSection.faqs}
-          />
-        ) : (
-          <Faq />
-        )}
+          {homePageData?.faqSection?.faqs?.length > 0 ? (
+            <FAQSection
+              title={homePageData.faqSection.title}
+              faqs={homePageData.faqSection.faqs}
+            />
+          ) : (
+            <Faq />
+          )}
+          <div className="my-16 md:my-24 lg:my-20" />
+        </div>
       </Layout>
     </BoardSelectionProvider>
   );

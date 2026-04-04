@@ -32,21 +32,28 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="w-full pt-10 lg:pt-25 bg-[linear-gradient(360deg,#0272FF_0%,rgba(2,114,255,0.2)_20%,rgba(255,255,255,0)_100%)]">
+    <footer
+      className="w-full pt-10 lg:pt-25"
+      style={{
+        background:
+          'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 255, 0) 70%)',
+      }}
+    >
       {/* 1. Main Footer Wrapper with Bottom-to-Top Gradient */}
       <div className="w-full bg-transparent">
         {/* CTA Section */}
         <div className="px-4 text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-lightgray mb-2 md:mb-4">
+          <h2 className="text-2xl md:text-3xl font-semibold text-lightgray mb-2 md:mb-4">
             Call us Directly for Purchase Related Queries
           </h2>
-          <p className="text-lightgray/50 max-w-143.75 mx-auto mb-6 lg:mb-9 text-sm md:text-base leading-[120%]">
+          <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
             Get instant assistance from our team for any purchase-related
-            questions. We're here to help you make the right decision, faster.
+            questions. <br />
+            We're here to help you make the right decision, faster.
           </p>
           <a
             href="tel:8272332948"
-            className="inline-flex items-center gap-2 primary-btn font-medium py-3 md:py-4 px-4 md:px-6 md:text-xl leading-[120%]!"
+            className="inline-flex items-center text-base gap-2 primary-btn font-normal md:font-medium py-3 md:py-4 px-14 md:px-6 md:text-xl leading-[120%]!"
           >
             <Phone size={20} fill="currentColor" />
             Call Now (827-233-2948)
@@ -54,16 +61,23 @@ const Footer = () => {
         </div>
 
         {/* 2. Watermark Text Container */}
-        <div className="relative flex justify-center items-center px-4">
+        <div className="relative flex justify-center items-center px-4 mt-4">
           <h2
-            className="text-5xl md:text-[80px] 2xl:text-[100px] 4xl:text-[112px]! relative z-10
-            font-black tracking-widest text-center leading-[120%]
-            /* Figma Text Gradient */
-            bg-[linear-gradient(180deg,rgba(61,147,255,0.4)_0%,rgba(255,255,255,0)_91.39%)] 
+            className="text-[40px] md:text-[150px] relative z-10
+            font-semibold text-center leading-[120%]
             bg-clip-text text-transparent
             select-none -mb-6
-          
           "
+            style={{
+              fontFamily: 'Geist, sans-serif',
+              letterSpacing: '-3%',
+              lineHeight: '120%',
+              background:
+                'linear-gradient(180deg, rgba(61, 147, 255, 0.15) 0%, rgba(61, 147, 255, 0.10) 35%, rgba(61, 147, 255, 0.06) 65%, rgba(61, 147, 255, 0.02) 95%, rgba(255, 255, 255, 0) 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
           >
             Commerce Virtual
           </h2>
@@ -75,7 +89,7 @@ const Footer = () => {
           flex-col lg:flex-row "
           >
             {/* Logo & Socials */}
-            <div className="flex flex-col gap-6 shrink-0">
+            <div className="flex flex-col gap-6 shrink-0 mt-2 md:mt-0">
               <a href="/">
                 <img src="/assets/logo.png" alt="Logo" className="w-55" />
               </a>
@@ -84,7 +98,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={href}
-                    className="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-[#BAC2CB] hover:text-blue-500 transition-colors border border-gray-100"
+                    className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-[#BAC2CB] hover:text-blue-500 transition-colors border border-gray-100"
                   >
                     <Icon size={20} />
                   </a>
@@ -99,7 +113,7 @@ const Footer = () => {
                   key={section.title}
                   className={`${index === 0 ? 'xl:w-62.5' : 'w-auto'}`}
                 >
-                  <h3 className="font-bold text-lightgray mb-2 sm:mb-4.25">
+                  <h3 className="font-bold text-gray-700 mb-2 sm:mb-4.25">
                     {section.title}
                   </h3>
                   <ul className="flex flex-col gap-2">

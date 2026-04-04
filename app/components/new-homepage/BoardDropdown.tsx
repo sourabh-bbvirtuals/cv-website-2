@@ -38,7 +38,7 @@ const BoardDropdown = ({ isMobile = false }) => {
       {!isMobile ? (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 border relative z-20 border-gray-200 rounded-full px-5 py-[11px] text-[#081627] text-base font-medium hover:bg-gray-50 transition-all active:scale-95"
+          className="flex items-center gap-2 border relative z-20 border-gray-200 rounded-full px-5 py-[11px] text-[#081627] text-base font-medium bg-white hover:bg-gray-50 transition-all active:scale-95"
         >
           <span>{selected.class}</span>
           <span className="text-gray-300 mx-1">&bull;</span>

@@ -51,12 +51,12 @@ const Testimonials = ({
   const [isPaused, setIsPaused] = useState(false);
 
   return (
-    <section className="custom-container home-section-y max-lg:py-10!">
+    <section className="custom-container">
       <div className="text-center mb-8 lg:mb-12 4xl:mb-16!">
         <p className="sm:text-xl font-medium text-lightgray mb-3 4xl:mb-4!">
           Testimonials
         </p>
-        <h2 className="section-heading font-bold text-lightgray">
+        <h2 className="section-heading font-semibold text-lightgray">
           {title || 'What Our Students say'}
         </h2>
       </div>

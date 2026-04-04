@@ -14,20 +14,14 @@ export type FeaturedCourse = {
   language?: string;
   type?: string;
 };
-export function CourseCard({
-  course,
-  isAlternate,
-}: {
-  course: FeaturedCourse;
-  isAlternate: boolean;
-}) {
+export function CourseCard({ course }: { course: FeaturedCourse }) {
   const isPrimary = course.id === '1';
 
   return (
-    <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[20px] overflow-hidden shadow-[0px_4px_8px_0px_rgba(0,0,0,0.03),0px_15px_15px_0px_rgba(0,0,0,0.02)]">
+    <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] overflow-hidden shadow-[0px_4px_8px_0px_rgba(0,0,0,0.03),0px_15px_15px_0px_rgba(0,0,0,0.02)]">
       {/* Top Header */}
       <div className="flex flex-col justify-between h-full">
-        <div className="p-[15px] pb-0 flex flex-col gap-3">
+        <div className="p-[15px] pb-0 flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
               {course.language || 'Hindi'}
@@ -56,16 +50,16 @@ export function CourseCard({
               </span>
             )}
           </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="font-semibold text-xl text-lightgray leading-[150%]">
+          <div className="flex flex-col gap-2 mb-2">
+            <h3 className="font-semibold text-base  md:text-xl text-lightgray leading-[150%]">
               {course.title}
             </h3>
           </div>
         </div>
 
         {/* Image Container with Original Primary Logic */}
-        <div className="px-[15px] pt-3">
-          <div className="relative h-[240px] rounded-2xl bg-[#faeae5] overflow-hidden">
+        <div className="px-[15px] pb-3">
+          <div className="relative h-[240px] rounded-2xl bg-[#faeae5] overflow-hidden mb-0">
             {isPrimary ? (
               <img
                 src={course.image}
@@ -91,20 +85,28 @@ export function CourseCard({
       </div>
 
       {/* Pricing & Info Table Style */}
-      <div className="mt-4 border-t border-[rgba(8,22,39,0.1)] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
-        <div className="flex-1 space-y-2 sm:space-y-4 text-sm leading-[1.2] text-lightgray min-w-0 p-4 pb-0 sm:pb-4">
-          <div className="flex sm:ap-0.5 justify-between">
-            <span className="font-normal opacity-50 shrink-0">Starts on</span>
-            <span className="font-medium">{course.starts}</span>
+      <div className="border-t border-[rgba(8,22,39,0.1)] flex flex-row items-center gap-0">
+        <div className="flex-1 space-y-2 text-sm leading-[1.2] text-lightgray min-w-0 px-2 sm:px-4 sm:py-3">
+          <div className="flex gap-0.5 justify-between">
+            <span className="font-normal text-xs sm:text-sm opacity-50 shrink-0">
+              Starts on
+            </span>
+            <span className="font-medium  text-xs sm:text-sm">
+              {course.starts}
+            </span>
           </div>
-          <div className="flex sm:gap-0.5 justify-between">
-            <span className="font-normal opacity-50 shrink-0">Ends on</span>
-            <span className="font-medium">{course.ends}</span>
+          <div className="flex gap-0.5 justify-between">
+            <span className="font-normal  text-xs sm:text-sm opacity-50 shrink-0">
+              Ends on
+            </span>
+            <span className="font-medium text-xs sm:text-sm">
+              {course.ends}
+            </span>
           </div>
         </div>
-        <div className="hidden sm:block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3" />
-        <div className="flex items-center gap-2 sm:justify-end sm:min-w-[140px] pt-0 sm:pt-4 p-4 pl-4 sm:pl-0 sm:pb-4">
-          <span className="font-bold text-xl text-lightgray leading-[1.2]">
+        <div className="block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3" />
+        <div className="flex flex-col sm:flex-row items-center gap-1 justify-end min-w-[140px] p-1 sm:p-2 pl-0 pb-2 sm:pb-4">
+          <span className="font-bold text-base sm:text-xl text-lightgray leading-[1.2]">
             {course.price}
           </span>
           <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
