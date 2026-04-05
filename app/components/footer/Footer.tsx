@@ -33,14 +33,14 @@ const Footer = () => {
 
   return (
     <footer
-      className="w-full pt-10 lg:pt-25"
+      className="w-full bg-[#f7f8ff]  pt-10 lg:pt-25 "
       style={{
         background:
-          'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 255, 0) 70%)',
+          'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 0, 0) )',
       }}
     >
       {/* 1. Main Footer Wrapper with Bottom-to-Top Gradient */}
-      <div className="w-full bg-transparent">
+      <div className="w-full ">
         {/* CTA Section */}
         <div className="px-4 text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-semibold text-lightgray mb-2 md:mb-4">

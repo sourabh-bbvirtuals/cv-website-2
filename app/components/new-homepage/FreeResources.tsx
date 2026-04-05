@@ -23,7 +23,7 @@ const FreeResources = () => {
     {
       title: 'Study Notes',
       desc: '240+ PDFs',
-      icon: <StudyNotesIcon />,
+      icon: <StudyNotesIcon classname="max-w-12 md:max-w-18" />,
       bgColor: 'bg-[#EEF2FF]',
     },
     {

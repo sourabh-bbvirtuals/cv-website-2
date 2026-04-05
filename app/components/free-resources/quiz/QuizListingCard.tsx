@@ -8,7 +8,19 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
   const metaParts = card.metaLine.split(/\s*[•·]\s*/);
 
   return (
-    <article className="relative flex min-h-[260px] flex-col overflow-hidden rounded-2xl bg-white p-6 ring-1 ring-[rgba(8,22,39,0.06)]">
+    <article
+      className="relative flex min-h-[260px] flex-col rounded-2xl p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
+      style={{
+        backgroundColor: attempted ? '#FFFFFF80' : 'white',
+        width: '426.6666564941406px',
+      }}
+    >
+      {attempted ? (
+        <div className="absolute top-0 right-6 -translate-y-1/2 text-center border py-1 px-2 max-w-max rounded-full border-white bg-[#F7F8FF] text-sm md:text-base font-medium text-lightgray/50">
+          Previously attempted: 24/30
+        </div>
+      ) : null}
+
       <div className="flex w-full min-w-0 flex-col gap-5">
         <div className="flex flex-wrap items-center gap-2 text-sm lg:text-base">
           <div
@@ -32,10 +44,10 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
         </div>
 
         <div className="flex w-full min-w-0 flex-col gap-3">
-          <h2 className="line-clamp-1 text-xl font-medium tracking-[-0.24px] text-lightgray lg:text-2xl">
+          <h2 className="line-clamp-1 text-xl font-medium tracking-[-0.24px] text-lightgray">
             {card.title}
           </h2>
-          <div className="flex min-w-0 items-center gap-2 text-sm font-normal leading-normal text-lightgray/80 lg:text-base">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-medium leading-normal text-lightgray/50 lg:text-base">
             {metaParts.map((part, i) => (
               <div
                 key={`${card.slug}-${part}-${i}`}

@@ -165,7 +165,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 </div>
 
                 {/* Headline */}
-                <h1 className="text-3xl xl:text-[64px] font-semibold leading-[100%]">
+                <h1 className="text-3xl xl:text-[64px] font-semibold tracking-[-0.03em]">
                   Commerce made <br className="max-sm:hidden" /> clear.
                 </h1>
 
@@ -248,7 +248,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   '0px 4px 10px 0px #A7B2E236, 0px 18px 18px 0px #A7B2E230, 0px 40px 24px 0px #A7B2E21C, 0px 70px 28px 0px #A7B2E208, 0px 110px 31px 0px #A7B2E200',
               }}
             >
-              <h3 className="text-xl md:text-3xl leading-[120%] font-medium text-lightgray mb-4 lg:mb-6 4xl:mb-9!">
+              <h3 className="text-xl md:text-3xl leading-[120%] tracking-[-0.01em] font-medium text-lightgray mb-4 lg:mb-6 4xl:mb-9!">
                 What are you studying?
               </h3>
               <form className="grow flex flex-col" onSubmit={handleSubmit}>

@@ -15,10 +15,10 @@ export const SliderArrow = () => {
   );
 };
 
-export const StudyNotesIcon = () => {
+export const StudyNotesIcon = ({ classname }: { classname?: string }) => {
   return (
     <svg
-      className="max-w-6 sm:max-w-16 xl:max-w-none h-auto"
+      className={classname}
       width="76"
       height="89"
       viewBox="0 0 76 89"
@@ -160,7 +160,7 @@ export const PastPapersIcon = () => {
 export const QuizzesIcon = () => {
   return (
     <svg
-      className="max-w-10 sm:max-w-16 xl:max-w-none h-auto"
+      className="max-w-none h-auto"
       width="130"
       height="130"
       viewBox="0 0 130 130"
@@ -332,7 +332,7 @@ export const FormulaCardsIcon = () => {
 export const FreeVideosIcon = () => {
   return (
     <svg
-      className="max-w-10 sm:max-w-16 xl:max-w-none h-auto"
+      className="max-w-none h-auto"
       width="126"
       height="123"
       viewBox="0 0 126 123"

@@ -66,7 +66,7 @@ const TapExpandArrow = ({ className }: { className?: string }) => (
   >
     <path
       d="M7.27866 16.0291C7.22002 16.0877 7.18708 16.1672 7.18708 16.2502C7.18708 16.3331 7.22002 16.4126 7.27866 16.4713C7.3373 16.5299 7.41683 16.5628 7.49975 16.5628C7.58268 16.5628 7.66221 16.5299 7.72085 16.4713L13.9708 10.2213C13.9999 10.1922 14.023 10.1578 14.0387 10.1198C14.0544 10.0819 14.0625 10.0412 14.0625 10.0002C14.0625 9.95911 14.0544 9.91844 14.0387 9.88051C14.023 9.84257 13.9999 9.8081 13.9708 9.77908L7.72085 3.52908C7.69181 3.50005 7.65734 3.47701 7.61941 3.4613C7.58147 3.44559 7.54082 3.4375 7.49975 3.4375C7.45869 3.4375 7.41803 3.44559 7.3801 3.4613C7.34216 3.47701 7.30769 3.50005 7.27866 3.52908C7.24963 3.55811 7.22659 3.59258 7.21088 3.63052C7.19517 3.66845 7.18708 3.70911 7.18708 3.75017C7.18708 3.79123 7.19517 3.83189 7.21088 3.86983C7.22659 3.90776 7.24963 3.94223 7.27866 3.97127L13.3076 10.0002L7.27866 16.0291Z"
-      fill="#3A6BFC"
+      fill="currentColor"
     />
   </svg>
 );
@@ -91,7 +91,7 @@ const TAB_PATH_BY_ID: Record<TabId, string> = {
 const resources = [
   {
     title: 'Study Notes',
-    icon: <StudyNotesIcon />,
+    icon: <StudyNotesIcon classname="max-w-6" />,
     bgColor: 'bg-[#EEF2FF]',
   },
   {
@@ -149,7 +149,7 @@ const TABS: Array<{
     id: 'notes',
     label: 'Study Notes',
     count: 42,
-    borderActive: 'border-[#9caaf0]',
+    borderActive: 'border-[#B9C9FF]',
     iconWrap: 'bg-[#eef2ff]',
     icon: resources[0].icon,
   },
@@ -191,6 +191,7 @@ type ResourceCard = {
   subject: SubjectPill;
   board: string;
   title: string;
+  chapter: number;
   /** Past Papers / mock listing — one line, bullets (Figma) */
   meta: string;
 };
@@ -199,6 +200,7 @@ type StudyNoteCard = {
   subject: SubjectPill;
   board: string;
   title: string;
+  chapter: number;
   metaLeft: string;
   metaRight: string;
   year: string;
@@ -208,6 +210,7 @@ type FormulaCard = {
   subject: SubjectPill;
   board: string;
   title: string;
+  chapter: number;
   formula: string;
   gradient: string;
   detail?: string;
@@ -223,6 +226,7 @@ const RESOURCE_CARDS: ResourceCard[] = [
       text: 'text-[#1764d4]',
     },
     board: 'CBSE',
+    chapter: 1,
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
   },
@@ -235,6 +239,7 @@ const RESOURCE_CARDS: ResourceCard[] = [
       text: 'text-[#6b7c5e]',
     },
     board: 'MH Board',
+    chapter: 1,
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
   },
@@ -246,6 +251,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(107,124,94,0.1)]',
       text: 'text-[#6b7c5e]',
     },
+    chapter: 1,
+
     board: 'MH Board',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -258,6 +265,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(186,117,23,0.1)]',
       text: 'text-[#ba7517]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -270,6 +279,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(11,175,126,0.1)]',
       text: 'text-[#0baf7e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -282,6 +293,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(123,54,236,0.1)]',
       text: 'text-[#7b36ec]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -294,6 +307,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(107,124,94,0.1)]',
       text: 'text-[#6b7c5e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -306,6 +321,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(74,111,165,0.1)]',
       text: 'text-[#4a6fa5]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -318,6 +335,8 @@ const RESOURCE_CARDS: ResourceCard[] = [
       border: 'border-[rgba(224,72,72,0.1)]',
       text: 'text-[#e04848]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: '2025 Set 1 (651/1)',
     meta: '32 Questions • 80 Marks • 180 Minutes',
@@ -333,6 +352,7 @@ const FORMULA_CARDS: FormulaCard[] = [
       border: 'border-[rgba(23,100,212,0.1)]',
       text: 'text-[#1764d4]',
     },
+    chapter: 1,
     board: 'CBSE',
     title: 'Gross Profit Ratio',
     formula: 'GP Ratio =\n(Gross Profit/Net Sales) X 100',
@@ -348,6 +368,8 @@ const FORMULA_CARDS: FormulaCard[] = [
       border: 'border-[rgba(11,175,126,0.1)]',
       text: 'text-[#0baf7e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'Net Profit Ratio',
     formula: 'NP Ratio =\n(Net Profit/Net Sales) X 100',
@@ -364,6 +386,8 @@ const FORMULA_CARDS: FormulaCard[] = [
       border: 'border-[rgba(74,111,165,0.1)]',
       text: 'text-[#4a6fa5]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'GDP at Market Price',
     formula: 'GP Ratio =\n(Gross Profit/Net Sales) X 100',
@@ -380,6 +404,8 @@ const FORMULA_CARDS: FormulaCard[] = [
       border: 'border-[rgba(23,100,212,0.1)]',
       text: 'text-[#1764d4]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'Return on Investment',
     formula: 'ROI =\n(Net Profit/Cost of Investment) X 100',
@@ -396,6 +422,8 @@ const FORMULA_CARDS: FormulaCard[] = [
       border: 'border-[rgba(11,175,126,0.1)]',
       text: 'text-[#0baf7e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'Standard Deviation',
     formula: 'SD = √(Σ(Xi - μ)²/N)',
@@ -413,6 +441,7 @@ const FORMULA_CARDS: FormulaCard[] = [
       text: 'text-[#4a6fa5]',
     },
     board: 'CBSE',
+    chapter: 1,
     title: 'GDP at Market Price',
     formula: 'GP Ratio =\n(Gross Profit/Net Sales) X 100',
     gradient:
@@ -431,6 +460,8 @@ const STUDY_NOTES_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(23,100,212,0.1)]',
       text: 'text-[#1764d4]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'CBSE 2023 — Accountancy',
     metaLeft: 'Set 1 (65/1/1)',
@@ -445,6 +476,8 @@ const STUDY_NOTES_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(107,124,94,0.1)]',
       text: 'text-[#6b7c5e]',
     },
+    chapter: 1,
+
     board: 'MH Board',
     title: 'CBSE 2024 — Economics',
     metaLeft: 'Set 1 (65/1/1)',
@@ -459,6 +492,8 @@ const STUDY_NOTES_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(107,124,94,0.1)]',
       text: 'text-[#6b7c5e]',
     },
+    chapter: 1,
+
     board: 'MH Board',
     title: 'MH Board 2024 — Book-keeping & Acc.',
     metaLeft: 'Full syllabus',
@@ -473,6 +508,8 @@ const STUDY_NOTES_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(186,117,23,0.1)]',
       text: 'text-[#ba7517]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'CBSE 2024 — Business Studies',
     metaLeft: 'Set 1 (65/1/1)',
@@ -487,6 +524,8 @@ const STUDY_NOTES_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(11,175,126,0.1)]',
       text: 'text-[#0baf7e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'CBSE 2023 — Economics',
     metaLeft: 'Set 1 (65/1/1)',
@@ -501,6 +540,8 @@ const STUDY_NOTES_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(123,54,236,0.1)]',
       text: 'text-[#7b36ec]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'OCM 2025 — Ratio Analysis',
     metaLeft: '18 pages',
@@ -519,6 +560,8 @@ const PAST_PAPER_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(23,100,212,0.1)]',
       text: 'text-[#1764d4]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'CBSE 2024 — Accountancy',
     metaLeft: 'Set 1 (65/1/1)',
@@ -533,6 +576,8 @@ const PAST_PAPER_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(107,124,94,0.1)]',
       text: 'text-[#6b7c5e]',
     },
+    chapter: 1,
+
     board: 'MH Board',
     title: 'CBSE 2023 — Accountancy',
     metaLeft: 'Set 1 (65/1/1)',
@@ -547,6 +592,8 @@ const PAST_PAPER_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(107,124,94,0.1)]',
       text: 'text-[#6b7c5e]',
     },
+    chapter: 1,
+
     board: 'MH Board',
     title: 'CBSE 2024 — Economics',
     metaLeft: 'Set 1 (65/1/1)',
@@ -561,6 +608,8 @@ const PAST_PAPER_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(186,117,23,0.1)]',
       text: 'text-[#ba7517]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'CBSE 2023 — Economics',
     metaLeft: 'Set 1 (65/1/1)',
@@ -575,6 +624,8 @@ const PAST_PAPER_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(11,175,126,0.1)]',
       text: 'text-[#0baf7e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'CBSE 2024 — Business Studies',
     metaLeft: 'Set 1 (65/1/1)',
@@ -589,6 +640,8 @@ const PAST_PAPER_CARDS: StudyNoteCard[] = [
       border: 'border-[rgba(123,54,236,0.1)]',
       text: 'text-[#7b36ec]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'MH Board 2024 — Book-keeping & Acc.',
     metaLeft: 'Set 1 (65/1/1)',
@@ -605,6 +658,7 @@ const DEMO_VIDEO_HANDOUT_PATH = '/free-resources/video-handout-sample.txt';
 type FreeVideoCard = {
   subject: SubjectPill;
   board: string;
+  chapter: number;
   title: string;
   durationLabel: string;
   durationMinutes: number;
@@ -657,6 +711,7 @@ const FREE_VIDEO_CARDS: FreeVideoCard[] = [
   {
     subject: SUBJ_MATHEMATICS,
     board: 'ICSE',
+    chapter: 1,
     title:
       'ICSE Class 10 Mathematics — Complete Revision: Algebra, Geometry & Statistics',
     durationLabel: '45:30',
@@ -674,6 +729,8 @@ const FREE_VIDEO_CARDS: FreeVideoCard[] = [
       border: 'border-[rgba(23,100,212,0.1)]',
       text: 'text-[#1764d4]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title:
       'Past Year Board Papers — Accountancy (Set-wise solutions walkthrough)',
@@ -692,6 +749,8 @@ const FREE_VIDEO_CARDS: FreeVideoCard[] = [
       border: 'border-[rgba(23,100,212,0.1)]',
       text: 'text-[#1764d4]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'Partnership Accounts — Admission of a Partner (Numericals)',
     durationLabel: '28:10',
@@ -704,6 +763,7 @@ const FREE_VIDEO_CARDS: FreeVideoCard[] = [
   {
     subject: SUBJ_PHYSICS,
     board: 'IB',
+    chapter: 1,
     title: 'IB Physics — Practice Papers & Marking Scheme Overview',
     durationLabel: '50:15',
     durationMinutes: 50.25,
@@ -715,6 +775,8 @@ const FREE_VIDEO_CARDS: FreeVideoCard[] = [
   {
     subject: SUBJ_MATHEMATICS,
     board: 'CBSE',
+    chapter: 1,
+
     title: 'CBSE Class 12 — Calculus: Application of Derivatives (PYQs)',
     durationLabel: '62:00',
     durationMinutes: 62,
@@ -731,6 +793,8 @@ const FREE_VIDEO_CARDS: FreeVideoCard[] = [
       border: 'border-[rgba(11,175,126,0.1)]',
       text: 'text-[#0baf7e]',
     },
+    chapter: 1,
+
     board: 'CBSE',
     title: 'National Income & Related Aggregates — One-shot revision',
     durationLabel: '38:45',
@@ -782,6 +846,8 @@ const CHAPTER_OPTIONS = [
 ];
 
 const YEAR_OPTIONS = ['All Years', '2023', '2024', '2025'];
+
+const BOARD_OPTIONS = ['All Boards', 'CBSE', 'MH Board'];
 
 const DURATION_OPTIONS = [
   'All Duration',
@@ -893,6 +959,7 @@ function FreeVideoListingCard({
   subject,
   board,
   title,
+  chapter,
   durationLabel,
   thumbSrc,
   youtubeId,
@@ -903,6 +970,7 @@ function FreeVideoListingCard({
   subject: SubjectPill;
   board: string;
   title: string;
+  chapter: number;
   durationLabel: string;
   thumbSrc: string;
   youtubeId?: string;
@@ -914,7 +982,7 @@ function FreeVideoListingCard({
   const canDownload = Boolean(downloadUrl);
 
   return (
-    <article className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ring-1 ring-[rgba(8,22,39,0.06)]">
+    <article className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ">
       <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#081627]">
         <button
           type="button"
@@ -931,19 +999,15 @@ function FreeVideoListingCard({
             className="absolute inset-0 size-full object-cover opacity-90"
           />
           <div className="absolute inset-0 bg-[#081627]/25" aria-hidden />
-          <div className="absolute left-1/2 top-1/2 flex size-[62px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[1.73px] border-white bg-[rgba(8,22,39,0.12)] backdrop-blur-[9px]">
-            <Play
-              className="ml-0.5 size-7 shrink-0 fill-white text-white"
-              strokeWidth={0}
-              aria-hidden
-            />
+          <div className="absolute left-1/2 top-1/2 flex size-[48px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-400 bg-gray-500">
+            <Play fill="#FFFFFF" className="text-white w-5" />
           </div>
-          <div className="pointer-events-none absolute bottom-2.5 right-2.5 rounded-full border border-white/15 bg-white/15 px-2.5 py-1 text-sm font-medium leading-[150%] text-white backdrop-blur-[17px] sm:text-base sm:leading-[150%]">
+          <div className="pointer-events-none absolute bottom-2.5 right-2.5 rounded-full border border-white/15 bg-white/15 px-2 py-1 text-sm font-medium leading-[150%] text-white backdrop-blur-[17px] sm:text-base sm:leading-[150%]">
             {durationLabel}
           </div>
         </button>
       </div>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
           <div
             className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
@@ -955,7 +1019,10 @@ function FreeVideoListingCard({
             {board}
           </div>
         </div>
-        <h2 className="line-clamp-2 text-xl font-medium leading-[150%] tracking-[-0.24px] text-lightgray lg:text-2xl lg:leading-[150%]">
+        <p className="text-sm font-medium text-lightgray/50">
+          CHAPTER {chapter}
+        </p>
+        <h2 className="line-clamp-2 text-xl font-medium leading-[150%] tracking-[-0.24px] text-lightgray lg:leading-[150%]">
           {title}
         </h2>
       </div>
@@ -980,7 +1047,7 @@ function FreeVideoListingCard({
             downloadUrl &&
             triggerBrowserDownload(downloadUrl, downloadFilename ?? 'download')
           }
-          className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
+          className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-sm font-medium leading-[150%] text-gray-700 transition-colors lg:text-base lg:leading-[150%] ${
             canDownload
               ? 'hover:bg-[rgba(58,107,252,0.06)]'
               : 'cursor-not-allowed opacity-50'
@@ -996,17 +1063,21 @@ function FreeVideoListingCard({
 
 /** Tag row matches Formula Cards grid: subject `rounded-full`, board `rounded` + border, `text-sm lg:text-base`. */
 function FigmaListingCard({
+  tab,
   subject,
   board,
   title,
+  chapter,
   metaLine,
   metaLeft,
   metaRight,
   footer,
 }: {
+  tab: string;
   subject: SubjectPill;
   board: string;
   title: string;
+  chapter: number;
   footer: React.ReactNode;
   /** Mock / Quizzes / Free Videos — one line (not used on Past Papers tab; see PAST_PAPER_CARDS). */
   metaLine?: string;
@@ -1022,22 +1093,22 @@ function FigmaListingCard({
       />
     ) : (
       <div className="flex min-w-0 items-center gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
-        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/80">
+        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/50">
           {metaLeft!}
         </span>
         <span className={metaSepDotClass} aria-hidden />
-        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/80">
+        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/50">
           {metaRight!}
         </span>
       </div>
     );
 
   return (
-    <article className="flex h-[260px] flex-col justify-between overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ring-1 ring-[rgba(8,22,39,0.06)]">
+    <article className="flex flex-col justify-between overflow-hidden gap-16 rounded-2xl bg-white py-5 ring-1 ring-[rgba(8,22,39,0.06)]">
       <div className="flex w-full min-w-0 flex-col gap-5">
-        <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
+        <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-6 lg:text-base lg:leading-[150%]">
           <div
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
+            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
           >
             <span className={`size-2 shrink-0 rounded-full ${subject.dot}`} />
             {subject.label}
@@ -1046,8 +1117,11 @@ function FigmaListingCard({
             {board}
           </div>
         </div>
-        <div className="flex w-full min-w-0 flex-col gap-3">
-          <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:text-2xl lg:leading-[150%]">
+        <div className="flex w-full min-w-0 flex-col gap-3 px-6">
+          <p className="text-sm font-medium text-lightgray/50">
+            CHAPTER {chapter}
+          </p>
+          <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
             {title}
           </h2>
           {metaBlock}
@@ -1107,7 +1181,7 @@ function PillSelect({
         />
         <div
           role="listbox"
-          className="scrollbar-hide fixed z-1001 flex w-max max-h-60 min-w-0 flex-col overflow-y-auto rounded-xl border border-lightgray/10 bg-white py-2 shadow-lg"
+          className="scrollbar-hide fixed z-1001 flex w-max max-h-60 min-w-0 flex-col overflow-y-auto rounded-xl text-gray-700 border border-lightgray/10 bg-white shadow-lg"
           style={{
             top: menuRect.top,
             left: menuRect.left,
@@ -1163,6 +1237,7 @@ export default function FreeResourcesPage({
   const [subject, setSubject] = useState('All Subjects');
   const [chapter, setChapter] = useState('All Chapters');
   const [year, setYear] = useState('All Years');
+  const [board, setBoard] = useState('All Boards');
   const [quizDifficulty, setQuizDifficulty] =
     useState<string>('All Difficulties');
   const [videoDuration, setVideoDuration] =
@@ -1277,7 +1352,7 @@ export default function FreeResourcesPage({
   return (
     <div className="bg-[#f7f8ff] md:pb-4 lg:pb-8 4xl:pb-16!">
       {/* Hero band + tab strip — slant bars SVG (1920×397), responsive height */}
-      <section className="relative overflow-hidden border-b border-[rgba(8,22,39,0.08)] bg-[#edecfd] pt-14 md:pt-36 xl:pt-40">
+      <section className="relative overflow-hidden bg-[#edecfd] pt-14 md:pt-36 xl:pt-40">
         <div
           className="pointer-events-none absolute -left-24 top-0 z-0 h-[min(420px,48vh)] min-h-[220px]  opacity-40 sm:min-h-[260px] sm:h-[397px] md:left-1/2 md:w-screen  md:-translate-x-1/2 lg:h-[420px]"
           aria-hidden
@@ -1353,6 +1428,11 @@ export default function FreeResourcesPage({
               options={SUBJECT_OPTIONS}
               onChange={setSubject}
             />
+            <PillSelect
+              value={board}
+              options={BOARD_OPTIONS}
+              onChange={setBoard}
+            />
             {tab === 'notes' || tab === 'papers' ? (
               <PillSelect
                 value={year}
@@ -1397,9 +1477,9 @@ export default function FreeResourcesPage({
             {filteredFormulaCards.map((card, i) => (
               <article
                 key={`${card.title}-${card.subject.label}-${i}`}
-                className="rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
+                className="rounded-2xl flex flex-col gap-6 bg-white p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
               >
-                <div className="space-y-5">
+                <div className="flex flex-col gap-3">
                   <div className="flex flex-wrap gap-2 text-sm lg:text-base">
                     <div
                       className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
@@ -1413,30 +1493,40 @@ export default function FreeResourcesPage({
                       {card.board}
                     </div>
                   </div>
-                  <h2 className="text-xl lg:text-2xl font-medium tracking-tight text-lightgray">
+                  <p className="text-sm font-medium text-lightgray/50">
+                    CHAPTER {card.chapter}
+                  </p>
+                  <h2 className="text-xl font-medium tracking-tight text-lightgray">
                     {card.title}
                   </h2>
-                  <div
-                    className={`h-[126px] rounded-2xl p-2 ${card.gradient} flex items-center`}
-                  >
-                    <div className="grid h-full w-full grid-cols-[1fr_auto_1fr] gap-2">
-                      <div className="rounded-xl bg-white/25 blur-[2px]" />
-                      <div className="rounded-xl bg-white/30 px-3 py-3 flex items-center">
-                        <p className="text-white/70 text-xs font-semibold leading-[125%] whitespace-pre-line sm:text-sm sm:leading-[125%]">
-                          {card.formula}
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-white/25 blur-[2px]" />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedFormula(card)}
-                    className="flex w-full items-center justify-center gap-1 rounded-full border border-[rgba(58,107,252,0.2)] py-2 text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)]"
-                  >
-                    Tap to Expand <TapExpandArrow className="ml-1" />
-                  </button>
                 </div>
+
+                {/* card */}
+                <div
+                  className={`h-[130px] w-[378.66668701171875px] rounded-2xl ${card.gradient} flex items-center justify-center overflow-hidden mx-auto`}
+                >
+                  <div className="grid h-[114px] w-full grid-cols-[1fr_auto_1fr] gap-2">
+                    {/* left card */}
+                    <div className="rounded-r-xl w-full bg-white/25 blur-[2px]" />
+                    {/* center card */}
+                    <div className="rounded-xl w-[260px] bg-white/30 p-3 flex items-center">
+                      <p className="text-white text-sm font-semibold leading-[125%] whitespace-pre-line sm:text-base sm:leading-[125%]">
+                        {card.formula}
+                      </p>
+                    </div>
+                    {/* right card */}
+                    <div className="rounded-l-xl w-full bg-white/25 blur-[2px]" />
+                  </div>
+                </div>
+                {/* footer */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedFormula(card)}
+                  className="flex w-full items-center justify-center gap-1 rounded-full border border-[#0816271A] py-2 text-sm font-medium leading-[150%] text-gray-700 transition-colors hover:bg-[rgba(58,107,252,0.06)]"
+                >
+                  Tap to Expand{' '}
+                  <TapExpandArrow className="ml-1 text-gray-700" />
+                </button>
               </article>
             ))}
           </div>
@@ -1444,14 +1534,16 @@ export default function FreeResourcesPage({
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {filteredStudyNotesCards.map((card, i) => (
               <FigmaListingCard
+                tab={tab}
                 key={`${card.title}-${card.subject.label}-${i}`}
                 subject={card.subject}
                 board={card.board}
                 title={card.title}
+                chapter={card.chapter}
                 metaLeft={card.metaLeft}
                 metaRight={card.metaRight}
                 footer={
-                  <div className="flex w-full gap-3">
+                  <div className="flex w-full gap-3 px-6">
                     <button
                       type="button"
                       className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
@@ -1461,7 +1553,7 @@ export default function FreeResourcesPage({
                     </button>
                     <button
                       type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
+                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-sm font-medium leading-[150%] text-gray-700 transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
                     >
                       <Download className="size-5 shrink-0" />
                       Download
@@ -1474,32 +1566,64 @@ export default function FreeResourcesPage({
         ) : tab === 'papers' ? (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {filteredPastPaperCards.map((card, i) => (
-              <FigmaListingCard
-                key={`${card.title}-${card.subject.label}-${i}`}
-                subject={card.subject}
-                board={card.board}
-                title={card.title}
-                metaLeft={card.metaLeft}
-                metaRight={card.metaRight}
-                footer={
-                  <div className="flex w-full gap-3">
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
+              <article className="flex flex-col justify-between overflow-hidden gap-5 rounded-2xl bg-white py-5 ring-1 ring-[rgba(8,22,39,0.06)]">
+                <div className="flex w-full min-w-0 flex-col gap-5">
+                  <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-6 lg:text-base lg:leading-[150%]">
+                    <div
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
                     >
-                      <Eye className="size-5 shrink-0" />
-                      View
-                    </button>
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Download className="size-5 shrink-0" />
-                      Download
-                    </button>
+                      <span
+                        className={`size-2 shrink-0 rounded-full ${card.subject.dot}`}
+                      />
+                      {card.subject.label}
+                    </div>
+                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
+                      {card.board}
+                    </div>
                   </div>
-                }
-              />
+                  {tab === 'papers' ? (
+                    <div
+                      className={`flex items-center justify-center ${card.subject.bg} h-[62px]`}
+                    >
+                      <span className="text-xl font-medium text-center">
+                        2025
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex w-full min-w-0 flex-col gap-3 px-6">
+                      <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
+                        {card.title}
+                      </h2>
+
+                      <div className="flex min-w-0 items-center gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
+                        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/80">
+                          {card.metaLeft!}
+                        </span>
+                        {/* <span className={card.metaSepDotClass} aria-hidden /> */}
+                        <span className="min-w-0 truncate font-medium leading-[150%] text-lightgray/80">
+                          {card.metaRight!}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex w-full gap-3 px-6">
+                  <button
+                    type="button"
+                    className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
+                  >
+                    <Eye className="size-5 shrink-0" />
+                    View
+                  </button>
+                  <button
+                    type="button"
+                    className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-sm font-medium leading-[150%] text-gray-700 transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
+                  >
+                    <Download className="size-5 shrink-0" />
+                    Download
+                  </button>
+                </div>
+              </article>
             ))}
           </div>
         ) : tab === 'quizzes' ? (
@@ -1515,6 +1639,7 @@ export default function FreeResourcesPage({
                 key={`${card.title}-${i}`}
                 subject={card.subject}
                 board={card.board}
+                chapter={card.chapter}
                 title={card.title}
                 durationLabel={card.durationLabel}
                 thumbSrc={freeVideoThumbSrc(card)}
@@ -1537,13 +1662,15 @@ export default function FreeResourcesPage({
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {filteredCards.map((card, i) => (
               <FigmaListingCard
+                tab={tab}
                 key={`${card.title}-${card.subject.label}-${i}`}
                 subject={card.subject}
                 board={card.board}
+                chapter={card.chapter}
                 title={card.title}
                 metaLine={card.meta}
                 footer={
-                  <div className="flex w-full gap-3">
+                  <div className="flex w-full gap-3 px-6">
                     <button
                       type="button"
                       className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
@@ -1556,7 +1683,7 @@ export default function FreeResourcesPage({
                       className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] text-sm font-medium leading-[150%] text-gray-700 transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
                     >
                       <Download className="size-5 shrink-0" />
-                      Answers
+                      Answers Sheet
                     </button>
                   </div>
                 }
@@ -1625,22 +1752,23 @@ export default function FreeResourcesPage({
               {expandedFormula.title}
             </h3>
             <div
-              className={`mt-3 rounded-2xl p-2 ${expandedFormula.gradient} h-[240px] sm:h-[360px] lg:h-[441px]`}
+              className={`mt-3 rounded-2xl py-2 ${expandedFormula.gradient} h-[240px] sm:h-[360px] lg:h-[441px]`}
             >
               <div className="grid h-full w-full grid-cols-[32px_1fr_32px] sm:grid-cols-[90px_1fr_90px] gap-2 sm:gap-3">
-                <div className="rounded-2xl bg-white/30 blur-[2px]" />
+                <div className="rounded-r-2xl bg-white/10 blur-[2px]" />
                 <div className="rounded-2xl bg-white/40 p-3 sm:p-4 overflow-y-auto scrollbar-hide">
                   <p className="whitespace-pre-line text-sm font-medium leading-[150%] text-white/85 sm:text-xl sm:leading-[150%] lg:text-2xl lg:leading-[150%]">
                     {expandedFormula.detail || expandedFormula.formula}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-white/30 blur-[2px]" />
+                <div className="rounded-l-2xl bg-white/10 blur-[2px]" />
               </div>
             </div>
-            <p className="mt-4 border-b border-[rgba(8,22,39,0.1)] pb-6 text-sm font-normal leading-[150%] text-lightgray/80 sm:text-base sm:leading-[150%]">
+            <p className="mt-4 border-b border-[rgba(8,22,39,0.1)] pb-6 text-base font-normal leading-[150%] text-lightgray/90 sm:text-lg sm:leading-[150%]">
               Test your knowledge with code challenges based on real-world
               technical interviews from companies like Google, Amazon, and Meta.
-              Practice for your job search - or for fun.
+              Practice for your job search — or for fun. Don’t worry if you get
+              stuck. We’ll recommend the right courses to help you.
             </p>
             <div className="mt-5 flex items-center justify-between">
               <h4 className="text-lg font-semibold leading-[150%] tracking-[-0.24px] text-lightgray sm:text-2xl sm:leading-[150%]">
@@ -1667,13 +1795,13 @@ export default function FreeResourcesPage({
             </div>
             <div
               ref={relatedCarouselRef}
-              className="mt-3 scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1"
+              className="mt-5 scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1"
             >
               {FORMULA_CARDS.map((related) => (
                 <article
                   key={`related-${related.title}`}
                   data-related-card
-                  className="snap-start w-[min(100%,420px)] sm:w-[420px] shrink-0 rounded-[20px] border border-[rgba(8,22,39,0.1)] p-4 shadow-xs"
+                  className="snap-start w-[min(100%,420px)] sm:w-[426.6666564941406px] shrink-0 rounded-[20px] border border-[rgba(8,22,39,0.1)] p-6 shadow-xs"
                 >
                   <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
                     <div
@@ -1694,7 +1822,7 @@ export default function FreeResourcesPage({
                   <button
                     type="button"
                     onClick={() => setExpandedFormula(related)}
-                    className="mt-3 flex w-full items-center justify-center gap-1 rounded-full border border-[rgba(58,107,252,0.1)] py-2 text-sm font-medium leading-[150%] text-[#3a6bfc] hover:bg-[rgba(58,107,252,0.06)]"
+                    className="mt-5 flex w-full items-center justify-center gap-1 rounded-full border border-[rgba(58,107,252,0.1)] py-1 text-sm font-medium leading-[150%] text-[#3a6bfc] hover:bg-[rgba(58,107,252,0.06)]"
                   >
                     View <span className="text-base leading-[150%]">›</span>
                   </button>
