@@ -16,18 +16,20 @@ const LOGO_SRC = '/assets/logo.png';
 /** Figma 1:5989 intro/play — pill bar: logo, track, close. Figma 1:5896 result — logo only. */
 export function QuizTopBar({
   progress,
+  hideProgress = false,
   closeTo = '/free-resources',
   variant = 'default',
 }: {
   progress: number;
   closeTo?: string;
+  hideProgress?: boolean;
   variant?: 'default' | 'result';
 }) {
   const pct = Math.min(100, Math.max(0, progress * 100));
 
   if (variant === 'result') {
     return (
-      <div className="fixed left-0 right-0 top-0 z-50 flex justify-center px-3 pt-6 sm:pt-8">
+      <div className="left-0 right-0 top-0 z-50 flex justify-center px-4 pt-6 sm:pt-12">
         <div className="flex w-full max-w-[1320px] 4xl:max-w-[1368px]! items-center justify-center rounded-[300px] border border-[rgba(8,22,39,0.1)] bg-[rgba(255,255,255,0.5)] px-6 py-4 backdrop-blur-[25px]">
           <img
             src={LOGO_SRC}
@@ -43,7 +45,7 @@ export function QuizTopBar({
 
   return (
     <div className="fixed left-0 right-0 top-0 z-50 flex justify-center px-3 pt-10 4xl:pt-12!">
-      <div className="flex w-full max-w-[1320px] 4xl:max-w-[1368px]! items-center gap-10 rounded-[300px] border border-[rgba(8,22,39,0.1)] bg-[rgba(255,255,255,0.5)] px-6 py-4 backdrop-blur-[25px] sm:gap-12">
+      <div className="flex w-full max-w-[1320px] 4xl:max-w-[1368px]! items-center justify-between gap-10 rounded-[300px] border border-[rgba(8,22,39,0.1)] bg-[rgba(255,255,255,0.5)] px-6 py-4 backdrop-blur-[25px] sm:gap-12">
         <img
           src={LOGO_SRC}
           alt="Commerce Virtuals"
@@ -51,18 +53,20 @@ export function QuizTopBar({
           width={163}
           height={32}
         />
-        <div
-          className="h-4 min-w-0 flex-1 overflow-hidden rounded-[30px] bg-[rgba(8,22,39,0.05)]"
-          role="progressbar"
-          aria-valuenow={Math.round(pct)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
+        {!hideProgress && (
           <div
-            className="h-full rounded-[30px] bg-[#3b6cfc] transition-[width] duration-300"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+            className="h-4 min-w-0 flex-1 overflow-hidden rounded-[30px] bg-[rgba(8,22,39,0.05)]"
+            role="progressbar"
+            aria-valuenow={Math.round(pct)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="h-full rounded-[30px] bg-[#3b6cfc] transition-[width] duration-300"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        )}
         <Link
           to={closeTo}
           className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[rgba(8,22,39,0.08)] bg-white/80 text-lightgray/55 transition-colors hover:bg-white hover:text-lightgray"
@@ -78,7 +82,7 @@ export function QuizTopBar({
 /** Intro: mobile 2×2 grid + vertical/horizontal rules; md+ single row of four columns */
 function IntroStatStrip({ stats }: { stats: QuizSession['stats'] }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-lightgray/5 bg-white/50 p-4 sm:rounded-[20px] sm:p-6 backdrop-blur-xl">
+    <div className="overflow-hidden rounded-2xl border border-lightgray/10 bg-white/50 p-4 sm:rounded-[20px] sm:p-6 backdrop-blur-xl">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-5">
         {stats.map((s, i) => (
           <div
@@ -195,21 +199,33 @@ export function QuizIntroScreen({ session }: { session: QuizSession }) {
       </header>
 
       <div className="hidden md:block">
-        <QuizTopBar progress={0.04} />
+        <QuizTopBar progress={0.04} hideProgress />
       </div>
 
       <div className="custom-container flex-1 px-4 pb-28 pt-[calc(4.5rem+env(safe-area-inset-top))] sm:pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-6 md:pb-20 md:pt-40 lg:pt-48 bg-[#F5F7FF]">
         <div className="mx-auto flex w-full max-w-[877px] flex-col gap-6 sm:gap-8 4xl:gap-12!">
-          <div className="flex flex-col gap-3 md:gap-5">
-            <div
-              className="hidden w-fit rounded-[40px] border border-[rgba(8,22,39,0.1)] bg-[rgba(8,22,39,0.05)] px-2 py-1 md:inline-flex md:items-center md:justify-center"
-              data-intro-tag
-            >
-              <span className="text-base font-medium leading-[120%] text-lightgray/50">
-                {session.introTag}
+          <div className="flex flex-col gap-3 md:gap-4">
+            <div className="hidden flex-wrap items-center gap-2 md:flex">
+              <div
+                className={`flex items-center gap-2 rounded-[40px] border px-3 py-1 text-base font-medium leading-[120%] ${session.subject.bg} ${session.subject.border} ${session.subject.text}`}
+              >
+                <span
+                  className={`size-2 shrink-0 rounded-full ${session.subject.dot}`}
+                />
+                {session.subject.label}
+              </div>
+              <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 text-base font-medium leading-[120%] text-lightgray/50">
+                {session.board}
+              </div>
+              <span className={difficultyTextClass[session.difficulty]}>
+                {session.difficulty === 'easy'
+                  ? '(Easy)'
+                  : session.difficulty === 'medium'
+                  ? '(Medium)'
+                  : '(HARD)'}
               </span>
             </div>
-            <h1 className="text-xl md:text-2xl font-bold leading-[120%] tracking-[-0.56px] text-lightgray lg:text-3xl sm:font-semibold sm:tracking-[-0.72px]">
+            <h1 className="text-xl md:text-2xl font-bold leading-[120%] tracking-[-0.56px] text-lightgray lg:text-4xl sm:font-semibold sm:tracking-[-0.72px]">
               {session.title}
             </h1>
             <p className="text-base font-normal leading-[150%] text-lightgray sm:text-lg sm:text-lightgray md:text-xl">
@@ -345,44 +361,14 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
   const unansweredCount = Math.max(total - answeredCount, 0);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#eef2f7] md:min-h-screen md:bg-[#f5f7ff]">
-      <div className="fixed left-0 right-0 top-0 z-50 md:hidden">
-        <header className="flex items-center justify-between gap-2 border-b border-[rgba(8,22,39,0.06)] bg-white/95 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 backdrop-blur-md">
-          <Link
-            to="/free-resources"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[rgba(8,22,39,0.08)] text-lightgray transition-colors hover:bg-[rgba(8,22,39,0.12)] active:bg-[rgba(8,22,39,0.1)]"
-            aria-label="Close quiz"
-          >
-            <X className="size-[18px]" strokeWidth={2} />
-          </Link>
-          <div className="rounded-full bg-[rgba(8,22,39,0.07)] px-4 py-2">
-            <p className="text-sm font-bold tabular-nums text-lightgray">
-              <span className="font-extrabold">{idx + 1}</span>
-              <span className="font-medium text-lightgray/50">/{total}</span>
-            </p>
-          </div>
-          <span className="w-10 text-right font-mono text-sm font-bold tabular-nums text-lightgray">
-            12:20
-          </span>
-        </header>
-        <div className="border-b border-[rgba(8,22,39,0.05)] bg-[#eef2f7]">
-          <QuizPlayQuestionNav
-            navCount={navCount}
-            total={total}
-            idx={idx}
-            onSelectQuestion={goToQuestion}
-            variant="mobile"
-          />
-        </div>
-      </div>
-
+    <div className="relative min-h-dvh overflow-x-hidden bg-linear-to-b from-[#ebe8ff] via-[#f3f5ff] to-[#f8fafc] pb-16 pt-[max(1.25rem,env(safe-area-inset-top))] md:bg-[#f5f7ff] md:pt-28 md:from-transparent md:via-transparent md:to-transparent">
       <div className="hidden md:block">
         <QuizTopBar progress={progress} />
       </div>
-
-      <div className="custom-container flex flex-1 flex-col px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] sm:pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-6 md:pb-20 md:pt-40 lg:pt-48 bg-[#F5F7FF]">
+      {/* content */}
+      <div className="custom-container relative px-4 sm:px-6 py-8 sm:py-12">
         <div className="mx-auto flex w-full max-w-[920px] flex-1 flex-col md:flex-none">
-          <div className="mb-6 hidden w-full gap-5 md:flex md:mb-10 md:flex-col">
+          <div className="mb-4 sm:mb-6 hidden w-full gap-5 md:flex md:mb-10 md:flex-col">
             <div className="flex items-center justify-between gap-4">
               <p className="text-xl font-medium leading-[120%] text-lightgray">
                 Question {idx + 1} out of {total}
@@ -430,10 +416,10 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                     }}
                     className={`flex size-[42px] shrink-0 items-center justify-center rounded-[38px] border text-xl font-medium leading-[120%] transition-colors ${
                       disabled
-                        ? 'cursor-not-allowed border-[rgba(8,22,39,0.03)] bg-[rgba(8,22,39,0.03)] text-lightgray/25'
+                        ? 'cursor-not-allowed border-[rgba(8,22,39,0.03)] bg-[rgba(8,22,39,0.03)] text-lightgray/50'
                         : answered
                         ? 'border-[#0d8769] bg-[rgba(13,135,105,0.1)] text-[#0d8769]'
-                        : 'border-[rgba(8,22,39,0.05)] bg-[rgba(8,22,39,0.05)] text-lightgray/50 hover:bg-[rgba(8,22,39,0.08)]'
+                        : 'border-lightgray bg-[rgba(8,22,39,0.05)] text-lightgray hover:bg-[rgba(8,22,39,0.08)]'
                     }`}
                   >
                     {n}
@@ -458,11 +444,11 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col">
-            <p className="text-base font-medium text-lightgray sm:text-lg md:text-2xl leading-[120%]">
+          <div className="flex flex-1 flex-col gap-6 sm:gap-8">
+            <p className="text-sm font-medium text-lightgray sm:text-base sm:font-medium sm:text-lightgray md:text-lg lg:text-2xl leading-[120%]">
               {q.text}
             </p>
-            <div className="4xl:mt-15! mt-6 flex flex-col gap-3">
+            <div className="flex flex-col gap-2 sm:gap-3">
               {q.options.map((opt, oi) => {
                 const isSel = selected === oi;
                 return (
@@ -470,10 +456,10 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                     key={oi}
                     type="button"
                     onClick={() => setSelected(oi)}
-                    className={`flex w-full items-center border px-6 py-5 text-left text-base transition-colors sm:px-5 sm:text-lg md:rounded-full bg-white! font-medium leading-[120%] ${
+                    className={`flex w-full items-center border-2 px-4 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-base transition-colors sm:text-lg md:rounded-full bg-white! font-medium leading-[120%] ${
                       isSel
-                        ? 'rounded-2xl border-[#3b6cfc] font-medium text-[#2f56c9]'
-                        : 'rounded-2xl border-lightgray/5 bg-white! text-lightgray hover:border-[rgba(8,22,39,0.2)] md:hover:border-[rgba(8,22,39,0.18)]'
+                        ? 'rounded-xl sm:rounded-2xl border-[#3A6BFC] font-medium text-[#3A6BFC]'
+                        : 'rounded-xl sm:rounded-2xl border-lightgray/5 bg-white! text-lightgray hover:border-[rgba(8,22,39,0.2)] md:hover:border-[rgba(8,22,39,0.18)]'
                     }`}
                   >
                     {opt}
@@ -481,6 +467,14 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                 );
               })}
             </div>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              disabled={selected === null}
+              className="text-sm sm:text-base font-medium text-lightgray/80"
+            >
+              Clear Answer
+            </button>
           </div>
         </div>
       </div>
@@ -531,13 +525,19 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
             )}
           </div>
         </div>
-
-        <div className="hidden border-t border-[rgba(8,22,39,0.08)] bg-white/95 px-4 py-4 backdrop-blur-md md:block sm:px-6">
+        {/* bottom bar */}
+        <div className="hidden  items-center justify-center h-[120px] border-t border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md md:flex">
           <div className="custom-container flex items-center justify-between gap-4">
-            <span className="font-mono text-base font-medium tabular-nums text-lightgray sm:text-lg">
+            <span className="w-10 text-right text-3xl font-semibold tabular-nums text-lightgray">
               12:20
             </span>
             <div className="flex gap-3">
+              <button
+                type="button"
+                className=" w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-4 text-xl font-medium text-lightgray/80 leading-[120%] inline-flex"
+              >
+                Skip Question
+              </button>
               <button
                 type="button"
                 disabled={idx === 0}
@@ -545,18 +545,18 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                   setIdx((i) => Math.max(0, i - 1));
                   setSelected(null);
                 }}
-                className="flex h-10 items-center gap-1 rounded-full border border-[rgba(8,22,39,0.12)] px-4 text-sm font-medium text-lightgray transition-colors enabled:hover:bg-lightgray/5 disabled:opacity-40 sm:h-11 sm:px-5 sm:text-base"
+                className="border border-lightgray/10 w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-4 text-xl font-medium text-lightgray/80 leading-[120%] inline-flex"
               >
-                <ArrowLeft className="size-4" strokeWidth={2.25} />
+                <ArrowLeft size={24} />
                 Previous
               </button>
               {idx >= total - 1 ? (
                 <Link
                   to={finishLink}
-                  className="flex h-10 items-center gap-1 rounded-full bg-[#3b6cfc] px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#325ee0] sm:h-11 sm:px-6 sm:text-base"
+                  className="primary-btn w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-4 text-xl font-medium leading-[120%] inline-flex"
                 >
                   Finish
-                  <ArrowRight className="size-4" strokeWidth={2.25} />
+                  <ArrowRight size={24} />
                 </Link>
               ) : (
                 <button
@@ -565,10 +565,10 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                     setIdx((i) => Math.min(total - 1, i + 1));
                     setSelected(null);
                   }}
-                  className="flex h-10 items-center gap-1 rounded-full bg-[#3b6cfc] px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#325ee0] sm:h-11 sm:px-6 sm:text-base"
+                  className="primary-btn w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-4 text-xl font-medium leading-[120%] inline-flex"
                 >
                   Next
-                  <ArrowRight className="size-4" strokeWidth={2.25} />
+                  <ArrowRight size={24} />
                 </button>
               )}
             </div>
@@ -612,102 +612,103 @@ export function QuizResultScreen({ session }: { session: QuizSession }) {
   }
 
   return (
-    <div className="relative min-h-dvh overflow-x-hidden bg-linear-to-b from-[#ebe8ff] via-[#f3f5ff] to-[#f8fafc] pb-10 pt-[max(1.25rem,env(safe-area-inset-top))] md:bg-[#f5f7ff] md:pb-20 md:pt-32 md:from-transparent md:via-transparent md:to-transparent sm:pb-24 sm:pt-36">
+    <div className="relative min-h-screen">
       <div
-        className="pointer-events-none absolute inset-0 overflow-hidden opacity-50 md:opacity-60"
+        className="pointer-events-none fixed inset-0 overflow-hidden opacity-90"
         aria-hidden
-      >
-        <div className="absolute left-1/2 top-[10%] h-[min(986px,120vh)] w-[min(1920px,220%)] -translate-x-1/2 bg-[radial-gradient(ellipse_55%_50%_at_50%_45%,rgba(120,100,220,0.12),transparent_72%)] md:bg-[radial-gradient(ellipse_55%_50%_at_50%_45%,rgba(99,140,255,0.2),transparent_72%)]" />
-        <div
-          className="absolute left-1/2 top-[18%] h-[min(560px,70vh)] w-[min(560px,90vw)] -translate-x-1/2 opacity-[0.4] md:top-[22%] md:opacity-[0.35]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, rgba(8,22,39,0.06) 1px, transparent 0)',
-            backgroundSize: '24px 24px',
-          }}
-        />
-      </div>
-
+        style={{
+          backgroundImage: 'url(/assets/images/quiz-page/quiz-result-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      {/* top bar  */}
       <div className="hidden md:block">
         <QuizTopBar progress={1} variant="result" />
       </div>
-
-      <div className="custom-container relative px-4 sm:px-6 md:pt-4">
-        <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-7 md:gap-9 sm:gap-11">
-          <div className="flex w-full flex-col items-center gap-6 text-center md:gap-9">
-            <div className="flex w-full flex-col items-center gap-3 md:gap-5">
-              <div className="hidden flex-wrap items-center justify-center gap-2 md:flex">
-                <div
-                  className={`flex items-center gap-2 rounded-[40px] border px-3 py-1 text-base font-medium leading-[120%] ${r.subject.bg} ${r.subject.border} ${r.subject.text}`}
-                >
-                  <span
-                    className={`size-2 shrink-0 rounded-full ${r.subject.dot}`}
-                  />
-                  {r.subject.label}
+      {/* content */}
+      <div className="custom-container relative px-4 sm:px-6 py-16">
+        <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-7 md:gap-16">
+          <div className="flex flex-col gap-9">
+            <div className="flex w-full flex-col items-center gap-6 text-center md:gap-9">
+              <div className="flex w-full flex-col items-center gap-3 md:gap-5">
+                {/* first row */}
+                <div className="hidden flex-wrap items-center justify-center gap-2 md:flex">
+                  <div
+                    className={`flex items-center gap-2 rounded-[40px] border px-3 py-1 text-base font-medium leading-[120%] ${r.subject.bg} ${r.subject.border} ${r.subject.text}`}
+                  >
+                    <span
+                      className={`size-2 shrink-0 rounded-full ${r.subject.dot}`}
+                    />
+                    {r.subject.label}
+                  </div>
+                  <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 text-base font-medium leading-[120%] text-lightgray/50">
+                    {r.board}
+                  </div>
+                  <span className={difficultyTextClass[r.difficulty]}>
+                    {r.difficulty === 'easy'
+                      ? '(Easy)'
+                      : r.difficulty === 'medium'
+                      ? '(Medium)'
+                      : '(HARD)'}
+                  </span>
                 </div>
-                <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 text-base font-medium leading-[120%] text-lightgray/50">
-                  {r.board}
-                </div>
-                <span className={difficultyTextClass[r.difficulty]}>
-                  {r.difficulty === 'easy'
-                    ? '(Easy)'
-                    : r.difficulty === 'medium'
-                    ? '(Medium)'
-                    : '(HARD)'}
-                </span>
+                {/* quiz title */}
+                <h1 className="w-full text-center text-2xl leading-[120%] tracking-[-0.56px] text-lightgray md:text-3xl md:font-semibold md:tracking-[-0.72px] lg:text-4xl">
+                  {r.quizTitle}
+                </h1>
+                <p className="max-w-[520px] text-center text-[15px] leading-[155%] text-lightgray/55 md:hidden">
+                  {session.subtitle}
+                </p>
               </div>
-              <h1 className="w-full text-center text-2xl font-bold leading-[120%] tracking-[-0.56px] text-lightgray md:text-3xl md:font-medium md:tracking-[-0.72px] lg:text-4xl">
-                {r.quizTitle}
-              </h1>
-              <p className="max-w-[520px] text-center text-[15px] leading-[155%] text-lightgray/55 md:hidden">
-                {session.subtitle}
+              {/* score */}
+              <div className="flex w-full flex-col items-center gap-3 text-lightgray md:gap-5">
+                <p className="text-center text-xs font-semibold uppercase leading-normal tracking-[0.12em] text-[#8b7ec9] md:text-sm md:tracking-[1px] md:text-lightgray md:opacity-50">
+                  Score
+                </p>
+                <p className="text-center text-[clamp(3rem,14vw,4.5rem)] font-light leading-none tracking-[-3px] md:text-[clamp(3.5rem,12vw,5.5rem)] md:tracking-[-4.4px]">
+                  {r.scorePercent}
+                </p>
+              </div>
+              {/* summary text */}
+              <p className="max-w-[920px] text-center text-base font-medium leading-[150%] text-lightgray/55 md:text-xl md:leading-[120%]">
+                {r.scoreSummaryBefore}
+                <span className="font-medium text-lightgray">
+                  {r.scoreSummaryBold}
+                </span>
+                {r.scoreSummaryAfter}
               </p>
             </div>
-
-            <div className="flex w-full flex-col items-center gap-3 text-lightgray md:gap-5">
-              <p className="text-center text-xs font-semibold uppercase leading-normal tracking-[0.12em] text-[#8b7ec9] md:text-sm md:tracking-[1px] md:text-lightgray md:opacity-50">
-                Score
-              </p>
-              <p className="text-center text-[clamp(3rem,14vw,4.5rem)] font-light leading-none tracking-[-3px] md:text-[clamp(3.5rem,12vw,5.5rem)] md:tracking-[-4.4px]">
-                {r.scorePercent}
-              </p>
+            {/* results stats */}
+            <ResultStatStrip
+              totalQs={r.totalQs}
+              correct={r.correct}
+              wrong={r.wrong}
+              skipped={r.skipped}
+            />
+            {/* action buttons */}
+            <div className="flex w-full flex-row items-stretch justify-center gap-3">
+              <Link
+                to={`/free-resources/quizzes/${session.slug}/start`}
+                className="primary-btn flex min-h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-[30px] px-3 py-3.5 text-sm font-semibold leading-tight md:inline-flex md:min-h-[56px] md:w-auto md:flex-none md:gap-3 md:rounded-[38px] md:px-6 md:py-4 md:text-xl md:font-medium md:leading-[120%]"
+              >
+                <RotateCcw
+                  className="size-5 shrink-0 text-white md:size-8"
+                  strokeWidth={2}
+                />
+                <span className="text-center">Retake Quiz</span>
+              </Link>
+              <Link
+                to="/free-resources"
+                className="flex min-h-[50px] min-w-0 flex-1 items-center justify-center rounded-[30px] border border-[rgba(8,22,39,0.1)] bg-white px-3 py-3.5 text-center text-sm font-semibold leading-tight text-lightgray/80 transition-colors hover:bg-white/90 md:inline-flex md:min-h-[56px] md:w-auto md:flex-none md:rounded-[38px] md:px-6 md:py-4 md:text-xl md:font-medium md:leading-[120%]"
+              >
+                Back to Resources
+              </Link>
             </div>
-
-            <p className="max-w-[920px] text-center text-base font-medium leading-[150%] text-lightgray/55 md:text-xl md:leading-[120%]">
-              {r.scoreSummaryBefore}
-              <span className="font-semibold text-lightgray">
-                {r.scoreSummaryBold}
-              </span>
-              {r.scoreSummaryAfter}
-            </p>
           </div>
 
-          <ResultStatStrip
-            totalQs={r.totalQs}
-            correct={r.correct}
-            wrong={r.wrong}
-            skipped={r.skipped}
-          />
-
-          <div className="flex w-full flex-row items-stretch justify-center gap-3">
-            <Link
-              to={`/free-resources/quizzes/${session.slug}/start`}
-              className="primary-btn flex min-h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-[30px] px-3 py-3.5 text-sm font-semibold leading-tight md:inline-flex md:min-h-[56px] md:w-auto md:flex-none md:gap-3 md:rounded-[38px] md:px-6 md:py-4 md:text-xl md:font-medium md:leading-[120%]"
-            >
-              <RotateCcw
-                className="size-5 shrink-0 text-white md:size-8"
-                strokeWidth={2}
-              />
-              <span className="text-center">Retake Quiz</span>
-            </Link>
-            <Link
-              to="/free-resources"
-              className="flex min-h-[50px] min-w-0 flex-1 items-center justify-center rounded-[30px] border border-[rgba(8,22,39,0.1)] bg-white px-3 py-3.5 text-center text-sm font-semibold leading-tight text-lightgray transition-colors hover:bg-white/90 md:inline-flex md:min-h-[56px] md:w-auto md:flex-none md:rounded-[38px] md:px-6 md:py-4 md:text-xl md:font-medium md:leading-[120%]"
-            >
-              Back to Resources
-            </Link>
-          </div>
-
+          {/* question by question breakdown */}
           <div className="w-full">
             <h2 className="text-lg font-bold leading-[120%] tracking-[-0.2px] text-lightgray md:text-2xl md:font-medium md:tracking-[-0.24px]">
               Question by Question Breakdown

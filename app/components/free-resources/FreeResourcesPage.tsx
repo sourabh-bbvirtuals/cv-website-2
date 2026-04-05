@@ -982,7 +982,7 @@ function FreeVideoListingCard({
   const canDownload = Boolean(downloadUrl);
 
   return (
-    <article className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ">
+    <article className="flex flex-col gap-4 sm:gap-6 overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ">
       <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#081627]">
         <button
           type="button"
@@ -999,45 +999,50 @@ function FreeVideoListingCard({
             className="absolute inset-0 size-full object-cover opacity-90"
           />
           <div className="absolute inset-0 bg-[#081627]/25" aria-hidden />
-          <div className="absolute left-1/2 top-1/2 flex size-[48px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-400 bg-gray-500">
-            <Play fill="#FFFFFF" className="text-white w-5" />
+          <div className="absolute left-1/2 top-1/2 flex size-[40px] sm:size-[48px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-400 bg-gray-500">
+            <Play fill="#FFFFFF" className="text-white w-4 sm:w-5" />
           </div>
-          <div className="pointer-events-none absolute bottom-2.5 right-2.5 rounded-full border border-white/15 bg-white/15 px-2 py-1 text-sm font-medium leading-[150%] text-white backdrop-blur-[17px] sm:text-base sm:leading-[150%]">
+          <div className="pointer-events-none absolute bottom-2 sm:bottom-2.5 right-2 sm:right-2.5 rounded-full border border-white/15 bg-white/15 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs sm:text-sm font-medium leading-[150%] text-white backdrop-blur-[17px] sm:text-base sm:leading-[150%]">
             {durationLabel}
           </div>
         </button>
       </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm leading-[150%] lg:text-base lg:leading-[150%]">
           <div
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
+            className={`flex items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
           >
-            <span className={`size-2 shrink-0 rounded-full ${subject.dot}`} />
+            <span
+              className={`size-1.5 sm:size-2 shrink-0 rounded-full ${subject.dot}`}
+            />
             {subject.label}
           </div>
-          <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
+          <div className="rounded border border-[rgba(8,22,39,0.1)] px-2 sm:px-3 py-0.5 sm:py-1 font-medium leading-[150%] text-lightgray/50 text-xs sm:text-sm lg:text-base lg:leading-[150%]">
             {board}
           </div>
         </div>
-        <p className="text-sm font-medium text-lightgray/50">
+        <p className="text-xs sm:text-sm font-medium text-lightgray/50">
           CHAPTER {chapter}
         </p>
-        <h2 className="line-clamp-2 text-xl font-medium leading-[150%] tracking-[-0.24px] text-lightgray lg:leading-[150%]">
+        <h2 className="line-clamp-2 text-lg sm:text-xl font-medium leading-[150%] tracking-[-0.24px] text-lightgray lg:leading-[150%]">
           {title}
         </h2>
       </div>
-      <div className="mt-auto flex w-full gap-3">
+      <div className="mt-auto flex w-full gap-2 sm:gap-3">
         <button
           type="button"
           disabled={!canWatch}
           onClick={() => canWatch && onWatch?.()}
-          className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
+          className={`flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-xs sm:text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
             canWatch
               ? 'hover:bg-[rgba(58,107,252,0.06)]'
               : 'cursor-not-allowed opacity-50'
           }`}
         >
-          <Play className="size-5 shrink-0 fill-current" strokeWidth={0} />
+          <Play
+            className="size-4 sm:size-5 shrink-0 fill-current"
+            strokeWidth={0}
+          />
           Watch Now
         </button>
         <button
@@ -1047,13 +1052,13 @@ function FreeVideoListingCard({
             downloadUrl &&
             triggerBrowserDownload(downloadUrl, downloadFilename ?? 'download')
           }
-          className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-sm font-medium leading-[150%] text-gray-700 transition-colors lg:text-base lg:leading-[150%] ${
+          className={`flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-xs sm:text-sm font-medium leading-[150%] text-gray-700 transition-colors lg:text-base lg:leading-[150%] ${
             canDownload
               ? 'hover:bg-[rgba(58,107,252,0.06)]'
               : 'cursor-not-allowed opacity-50'
           }`}
         >
-          <Download className="size-5 shrink-0" />
+          <Download className="size-4 sm:size-5 shrink-0" />
           Download
         </button>
       </div>
@@ -1104,8 +1109,8 @@ function FigmaListingCard({
     );
 
   return (
-    <article className="flex flex-col justify-between overflow-hidden gap-16 rounded-2xl bg-white py-5 ring-1 ring-[rgba(8,22,39,0.06)]">
-      <div className="flex w-full min-w-0 flex-col gap-5">
+    <article className="flex flex-col justify-between overflow-hidden gap-16 rounded-2xl bg-white py-6 ring-1 ring-[rgba(8,22,39,0.06)]">
+      <div className="flex w-full min-w-0 flex-col gap-3">
         <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-6 lg:text-base lg:leading-[150%]">
           <div
             className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
@@ -1117,15 +1122,17 @@ function FigmaListingCard({
             {board}
           </div>
         </div>
-        <div className="flex w-full min-w-0 flex-col gap-3 px-6">
+        <div className="px-6">
           <p className="text-sm font-medium text-lightgray/50">
             CHAPTER {chapter}
           </p>
+        </div>
+        <div className="flex w-full min-w-0 flex-col px-6">
           <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
             {title}
           </h2>
-          {metaBlock}
         </div>
+        <div className="px-6">{metaBlock}</div>
       </div>
       {footer}
     </article>
@@ -1256,10 +1263,6 @@ export default function FreeResourcesPage({
   }, [initialTab]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [tab]);
-
-  useEffect(() => {
     const modalOpen = expandedFormula != null || videoPlayer != null;
     if (!modalOpen) return;
     const prevOverflow = document.body.style.overflow;
@@ -1367,7 +1370,7 @@ export default function FreeResourcesPage({
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
           <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
             <div className="space-y-3 md:space-y-4 text-lightgray">
-              <h1 className="section-heading font-semibold text-4xl">
+              <h1 className="section-heading font-semibold text-3xl sm:text-4xl">
                 Free Resources
               </h1>
               <p className="max-w-[1280px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
@@ -1381,27 +1384,27 @@ export default function FreeResourcesPage({
 
           <div className="sticky top-0 z-30 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
             <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
-              <div className="scrollbar-hide flex min-h-18 w-full flex-1 overflow-x-auto">
+              <div className="scrollbar-hide flex min-h-14 sm:min-h-18 w-full flex-1 overflow-x-auto">
                 {TABS.map((t) => {
                   const isActive = t.id === tab;
                   return (
-                    <Link
+                    <button
                       key={t.id}
-                      to={TAB_PATH_BY_ID[t.id]}
                       onClick={() => setTab(t.id)}
-                      className={`flex flex-row items-center justify-center gap-4 border-b-[3px] pb-2 sm:pb-4 py-4 px-4 transition-colors w-[260px] flex-shrink-0 ${
+                      type="button"
+                      className={`flex flex-row items-center justify-center gap-2 sm:gap-4 border-b-[3px] pb-1 sm:pb-2 sm:pb-4 py-2 sm:py-4 px-2 sm:px-4 transition-colors w-auto sm:w-[260px] flex-shrink-0 ${
                         isActive
                           ? `${t.borderActive} bg-white`
                           : 'border-transparent bg-white hover:bg-[#fafbff]'
                       }`}
                     >
                       <div
-                        className={`flex size-12 items-center justify-center overflow-hidden rounded-lg ${t.iconWrap}`}
+                        className={`flex size-8 sm:size-12 items-center justify-center overflow-hidden rounded-lg ${t.iconWrap}`}
                       >
                         {t.icon}
                       </div>
                       <span
-                        className={`text-center text-base font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
+                        className={`hidden sm:inline text-center text-base font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
                           t.id === 'mock' && isActive
                             ? 'font-semibold text-lightgray'
                             : 'font-medium text-lightgray'
@@ -1409,7 +1412,7 @@ export default function FreeResourcesPage({
                       >
                         {t.label}
                       </span>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
@@ -1418,13 +1421,13 @@ export default function FreeResourcesPage({
         </div>
       </section>
 
-      <div className="border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-4 backdrop-blur-md">
-        <div className="custom-container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xl font-medium leading-[150%] tracking-tight text-lightgray md:leading-[150%] md:tracking-[-0.24px]">
+      <div className="border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-md">
+        <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px]">
             {active.label} ({active.count})
           </p>
-          <div className="flex flex-wrap items-center gap-3 md:gap-3">
-            <span className="text-base font-medium leading-[150%] text-lightgray/50  sm:leading-[150%] md:text-xl md:leading-[150%]">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-3">
+            <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg">
               Filter by:
             </span>
             <PillSelect
@@ -1481,40 +1484,40 @@ export default function FreeResourcesPage({
             {filteredFormulaCards.map((card, i) => (
               <article
                 key={`${card.title}-${card.subject.label}-${i}`}
-                className="rounded-2xl flex flex-col gap-6 bg-white p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
+                className="rounded-2xl flex flex-col gap-4 sm:gap-6 bg-white p-4 sm:p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
               >
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-wrap gap-2 text-sm lg:text-base">
+                <div className="flex flex-col gap-2 sm:gap-3">
+                  <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base">
                     <div
-                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
+                      className={`flex items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
                     >
                       <span
-                        className={`size-2 shrink-0 rounded-full ${card.subject.dot}`}
+                        className={`size-1.5 sm:size-2 shrink-0 rounded-full ${card.subject.dot}`}
                       />
                       {card.subject.label}
                     </div>
-                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium text-lightgray/50 text-sm lg:text-base">
+                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-2 sm:px-3 py-0.5 sm:py-1 font-medium text-lightgray/50 text-xs sm:text-sm lg:text-base">
                       {card.board}
                     </div>
                   </div>
-                  <p className="text-sm font-medium text-lightgray/50">
+                  <p className="text-xs sm:text-sm font-medium text-lightgray/50">
                     CHAPTER {card.chapter}
                   </p>
-                  <h2 className="text-xl font-medium tracking-tight text-lightgray">
+                  <h2 className="text-lg sm:text-xl font-medium tracking-tight text-lightgray">
                     {card.title}
                   </h2>
                 </div>
 
                 {/* card */}
                 <div
-                  className={`h-[130px] w-[378.66668701171875px] rounded-2xl ${card.gradient} flex items-center justify-center overflow-hidden mx-auto`}
+                  className={`h-[90px] sm:h-[130px] w-[min(100%,378.66668701171875px)] rounded-2xl ${card.gradient} flex items-center justify-center overflow-hidden mx-auto`}
                 >
-                  <div className="grid h-[114px] w-full grid-cols-[1fr_auto_1fr] gap-2">
+                  <div className="grid h-[80px] sm:h-[114px] w-full grid-cols-[0.5fr_auto_0.5fr] sm:grid-cols-[1fr_auto_1fr] gap-1 sm:gap-2">
                     {/* left card */}
                     <div className="rounded-r-xl w-full bg-white/25 blur-[2px]" />
                     {/* center card */}
-                    <div className="rounded-xl w-[260px] bg-white/30 p-3 flex items-center">
-                      <p className="text-white text-sm font-semibold leading-[125%] whitespace-pre-line sm:text-base sm:leading-[125%]">
+                    <div className="rounded-xl w-[min(100%,180px)] sm:w-[260px] bg-white/30 p-2 sm:p-3 flex items-center">
+                      <p className="text-white text-xs sm:text-sm font-semibold leading-[125%] whitespace-pre-line sm:text-base sm:leading-[125%]">
                         {card.formula}
                       </p>
                     </div>
@@ -1570,7 +1573,7 @@ export default function FreeResourcesPage({
         ) : tab === 'papers' ? (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {filteredPastPaperCards.map((card, i) => (
-              <article className="flex flex-col justify-between overflow-hidden gap-5 rounded-2xl bg-white py-5 ring-1 ring-[rgba(8,22,39,0.06)]">
+              <article className="flex flex-col justify-between overflow-hidden gap-5 rounded-2xl bg-white py-6 ring-1 ring-[rgba(8,22,39,0.06)]">
                 <div className="flex w-full min-w-0 flex-col gap-5">
                   <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-6 lg:text-base lg:leading-[150%]">
                     <div

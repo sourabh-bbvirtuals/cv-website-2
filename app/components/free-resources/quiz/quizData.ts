@@ -14,6 +14,7 @@ export type QuizListCard = {
   slug: string;
   subject: SubjectPill;
   board: string;
+  chapter: number;
   title: string;
   metaLine: string;
   difficulty: QuizDifficulty;
@@ -33,6 +34,9 @@ export type QuizSession = {
   introTag: string;
   title: string;
   subtitle: string;
+  subject: SubjectPill;
+  board: string;
+  difficulty: QuizDifficulty;
   /** Four columns: label + value each */
   stats: Array<{ label: string; value: string; valueClass?: string }>;
   instructions: string[];
@@ -122,6 +126,7 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'ratio-analysis-chapter-quiz',
     subject: ACC,
     board: 'CBSE',
+    chapter: 5,
     title: 'Ratio Analysis — Chapter Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'hard',
@@ -131,6 +136,8 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'cash-flow-statement-quiz',
     subject: ENG,
     board: 'MH Board',
+    chapter: 3,
+
     title: 'Cash Flow Statement Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'easy',
@@ -139,6 +146,7 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'national-income-concepts-quiz',
     subject: ENG,
     board: 'MH Board',
+    chapter: 4,
     title: 'National Income — Concepts Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'medium',
@@ -147,6 +155,7 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'money-banking-quiz',
     subject: BS,
     board: 'CBSE',
+    chapter: 6,
     title: 'Money & Banking Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'medium',
@@ -155,6 +164,7 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'financial-management-mcqs',
     subject: ECO,
     board: 'CBSE',
+    chapter: 7,
     title: 'Financial Management MCQs',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'medium',
@@ -163,6 +173,7 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'partnership-accounts-quiz',
     subject: OCM,
     board: 'CBSE',
+    chapter: 8,
     title: 'Partnership Accounts Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'medium',
@@ -170,6 +181,7 @@ export const QUIZ_LIST: QuizListCard[] = [
   {
     slug: 'govt-budget-quick-quiz',
     subject: ENG,
+    chapter: 9,
     board: 'CBSE',
     title: 'Govt Budget — Quick Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
@@ -178,6 +190,7 @@ export const QUIZ_LIST: QuizListCard[] = [
   {
     slug: 'marketing-management-quiz',
     subject: MATHS,
+    chapter: 10,
     board: 'CBSE',
     title: 'Marketing Management Quiz',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
@@ -187,6 +200,7 @@ export const QUIZ_LIST: QuizListCard[] = [
     slug: 'company-accounts-issue-of-shares',
     subject: SPM,
     board: 'CBSE',
+    chapter: 11,
     title: 'Company Accounts — Issue of Shares',
     metaLine: '32 Questions • 80 Marks • 180 Minutes',
     difficulty: 'hard',
@@ -200,6 +214,9 @@ const SESSIONS: Record<string, QuizSession> = {
     title: 'Bad Debt Quiz',
     subtitle:
       'Using this knowledge, you’ll evaluate how AI and Gen AI developments may impact your work and discuss where the future might lead.',
+    subject: ACC,
+    board: 'CBSE',
+    difficulty: 'easy',
     stats: [
       {
         label: 'Level',
@@ -234,6 +251,9 @@ const SESSIONS: Record<string, QuizSession> = {
     title: 'Ratio Analysis — Chapter Quiz',
     subtitle:
       'Practice ratio formulas and interpretations. Review results to see what you got right.',
+    subject: ACC,
+    board: 'CBSE',
+    difficulty: 'hard',
     stats: [
       {
         label: 'Level',
@@ -306,6 +326,15 @@ const DEFAULT_SESSION: QuizSession = {
   introTag: 'General',
   title: 'Chapter Quiz',
   subtitle: 'Test your understanding with timed multiple-choice questions.',
+  subject: {
+    label: 'General',
+    dot: 'bg-[#999999]',
+    bg: 'bg-[rgba(153,153,153,0.05)]',
+    border: 'border-[rgba(153,153,153,0.1)]',
+    text: 'text-[#999999]',
+  },
+  board: 'General',
+  difficulty: 'medium',
   stats: [
     {
       label: 'Level',
@@ -369,6 +398,9 @@ export function getQuizSession(slug: string): QuizSession {
     slug,
     title: card?.title ?? DEFAULT_SESSION.title,
     introTag: card?.subject.label ?? DEFAULT_SESSION.introTag,
+    subject: card?.subject ?? DEFAULT_SESSION.subject,
+    board: card?.board ?? DEFAULT_SESSION.board,
+    difficulty: card?.difficulty ?? DEFAULT_SESSION.difficulty,
     stats: [
       { label: 'Level', value: level.value, valueClass: level.valueClass },
       { label: 'Marks', value: '80' },

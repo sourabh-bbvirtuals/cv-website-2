@@ -9,29 +9,30 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
 
   return (
     <article
-      className="relative flex min-h-[260px] flex-col rounded-2xl p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
+      className="relative flex min-h-[240px] sm:min-h-[260px] flex-col rounded-2xl p-4 sm:p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
       style={{
         backgroundColor: attempted ? '#FFFFFF80' : 'white',
-        width: '426.6666564941406px',
+        width: '100%',
+        maxWidth: '426.6666564941406px',
       }}
     >
       {attempted ? (
-        <div className="absolute top-0 right-6 -translate-y-1/2 text-center border py-1 px-2 max-w-max rounded-full border-white bg-[#F7F8FF] text-sm md:text-base font-medium text-lightgray/50">
+        <div className="absolute top-0 right-3 sm:right-6 -translate-y-1/2 text-center border py-0.5 sm:py-1 px-1.5 sm:px-2 max-w-max rounded-full border-white bg-[#F7F8FF] text-xs sm:text-sm md:text-base font-medium text-lightgray/50">
           Previously attempted: 24/30
         </div>
       ) : null}
 
-      <div className="flex w-full min-w-0 flex-col gap-5">
-        <div className="flex flex-wrap items-center gap-2 text-sm lg:text-base">
+      <div className="flex w-full min-w-0 flex-col gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base">
           <div
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
+            className={`flex items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
           >
             <span
-              className={`size-2 shrink-0 rounded-full ${card.subject.dot}`}
+              className={`size-1.5 sm:size-2 shrink-0 rounded-full ${card.subject.dot}`}
             />
             {card.subject.label}
           </div>
-          <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium text-lightgray/50 text-sm lg:text-base">
+          <div className="rounded border border-[rgba(8,22,39,0.1)] px-2 sm:px-3 py-0.5 sm:py-1 font-medium text-lightgray/50 text-xs sm:text-sm lg:text-base">
             {card.board}
           </div>
           <span className={difficultyTextClass[card.difficulty]}>
@@ -43,34 +44,35 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
           </span>
         </div>
 
-        <div className="flex w-full min-w-0 flex-col gap-3">
-          <h2 className="line-clamp-1 text-xl font-medium tracking-[-0.24px] text-lightgray">
-            {card.title}
-          </h2>
-          <div className="flex min-w-0 items-center gap-2 text-sm font-medium leading-normal text-lightgray/50 lg:text-base">
-            {metaParts.map((part, i) => (
-              <div
-                key={`${card.slug}-${part}-${i}`}
-                className="flex items-center gap-2"
-              >
-                {i > 0 ? (
-                  <span
-                    className="size-1.5 shrink-0 rounded-full bg-[rgba(8,22,39,0.45)]"
-                    aria-hidden
-                  />
-                ) : null}
-                <span className="truncate">{part}</span>
-              </div>
-            ))}
-          </div>
+        <p className="text-xs sm:text-sm font-medium text-lightgray/50">
+          CHAPTER {card.chapter}
+        </p>
+        <h2 className="line-clamp-1 text-lg sm:text-xl font-medium tracking-[-0.24px] text-lightgray">
+          {card.title}
+        </h2>
+        <div className="flex min-w-0 items-center gap-2 text-xs sm:text-sm font-medium leading-normal text-lightgray/50 lg:text-base">
+          {metaParts.map((part, i) => (
+            <div
+              key={`${card.slug}-${part}-${i}`}
+              className="flex items-center gap-2"
+            >
+              {i > 0 ? (
+                <span
+                  className="size-1.5 shrink-0 rounded-full bg-[rgba(8,22,39,0.45)]"
+                  aria-hidden
+                />
+              ) : null}
+              <span className="truncate">{part}</span>
+            </div>
+          ))}
         </div>
       </div>
 
       {attempted ? (
-        <div className="mt-16 flex w-full gap-3">
+        <div className="mt-8 sm:mt-16 flex w-full gap-2 sm:gap-3">
           <Link
             to={`/free-resources/quizzes/${card.slug}/result`}
-            className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
+            className="flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-xs sm:text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
           >
             <svg
               width="20"
@@ -78,7 +80,7 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="size-5 shrink-0"
+              className="size-4 sm:size-5 shrink-0"
               aria-hidden
             >
               <path
@@ -90,7 +92,7 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
           </Link>
           <Link
             to={`/free-resources/quizzes/${card.slug}/start`}
-            className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(8,22,39,0.1)] bg-white text-sm font-medium text-lightgray/80 transition-colors hover:bg-lightgray/5 lg:text-base"
+            className="flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(8,22,39,0.1)] bg-white text-xs sm:text-sm font-medium text-lightgray/80 transition-colors hover:bg-lightgray/5 lg:text-base"
           >
             <svg
               width="20"
@@ -98,7 +100,7 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="size-5 shrink-0"
+              className="size-4 sm:size-5 shrink-0"
               aria-hidden
             >
               <g opacity="0.8">
@@ -114,9 +116,9 @@ export function QuizListingCard({ card }: { card: QuizListCard }) {
       ) : (
         <Link
           to={`/free-resources/quizzes/${card.slug}/start`}
-          className="mt-16 flex h-9 w-full items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
+          className="mt-8 sm:mt-16 flex h-8 sm:h-9 w-full items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-xs sm:text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
         >
-          <Play className="size-5 shrink-0 fill-[#3a6bfc] text-[#3a6bfc]" />
+          <Play className="size-4 sm:size-5 shrink-0 fill-[#3a6bfc] text-[#3a6bfc]" />
           Start Quiz
         </Link>
       )}
