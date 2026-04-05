@@ -1256,6 +1256,10 @@ export default function FreeResourcesPage({
   }, [initialTab]);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [tab]);
+
+  useEffect(() => {
     const modalOpen = expandedFormula != null || videoPlayer != null;
     if (!modalOpen) return;
     const prevOverflow = document.body.style.overflow;
