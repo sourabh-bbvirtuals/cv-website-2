@@ -340,7 +340,7 @@ export default function CourseListings({
   );
 
   const getBtnClass = (isActive: boolean) =>
-    `flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
+    `flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
       isActive
         ? 'bg-lightgray text-white border-lightgray'
         : 'bg-white text-lightgray border-lightgray/10 hover:border-lightgray/30'
@@ -360,21 +360,32 @@ export default function CourseListings({
 
         {/* Filter Section */}
         <div
-          className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-20 mb-8"
+          className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 z-20 mb-8"
           ref={filterRef}
         >
-          <span className="font-semibold text-lightgray text-2xl">
-            {mappedCourses.length} Courses
-          </span>
+          <div className="flex items-center justify-between lg:block">
+            <span className="font-semibold text-lightgray text-lg sm:text-2xl">
+              {mappedCourses.length} Courses
+            </span>
+            <button
+              onClick={handleResetFilters}
+              className="text-sm sm:text-base font-medium text-lightgray/60 hover:text-lightgray transition-colors cursor-pointer lg:hidden"
+            >
+              Reset
+            </button>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-2 lg:gap-2">
             {/* SortBy Dropdown */}
             <div className="relative flex-1 sm:flex-none">
               <button
                 onClick={() => toggleModal('sort')}
                 className={getBtnClass(activeModal === 'sort')}
               >
-                Sort By:<span className="font-semibold">{selectedSort}</span>
+                <span className="hidden sm:inline">Sort By:&nbsp;</span>
+                <span className="font-semibold text-sm sm:text-base">
+                  {selectedSort || 'Relevant'}
+                </span>
                 <ChevronDown isOpen={activeModal === 'sort'} />
               </button>
               {activeModal === 'sort' && (
@@ -414,10 +425,12 @@ export default function CourseListings({
                 className={getBtnClass(activeModal === 'subjects')}
               >
                 {selectedSubjects ? (
-                  <span className="font-semibold">{selectedSubjects}</span>
+                  <span className="font-semibold text-sm sm:text-base">
+                    {selectedSubjects}
+                  </span>
                 ) : (
-                  'Subjects'
-                )}{' '}
+                  <span className="text-sm sm:text-base">Subjects</span>
+                )}
                 <ChevronDown isOpen={activeModal === 'subjects'} />
               </button>
               {activeModal === 'subjects' && (
@@ -452,7 +465,8 @@ export default function CourseListings({
                 onClick={() => toggleModal('faculty')}
                 className={getBtnClass(activeModal === 'faculty')}
               >
-                Faculty <ChevronDown isOpen={activeModal === 'faculty'} />
+                <span className="text-sm sm:text-base">Faculty</span>
+                <ChevronDown isOpen={activeModal === 'faculty'} />
               </button>
               {activeModal === 'faculty' && (
                 <div
@@ -530,15 +544,21 @@ export default function CourseListings({
                 className={getBtnClass(activeModal === 'language')}
               >
                 {selectedLanguage.length > 0 ? (
-                  <span className="font-semibold flex items-center gap-2">
-                    Language{' '}
+                  <span className="font-semibold flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
+                    <span className="hidden sm:inline">Language</span>
+                    <span className="sm:hidden">Lang</span>
                     <span className="text-white text-xs bg-blue-500 px-2.5 py-1 rounded-full">
                       {selectedLanguage.length}
                     </span>
                   </span>
                 ) : (
-                  'Language'
-                )}{' '}
+                  <span className="hidden sm:inline text-sm sm:text-base">
+                    Language
+                  </span>
+                )}
+                {selectedLanguage.length === 0 && (
+                  <span className="sm:hidden text-sm">Lang</span>
+                )}
                 <ChevronDown isOpen={activeModal === 'language'} />
               </button>
               {activeModal === 'language' && (
@@ -611,7 +631,9 @@ export default function CourseListings({
                 onClick={() => toggleModal('pricing')}
                 className={getBtnClass(activeModal === 'pricing')}
               >
-                {selectedPricing ? `${selectedPricing}` : 'Pricing'}
+                <span className="text-sm sm:text-base">
+                  {selectedPricing ? `${selectedPricing}` : 'Pricing'}
+                </span>
                 <ChevronDown isOpen={activeModal === 'pricing'} />
               </button>
               {activeModal === 'pricing' && (
@@ -641,7 +663,7 @@ export default function CourseListings({
 
             <button
               onClick={handleResetFilters}
-              className="text-base font-medium text-lightgray/60 hover:text-lightgray px-2 ml-2 transition-colors cursor-pointer"
+              className="hidden sm:block text-base font-medium text-lightgray/60 hover:text-lightgray px-2 ml-2 transition-colors cursor-pointer"
             >
               Reset Filter
             </button>
@@ -649,7 +671,7 @@ export default function CourseListings({
         </div>
 
         {/* Course Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {mappedCourses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
