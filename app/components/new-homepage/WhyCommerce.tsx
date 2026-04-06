@@ -71,7 +71,7 @@ const WhyCommerce: React.FC = () => {
             <p className="text-sm sm:text-base font-semibold text-gray-500 mb-2 uppercase tracking-wide md:mb-4">
               Feature highlights
             </p>
-            <h2 className="section-heading text-3xl md:text-4xl lg:text-[40px] font-bold text-[#081627] max-w-4xl leading-tight">
+            <h2 className="section-heading font-bold text-[#081627] max-w-4xl leading-tight">
               Study smarter with tools built for commerce prep
             </h2>
           </div>

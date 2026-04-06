@@ -70,7 +70,7 @@ const LearningFormats: React.FC = () => {
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Why Commerce Virtual
             </p>
-            <h2 className="section-heading text-2xl md:text-5xl text-lightgray">
+            <h2 className="section-heading text-lightgray">
               Everything a Commerce Student Actually Needs.
             </h2>
           </div>

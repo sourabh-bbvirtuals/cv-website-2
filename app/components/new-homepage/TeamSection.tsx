@@ -29,8 +29,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Our Team
             </p>
-            <h2 className="section-heading text-2xl md:text-5xl text-lightgray">
-              {title || 'They are best at what they do'}
+            <h2 className="section-heading text-lightgray">
+              {'They are best at what they do'}
             </h2>
           </div>
 
@@ -85,7 +85,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
                     index % 2 !== 0 ? 'mt-0 md:mt-17.75' : 'mt-0'
                   }`}
                 >
-                  <div className="relative mb-3 sm:mb-5 flex w-42 sm:w-70 h-60 sm:h-75 4xl:w-84.75! 4xl:h-87.75!">
+                  <div className="relative mb-3 sm:mb-5 flex w-36 h-36 md:w-70 md:h-77">
                     <img
                       src={member.image}
                       alt={member.name}
@@ -93,16 +93,17 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
                       className="w-full h-full object-contain object-bottom"
                     />
                   </div>
-
-                  <h3 className="text-sm sm:text-xl font-semibold leading-snug tracking-tight text-lightgray sm:text-2xl 4xl:text-3xl!">
-                    {member.name}
-                  </h3>
-                  <p className="4xl:mt-2! mt-1 text-xs md:text-sm font-normal leading-[120%] text-lightgray/60 sm:text-base">
-                    {member.designation}
-                  </p>
-                  <span className="4xl:mt-3! mt-2 md:mt-1 inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 4xl:text-base! text-xs sm:text-sm leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
-                    {member.experience}
-                  </span>
+                  <div className="flex flex-col gap-3">
+                    <h3 className="text-sm sm:text-2xl font-semibold leading-snug tracking-tight text-lightgray">
+                      {member.name}
+                    </h3>
+                    <p className="text-sm md:text-base font-normal leading-[120%] text-lightgray/60 sm:text-base">
+                      {member.designation}
+                    </p>
+                    <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
+                      {member.experience}
+                    </span>
+                  </div>
                 </article>
               </SwiperSlide>
             ))}

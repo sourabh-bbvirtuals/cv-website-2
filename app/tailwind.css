@@ -30,7 +30,7 @@
   }
 
   .section-heading {
-    @apply text-[28px] md:text-3xl lg:text-4xl 4xl:text-5xl! font-semibold text-lightgray leading-[120%]!;
+    @apply text-2xl md:text-3xl lg:text-4xl font-semibold text-lightgray leading-[120%]!;
   }
 
   .score-text {

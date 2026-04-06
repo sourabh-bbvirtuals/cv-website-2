@@ -65,7 +65,7 @@ const FreeResources = () => {
         <span className="text-lightgray font-medium text-base leading-[120%]">
           Free Resources
         </span>
-        <h2 className="section-heading mt-2 font-semibold text-2xl text-lightgray">
+        <h2 className="section-heading mt-2  text-lightgray">
           Start Learning Today
         </h2>
         <p className="text-lightgray text-sm mt-3 leading-[140%] max-w-xs">
@@ -118,7 +118,7 @@ const FreeResources = () => {
           <span className="text-lightgray font-medium text-base sm:text-lg lg:text-xl leading-[120%]">
             Free Resources
           </span>
-          <h2 className="section-heading mt-2 sm:mt-3 xl:mt-5 font-semibold text-2xl md:text-5xl">
+          <h2 className="section-heading mt-2 sm:mt-3 xl:mt-5 font-semibold">
             Start Learning Today
           </h2>
           <p className="text-lightgray text-base sm:text-lg xl:text-xl mt-3 sm:mt-4 leading-[140%] xl:leading-[150%]">

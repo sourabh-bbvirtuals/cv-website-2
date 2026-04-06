@@ -22,7 +22,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ title, faqs }) => {
         <p className="sm:text-xl font-medium text-lightgray mb-3 4xl:mb-4!">
           FAQs
         </p>
-        <h2 className="section-heading font-semibold">{'Common Questions'}</h2>
+        <h2 className="section-heading">{'Common Questions'}</h2>
       </div>
 
       <div className="flex flex-col gap-4">

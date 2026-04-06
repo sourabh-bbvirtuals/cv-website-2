@@ -53,7 +53,7 @@ const Footer = () => {
           </p>
           <a
             href="tel:8272332948"
-            className="inline-flex items-center text-base gap-2 primary-btn font-normal md:font-medium py-3 md:py-4 px-14 md:px-6 md:text-xl leading-[120%]!"
+            className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[325px] md:w-[323px] h-[42px] md:h-[56px] font-normal md:font-medium py-4 px-6 md:text-xl leading-[120%]!"
           >
             <Phone size={20} fill="currentColor" />
             Call Now (827-233-2948)

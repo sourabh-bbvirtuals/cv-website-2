@@ -1370,9 +1370,7 @@ export default function FreeResourcesPage({
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
           <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
             <div className="space-y-3 md:space-y-4 text-lightgray">
-              <h1 className="section-heading font-semibold text-3xl sm:text-4xl">
-                Free Resources
-              </h1>
+              <h1 className="section-heading">Free Resources</h1>
               <p className="max-w-[1280px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
                 Test your knowledge with code challenges based on real-world
                 technical interviews from companies like Google, Amazon, and

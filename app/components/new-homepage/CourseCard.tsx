@@ -22,7 +22,7 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
       {/* Top Header */}
       <div className="flex flex-col justify-between h-full">
         <div className="p-[15px] pb-0 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-lightgray/80">
             <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
               {course.language || 'Hindi'}
             </span>
@@ -45,13 +45,13 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
               </span>
             ) : (
               <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
-                <span className="inline-block size-2 rounded-full bg-[#606060]" />
+                <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                 {course.type || 'Live'}
               </span>
             )}
           </div>
           <div className="flex flex-col gap-2 mb-2">
-            <h3 className="font-semibold text-base  md:text-xl text-lightgray leading-[150%]">
+            <h3 className="font-medium text-base  md:text-xl text-lightgray leading-[150%]">
               {course.title}
             </h3>
           </div>
@@ -80,13 +80,13 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
                 </span>
               </div>
             )}
-            {course.meta && course.meta[2] && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm border border-gray-400 px-4 py-1">
-                <span className="text-sm md:text-base font-medium text-white leading-[1.2]">
-                  {course.meta[2]}
-                </span>
-              </div>
-            )}
+            {/* {course.meta && course.meta[2] && ( */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-3 py-1">
+              <span className="text-sm md:text-base font-medium text-white leading-[1.2]">
+                {course.meta[2]}ddd
+              </span>
+            </div>
+            {/* )} */}
           </div>
         </div>
       </div>

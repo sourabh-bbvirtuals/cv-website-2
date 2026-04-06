@@ -1,18 +1,72 @@
 import React, { useEffect, useRef } from 'react';
+import lottie from 'lottie-web';
 
 export default function HowItWorks() {
+  const container1Ref = useRef(null);
+  const container2Ref = useRef(null);
+  const container3Ref = useRef(null);
+  const mobileContainer1Ref = useRef(null);
+  const mobileContainer2Ref = useRef(null);
+  const mobileContainer3Ref = useRef(null);
+
+  useEffect(() => {
+    const loadAnimation = (container: any, path: string) => {
+      if (container) {
+        const anim = lottie.loadAnimation({
+          container,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path,
+        });
+        return anim;
+      }
+    };
+
+    const anim1 = loadAnimation(
+      container1Ref.current,
+      '/assets/json/Scene-1.json',
+    );
+    const anim2 = loadAnimation(
+      container2Ref.current,
+      '/assets/json/Scene-2.json',
+    );
+    const anim3 = loadAnimation(
+      container3Ref.current,
+      '/assets/json/Scene-3.json',
+    );
+    const mobileAnim1 = loadAnimation(
+      mobileContainer1Ref.current,
+      '/assets/json/Scene-1.json',
+    );
+    const mobileAnim2 = loadAnimation(
+      mobileContainer2Ref.current,
+      '/assets/json/Scene-2.json',
+    );
+    const mobileAnim3 = loadAnimation(
+      mobileContainer3Ref.current,
+      '/assets/json/Scene-3.json',
+    );
+
+    return () => {
+      anim1?.destroy();
+      anim2?.destroy();
+      anim3?.destroy();
+      mobileAnim1?.destroy();
+      mobileAnim2?.destroy();
+      mobileAnim3?.destroy();
+    };
+  }, []);
+
   const steps = {
     1: {
       title: 'Choose Your Exam',
-      video: '/assets/vid/Scene-1.mp4',
     },
     2: {
       title: 'Select Course & Make Purchase',
-      video: '/assets/vid/Scene-2.mp4',
     },
     3: {
       title: 'Start Learning & Succeed',
-      video: '/assets/vid/Scene-3.mp4',
     },
   };
   return (
@@ -21,7 +75,7 @@ export default function HowItWorks() {
         <p className="text-base md:text-xl font-medium text-gray-900 mb-3 md:mb-4 leading-[120%]">
           How it Works
         </p>
-        <h2 className="section-heading font-semibold text-lightgray max-w-3xl text-2xl  md:text-5xl">
+        <h2 className="section-heading font-semibold text-lightgray">
           From Zero to Personalized in 30 Seconds.
         </h2>
       </div>
@@ -38,6 +92,7 @@ export default function HowItWorks() {
 
           {/* Card */}
           <div
+            ref={container1Ref}
             className="h-48 w-[500px] rounded-2xl"
             style={{
               background:
@@ -68,7 +123,10 @@ export default function HowItWorks() {
           </div>
 
           {/* Card */}
-          <div className="h-[510px] w-[680px] rounded-2xl bg-[#F5F7FF]" />
+          <div
+            ref={container2Ref}
+            className="h-[510px] w-[680px] overflow-hidden rounded-2xl bg-[#F5F7FF]"
+          />
 
           {/* Content */}
           <div className="flex flex-col justify-center mb-8">
@@ -93,6 +151,7 @@ export default function HowItWorks() {
 
           {/* Card */}
           <div
+            ref={container3Ref}
             className="h-48 w-[500px] rounded-2xl"
             style={{
               background:
@@ -113,7 +172,7 @@ export default function HowItWorks() {
         </div>
       </div>
       {/* mobile */}
-      <div className="flex-col gap-4 flex md:hidden p-2">
+      <div className="flex-col gap-4 flex md:hidden p-4">
         {/* Step 01 */}
 
         <div className="flex flex-col gap-4 md:gap-6 lg:gap-8 items-center justify-center mx-auto w-full">
@@ -125,13 +184,9 @@ export default function HowItWorks() {
           </div>
 
           {/* Card */}
-          <video
-            className="h-[251.25px] w-[335px] rounded-2xl object-cover"
-            src={steps[1].video}
-            autoPlay
-            loop
-            muted
-            playsInline
+          <div
+            ref={mobileContainer1Ref}
+            className="h-[251.25px] w-[335px] overflow-hidden rounded-2xl"
           />
 
           {/* Content */}
@@ -157,13 +212,9 @@ export default function HowItWorks() {
           </div>
 
           {/* Card */}
-          <video
-            className="h-[251.25px] w-[335px] rounded-2xl object-cover"
-            src={steps[2].video}
-            autoPlay
-            loop
-            muted
-            playsInline
+          <div
+            ref={mobileContainer2Ref}
+            className="h-[251.25px] w-[335px] overflow-hidden rounded-2xl"
           />
 
           {/* Content */}
@@ -189,13 +240,9 @@ export default function HowItWorks() {
           </div>
 
           {/* Card */}
-          <video
-            className="h-[251.25px] w-[335px] rounded-2xl object-cover"
-            src={steps[3].video}
-            autoPlay
-            loop
-            muted
-            playsInline
+          <div
+            ref={mobileContainer3Ref}
+            className="h-[251.25px] w-[335px] overflow-hidden rounded-2xl"
           />
 
           {/* Content */}
