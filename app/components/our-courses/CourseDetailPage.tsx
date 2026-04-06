@@ -69,7 +69,8 @@ const NAV_MAP: Record<string, string> = {
   features: 'Features',
   about_course: 'About',
   demo_lectures: 'Demo Lectures',
-  syllabus: 'Syllabus',
+  syllabus: 'Curriculum',
+  faculties: 'Faculties',
   faqs: 'FAQs',
 };
 
@@ -264,14 +265,14 @@ function FaqSection({
         return (
           <div
             key={i}
-            className="flex gap-4 rounded-2xl border border-[rgba(8,22,39,0.1)] bg-white px-4 py-4 sm:px-6 shadow-sm"
+            className="flex gap-4 rounded-2xl border border-[rgba(8,22,39,0.1)] bg-white px-4 py-4 sm:px-6"
           >
             <button
               type="button"
               className="min-w-0 flex-1 text-left"
               onClick={() => setOpenIdx(open ? null : i)}
             >
-              <p className="text-base sm:text-lg font-bold text-slate-800">
+              <p className="text-base sm:text-lg font-medium text-slate-800">
                 {item.question}
               </p>
               <div
@@ -280,7 +281,7 @@ function FaqSection({
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="mt-2 text-sm sm:text-base leading-relaxed text-slate-600">
+                  <p className="mt-2 text-sm sm:text-base leading-relaxed text-lightgray/50">
                     {item.answer}
                   </p>
                 </div>
@@ -288,11 +289,11 @@ function FaqSection({
             </button>
             <button
               type="button"
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 self-start mt-0.5"
+              className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lightgray/50 self-start mt-0.5"
               onClick={() => setOpenIdx(open ? null : i)}
             >
               <ChevronDown
-                className={`size-5 transition-transform ${
+                className={`size-4 transition-transform ${
                   open ? 'rotate-180' : ''
                 }`}
               />
@@ -405,6 +406,107 @@ function VideoCarousel({
   );
 }
 
+function FacultiesCarousel({
+  items,
+}: {
+  items: Array<{ name: string; image: string; description: string }>;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const amount = direction === 'left' ? -300 : 300;
+      scrollRef.current.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+  };
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div className="relative group">
+      {/* Navigation Arrows positioned to align with the section title above */}
+      <div className="absolute -top-[76px] right-0 hidden items-center gap-3 sm:flex">
+        <button
+          onClick={() => scroll('left')}
+          className="flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-50 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+        >
+          <ChevronLeft className="size-5 text-slate-500" />
+        </button>
+        <button
+          onClick={() => scroll('right')}
+          className="flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-50 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+        >
+          <ChevronRight className="size-5 text-slate-500" />
+        </button>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex flex-row gap-6 sm:gap-8 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {items.map((faculty, i) => {
+          const isExpanded = expandedIdx === i;
+          return (
+            <div
+              key={i}
+              className="flex flex-col shrink-0 snap-start w-full gap-4"
+            >
+              {/* Header: Avatar + Name/Subtitle */}
+              <div className="flex gap-4 items-center">
+                <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-slate-100 shadow-md flex-shrink-0">
+                  <img
+                    src={faculty.image}
+                    alt={faculty.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col items-start gap-2 flex-1">
+                  {/* Faculty Info */}
+                  <h3 className="text-base font-semibold text-slate-900">
+                    {faculty.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-lightgray/50">
+                    {'CA, M.com'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-2 w-full text-xs sm:text-sm text-lightgray/50 leading-relaxed flex-1">
+                {isExpanded ? (
+                  <>
+                    <p>{faculty.description}</p>
+                    <button
+                      onClick={() => setExpandedIdx(null)}
+                      className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
+                    >
+                      Show Less
+                      <ChevronDown className="size-4 rotate-180" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="line-clamp-3">{faculty.description}</p>
+                    <button
+                      onClick={() => setExpandedIdx(i)}
+                      className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
+                    >
+                      Show More
+                      <ChevronDown className="size-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ContactSupport({
   detail,
 }: {
@@ -493,12 +595,12 @@ function SpecBlock({ item, depth = 0 }: { item: SpecItem; depth?: number }) {
         href={item.text}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-3 group relative w-full"
+        className="flex items-center gap-2 group relative w-full"
       >
         <div className="flex size-8 shrink-0 items-center justify-center text-[#3a6bfc] group-hover:bg-[#3a6bfc]/10 rounded-full transition-colors">
           <CirclePlay className="size-[22px] stroke-[1.5]" />
         </div>
-        <span className="text-sm sm:text-[15px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors text-left">
+        <span className="text-sm sm:text-base font-normal text-[#081627] group-hover:text-[#3a6bfc] transition-colors text-left">
           {item.name}
         </span>
       </a>
@@ -608,10 +710,12 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
     return <p className="text-slate-500 italic">No syllabus data available</p>;
 
   return (
-    <div className="space-y-6 pt-2">
-      <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">
-        Syllabus
-      </h3>
+    <div className="space-y-6">
+      <div
+        className={`flex max-w-max text-[#3A6BFC] font-medium items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm leading-[150%] lg:text-base lg:leading-[150%] border-[#3A6BFC]/20 bg-[#3A6BFC1A]/30`}
+      >
+        Accountancy
+      </div>
       <div className="flex flex-col gap-5 sm:gap-6 relative">
         {/* Subtle vertical connector line connecting numbers */}
         <div className="absolute left-[13px] top-[40px] bottom-[40px] w-px bg-slate-200 hidden sm:block" />
@@ -631,28 +735,43 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
               className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full items-start relative z-10"
             >
               {/* Outer Number Circle (Desktop) */}
-              <div className="hidden sm:flex shrink-0 pt-6">
-                <span className="flex size-7 items-center justify-center rounded-full bg-[#0f172a] text-[13px] font-bold text-white ring-[6px] ring-white">
+              <div className="hidden sm:flex shrink-0 pt-2">
+                <span
+                  className={`flex size-7 items-center justify-center rounded-full text-[13px] font-medium  border  ${
+                    open
+                      ? 'bg-[#0f172a] text-white'
+                      : 'bg-gray-100 border-gray-300 text-lightgray/50'
+                  }`}
+                >
                   {idx + 1}
                 </span>
               </div>
 
               {/* The Interactive Card */}
               <div
-                className={`flex-1 rounded-3xl bg-[#f8fafc] overflow-hidden transition-all ${
+                className={`flex-1 rounded-2xl p-4 gap-4 bg-[#F5F6F9B2] overflow-hidden transition-all ${
                   open ? 'shadow-[0_4px_24px_rgba(0,0,0,0.04)]' : ''
                 } w-full`}
               >
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-4 px-5 py-4 sm:px-8 sm:py-5 text-left transition-colors"
+                  className="w-full flex items-center justify-between gap-4 text-left transition-colors"
                   onClick={() => setOpenAccordion(open ? null : idx)}
                 >
-                  <div className="flex flex-col gap-2.5 flex-1 relative">
-                    {/* Lecture count */}
-                    <span className="text-[12px] font-bold text-slate-500 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-1 shadow-xs">
-                      {lectureCount} Lectures
-                    </span>
+                  <div className="flex flex-col gap-2 flex-1 relative">
+                    <div className="flex items-center justify-between">
+                      {/* Lecture count */}
+                      <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
+                        {lectureCount} Lectures
+                      </span>
+                      <div className="shrink-0 flex items-center justify-center  bg-[#08162708]/10 rounded-full transition-colors">
+                        {open ? (
+                          <ChevronDown className="size-5 text-slate-400" />
+                        ) : (
+                          <ChevronRight className="size-5 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
 
                     {/* Mobile Number Indicator */}
                     <div className="flex items-center gap-3 sm:hidden mb-1">
@@ -661,26 +780,19 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                       </span>
                     </div>
 
-                    <span className="font-bold text-base sm:text-lg text-slate-800 leading-snug">
+                    <span className="font-medium text-base sm:text-lg text-lightgray leading-snug">
                       {child.name}
                     </span>
                   </div>
-
-                  <div className="shrink-0 flex items-center justify-center size-8 sm:size-10 rounded-full transition-colors">
-                    {open ? (
-                      <ChevronDown className="size-5 text-slate-400" />
-                    ) : (
-                      <ChevronRight className="size-5 text-slate-400" />
-                    )}
-                  </div>
                 </button>
+
                 <div
-                  className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                  className={`grid transition-[grid-template-rows] duration-300 ease-in-out mt-2 ${
                     open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-5 sm:px-8 pb-6 pt-0">
+                    <div className="">
                       <div className="flex flex-col gap-1">
                         <SpecBlock item={child} depth={0} />
                       </div>
@@ -1074,6 +1186,27 @@ export default function CourseDetailPage({
   const [courseType, setCourseType] = useState<string>('');
   const [mode, setMode] = useState<string>('');
 
+  // Add mock faculties data if empty for visualization
+  const displayFaculties =
+    product?.faculties && product.faculties.length > 0
+      ? product.faculties
+      : [
+          {
+            name: 'CA Bhushal Gosar',
+            image:
+              'https://www.figma.com/api/mcp/asset/b5f8d002-8c8c-46bf-989e-9ae3a805bc23',
+            description:
+              "Grow with Google is an initiative that draws on Google's decades-long history of building products, platforms, and services that help people and businesses grow. We aim to help everyone – those who make up the workforce of today and the students who will drive the...",
+          },
+          {
+            name: 'CA Bhushal Gosar',
+            image:
+              'https://www.figma.com/api/mcp/asset/b5f8d002-8c8c-46bf-989e-9ae3a805bc23',
+            description:
+              "Grow with Google is an initiative that draws on Google's decades-long history of building products, platforms, and services that help people and businesses grow. We aim to help everyone – those who make up the workforce of today and the students who will drive the...",
+          },
+        ];
+
   return (
     <div className="bg-white" data-course-slug={slug ?? ''}>
       {/* ── Hero section ── */}
@@ -1090,11 +1223,11 @@ export default function CourseDetailPage({
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 text-lightgray/70">
-                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
                       {courseLanguage}
                     </span>
                     {isLive && (
-                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
                         <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                         {'Live'}
                       </span>
@@ -1246,111 +1379,107 @@ export default function CourseDetailPage({
 
       {/* ── Main body ── */}
       <div className="w-full max-w-350 mx-auto px-4 py-12 space-y-20 lg:space-y-32">
-        <div className="flex flex-col lg:flex-row lg:items-start gap-10 lg:gap-8 xl:gap-12">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-10 lg:gap-8">
           {/* Main Content - Left Column */}
           <div className="min-w-0 flex-1 space-y-20 lg:max-w-none">
             {/* Features Section */}
-            {activeNav === 'features' && (
-              <section id="features" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="Features" />
-                <FeaturesSection specItems={specItems} />
-              </section>
-            )}
+            <section id="features" className="scroll-mt-32 space-y-8">
+              <SectionTitle title="Features" />
+              <FeaturesSection specItems={specItems} />
+            </section>
 
             {/* About Course Section */}
-            {activeNav === 'about_course' && (
-              <section id="about_course" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="About" />
-                {(() => {
-                  const aboutSpec = specItems.find(
-                    (s) => s.identifier === 'about_course',
-                  );
-                  return aboutSpec ? (
-                    <div className="space-y-6">
-                      {aboutSpec.data?.map((item, idx) => (
+            <section id="about_course" className="scroll-mt-32 space-y-8">
+              <SectionTitle title="About" />
+              {(() => {
+                const aboutSpec = specItems.find(
+                  (s) => s.identifier === 'about_course',
+                );
+                return aboutSpec ? (
+                  <div className="space-y-6">
+                    {aboutSpec.data?.map((item, idx) => (
+                      <div key={idx}>
+                        <SpecBlock item={item} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">
+                    No course description available
+                  </p>
+                );
+              })()}
+            </section>
+
+            {/* Demo Lectures Section */}
+            <section id="demo_lectures" className="scroll-mt-32 space-y-8">
+              <SectionTitle title="Demo Lectures" />
+              {(() => {
+                const demoSpec = specItems.find(
+                  (s) => s.identifier === 'demo_lectures',
+                );
+                return demoSpec ? (
+                  <div className="space-y-6">
+                    {demoSpec.videoItems && demoSpec.videoItems.length > 0 ? (
+                      <VideoCarousel items={demoSpec.videoItems} />
+                    ) : (
+                      demoSpec.data?.map((item, idx) => (
                         <div key={idx}>
                           <SpecBlock item={item} />
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 italic">
-                      No course description available
-                    </p>
-                  );
-                })()}
-              </section>
-            )}
-
-            {/* Demo Lectures Section */}
-            {activeNav === 'demo_lectures' && (
-              <section id="demo_lectures" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="Demo Lectures" />
-                {(() => {
-                  const demoSpec = specItems.find(
-                    (s) => s.identifier === 'demo_lectures',
-                  );
-                  return demoSpec ? (
-                    <div className="space-y-6">
-                      {demoSpec.videoItems && demoSpec.videoItems.length > 0 ? (
-                        <VideoCarousel items={demoSpec.videoItems} />
-                      ) : (
-                        demoSpec.data?.map((item, idx) => (
-                          <div key={idx}>
-                            <SpecBlock item={item} />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 italic">
-                      No demo lectures available
-                    </p>
-                  );
-                })()}
-              </section>
-            )}
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">
+                    No demo lectures available
+                  </p>
+                );
+              })()}
+            </section>
 
             {/* Syllabus Section */}
-            {activeNav === 'syllabus' && (
-              <section id="syllabus" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="Curriculum" />
-                {(() => {
-                  const syllabusSpec = specItems.find(
-                    (s) => s.identifier === 'syllabus',
-                  );
-                  return syllabusSpec ? (
-                    <SyllabusSection item={syllabusSpec} />
-                  ) : (
-                    <p className="text-slate-500 italic">
-                      No curriculum available
-                    </p>
-                  );
-                })()}
-              </section>
-            )}
+            <section id="syllabus" className="scroll-mt-32 space-y-8">
+              <SectionTitle title="Curriculum" />
+              {(() => {
+                const syllabusSpec = specItems.find(
+                  (s) => s.identifier === 'syllabus',
+                );
+                return syllabusSpec ? (
+                  <SyllabusSection item={syllabusSpec} />
+                ) : (
+                  <p className="text-slate-500 italic">
+                    No curriculum available
+                  </p>
+                );
+              })()}
+            </section>
+
+            {/* Faculties Section */}
+            <section id="faculties" className="scroll-mt-32 space-y-8">
+              <SectionTitle title="Faculties" />
+              {displayFaculties && displayFaculties.length > 0 ? (
+                <FacultiesCarousel items={displayFaculties} />
+              ) : (
+                <p className="text-slate-500 italic">No faculties available</p>
+              )}
+            </section>
 
             {/* FAQs Section */}
-            {activeNav === 'faqs' && (
-              <section id="faqs" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="FAQs" />
-                {(() => {
-                  const faqSpec = specItems.find(
-                    (s) => s.identifier === 'faqs',
-                  );
-                  return faqSpec?.faqItems && faqSpec.faqItems.length > 0 ? (
-                    <FaqSection items={faqSpec.faqItems} />
-                  ) : (
-                    <p className="text-slate-500 italic">No FAQs available</p>
-                  );
-                })()}
-              </section>
-            )}
+            <section id="faqs" className="scroll-mt-32 space-y-8">
+              <SectionTitle title="FAQs" />
+              {(() => {
+                const faqSpec = specItems.find((s) => s.identifier === 'faqs');
+                return faqSpec?.faqItems && faqSpec.faqItems.length > 0 ? (
+                  <FaqSection items={faqSpec.faqItems} />
+                ) : (
+                  <p className="text-slate-500 italic">No FAQs available</p>
+                );
+              })()}
+            </section>
           </div>
 
           {/* Sticky Sidebar - Right Column */}
-
-          {/* right Sticky sidebar */}
           <aside className="w-full shrink-0 lg:sticky lg:top-32 lg:w-[440px] hidden  lg:block">
             <div className="flex flex-col rounded-[24px] border border-slate-300 bg-white p-6 shadow-2xl shadow-slate-200/50">
               {/* Image Section */}
@@ -1371,11 +1500,11 @@ export default function CourseDetailPage({
               <div className="space-y-5 ">
                 {/* Tags */}
                 <div className="flex items-center gap-2 text-lightgray/70">
-                  <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                  <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
                     {courseLanguage}
                   </span>
                   {isLive && (
-                    <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                    <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
                       <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                       {'Live'}
                     </span>
