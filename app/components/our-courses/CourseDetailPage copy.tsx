@@ -75,110 +75,6 @@ const NAV_MAP: Record<string, string> = {
 
 const SUBNAV_SCROLL_SPY_OFFSET_PX = 128;
 
-// ─── Custom Dropdown Component ────────────────────────────────────────────────
-type CustomDropdownProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-  placeholder?: string;
-};
-
-function CustomDropdown({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder = 'Select an option',
-}: CustomDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div className="flex-1 relative" ref={dropdownRef}>
-      <label className="block text-xs font-semibold uppercase tracking-widest text-lightgray/50 mb-3">
-        {label}
-      </label>
-
-      {/* Trigger Button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 rounded-full border border-slate-200 bg-white text-left text-base font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#3a6bfc] focus:border-transparent transition-all hover:border-slate-300 flex items-center justify-between"
-      >
-        <span
-          className={
-            selectedOption ? 'text-slate-700 font-medium' : 'text-slate-400'
-          }
-        >
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronDown
-          className={`size-5 text-slate-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
-          <div className="max-h-80 overflow-y-auto">
-            {options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full px-5 py-3 text-left text-base font-medium transition-colors flex items-center gap-3 ${
-                  value === option.value
-                    ? 'bg-blue-50 text-[#3a6bfc]'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                {value === option.value && (
-                  <div className="flex size-5 items-center justify-center rounded-full bg-[#3a6bfc]">
-                    <svg
-                      className="size-3 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
-                <span>{option.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Spec Renderers ───────────────────────────────────────────────────────────
 function SpecTable({ table }: { table: Record<string, string> }) {
   return (
@@ -331,13 +227,13 @@ function VideoCarousel({
           onClick={() => scroll('left')}
           className="flex size-10 sm:size-12 items-center justify-center rounded-full  bg-slate-50 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-95"
         >
-          <ChevronLeft className="size-5 text-slate-500" />
+          <ChevronLeft className="size-5 sm:size-8 text-slate-700" />
         </button>
         <button
           onClick={() => scroll('right')}
           className="flex size-10 sm:size-12 items-center justify-center rounded-full  bg-slate-50  transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-95"
         >
-          <ChevronRight className="size-5 text-slate-500" />
+          <ChevronRight className="size-5 sm:size-8 text-slate-700" />
         </button>
       </div>
 
@@ -375,25 +271,28 @@ function VideoCarousel({
 
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="absolute left-1/2 top-1/2 flex size-[40px] sm:size-[56px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-400 bg-gray-500">
-                    <Play fill="#FFFFFF" className="text-white w-4 sm:w-5" />
+                  <div className="flex size-16 sm:size-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md transition-transform duration-300 group-hover:scale-110 shadow-xl">
+                    <Play
+                      className="ml-1.5 sm:ml-2 size-8 sm:size-10 text-white opacity-90"
+                      fill="currentColor"
+                    />
                   </div>
                 </div>
 
                 {/* Duration Badge */}
                 {item.durationMinutes > 0 && (
-                  <div className="pointer-events-none absolute bottom-2 sm:bottom-2.5 right-2 sm:right-2.5 rounded-full border border-white/15 bg-white/15 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs sm:text-sm font-medium leading-[150%] text-white backdrop-blur-[17px] sm:text-base sm:leading-[150%]">
+                  <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[11px] sm:text-xs font-bold text-white backdrop-blur-md shadow-sm">
                     {item.durationMinutes}m
-                  </div>
+                  </span>
                 )}
               </div>
 
               {/* Text Info */}
               <div className="flex flex-col gap-1.5 sm:gap-2 px-1">
-                <p className="text-xs sm:text-sm font-medium text-lightgray/50">
+                <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-[#64748b]">
                   CHAPTER {i + 1}
                 </p>
-                <h3 className="line-clamp-2 text-base sm:text-lg lg:text-[20px] font-medium text-slate-900 leading-snug">
+                <h3 className="line-clamp-2 text-base sm:text-lg lg:text-[19px] font-bold text-slate-900 leading-snug">
                   {item.title}
                 </h3>
               </div>
@@ -436,7 +335,7 @@ function ContactSupport({
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 leading-tight">
+    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
       {title}
     </h2>
   );
@@ -535,19 +434,19 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
 
   return (
     <div className="rounded-[24px] bg-[#0f172a] p-4 sm:p-5 lg:p-6 text-white shadow-xl overflow-hidden relative w-full border border-slate-800/50">
-      <div className="relative z-10 flex flex-col lg:flex-row gap-3 lg:gap-10">
+      <div className="relative z-10 flex flex-col lg:flex-row gap-6 lg:gap-10">
         {/* Left Side: Stats Grid */}
         {includedEntries.length > 0 && (
-          <div className="w-full lg:w-[45%] grid grid-cols-2 gap-x-6 sm:gap-x-8 relative">
+          <div className="w-full lg:w-[45%] grid grid-cols-2 gap-y-4 sm:gap-y-4 gap-x-6 sm:gap-x-8 relative">
             {/* Vertical Divider */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent -translate-x-1/2 hidden sm:block" />
 
             {includedEntries.map(([label, value]) => (
               <div key={label} className="flex flex-col gap-1">
-                <p className="text-[11px] sm:text-sm font-normal text-slate-400">
+                <p className="text-[11px] sm:text-xs font-medium text-slate-400">
                   {label}
                 </p>
-                <p className="text-base sm:text-lg font-medium text-white leading-tight">
+                <p className="text-base sm:text-lg font-semibold text-white leading-tight">
                   {value}
                 </p>
               </div>
@@ -758,212 +657,9 @@ export default function CourseDetailPage({
     }
   }, [addToCartFetcher.state, addToCartFetcher.data, navigate]);
 
-  let specItems: SpecItem[] = (specifications?.product || []).sort(
+  const specItems: SpecItem[] = (specifications?.product || []).sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0),
   );
-
-  // Add mock data if empty for visualization
-  if (specItems.length === 0) {
-    specItems = [
-      {
-        order: 1,
-        identifier: 'features',
-        name: 'Features',
-        type: 'composite',
-        data: [
-          {
-            order: 0,
-            identifier: 'features-table',
-            name: 'Features Table',
-            type: 'table',
-            table: {
-              Language: 'English',
-              'No. of Lectures': '80-85',
-              Quizzes: '120+',
-              'Formula Cards': '100+',
-              'Mock Tests': '80+',
-              Notes: '32+',
-            },
-          },
-          {
-            order: 1,
-            identifier: 'features-list',
-            name: 'Course Highlights',
-            type: 'list',
-            list: [
-              'Live Classes by Master Teachers',
-              'Live in-class quizzes and leaderboard',
-              'Live in-class doubt solving',
-              'Recordings of previous classes',
-              'Assignments and class notes',
-              'Handwritten Teacher Notes after class',
-            ],
-          },
-        ],
-      },
-      {
-        order: 2,
-        identifier: 'about_course',
-        name: 'About',
-        type: 'composite',
-        data: [
-          {
-            order: 0,
-            identifier: 'about-desc',
-            name: 'Course Description',
-            type: 'html_text',
-            text: '<p>This comprehensive course is designed to help you master the fundamentals and advanced concepts. Our expert instructors bring years of industry experience to deliver high-quality content with practical applications.</p>',
-          },
-          {
-            order: 1,
-            identifier: 'about-benefits',
-            name: "What You'll Learn",
-            type: 'list',
-            list: [
-              'Master core concepts and theories',
-              'Practical implementation techniques',
-              'Real-world problem-solving strategies',
-              'Industry best practices',
-              'Hands-on project experience',
-              'Certification upon completion',
-            ],
-          },
-        ],
-      },
-      {
-        order: 3,
-        identifier: 'demo_lectures',
-        name: 'Demo Lectures',
-        type: 'video_carousel',
-        videoItems: [
-          {
-            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title: 'Introduction to Basics',
-            durationMinutes: 12,
-          },
-          {
-            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title: 'Fundamentals Deep Dive',
-            durationMinutes: 18,
-          },
-          {
-            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title: 'Advanced Concepts',
-            durationMinutes: 15,
-          },
-        ],
-      },
-      {
-        order: 4,
-        identifier: 'syllabus',
-        name: 'Syllabus',
-        type: 'composite',
-        data: [
-          {
-            order: 0,
-            identifier: 'syllabus-main',
-            name: 'Full Course',
-            type: 'composite',
-            data: [
-              {
-                order: 0,
-                identifier: 'module-1',
-                name: 'Module 1: Foundations',
-                type: 'composite',
-                data: [
-                  {
-                    order: 0,
-                    identifier: 'module-1-topics',
-                    name: 'Topics',
-                    type: 'list',
-                    list: [
-                      'Introduction and Overview',
-                      'Core Concepts',
-                      'Basic Principles',
-                      'Setup and Configuration',
-                    ],
-                  },
-                ],
-              },
-              {
-                order: 1,
-                identifier: 'module-2',
-                name: 'Module 2: Intermediate Topics',
-                type: 'composite',
-                data: [
-                  {
-                    order: 0,
-                    identifier: 'module-2-topics',
-                    name: 'Topics',
-                    type: 'list',
-                    list: [
-                      'Advanced Techniques',
-                      'Best Practices',
-                      'Real-world Applications',
-                      'Troubleshooting Guide',
-                    ],
-                  },
-                ],
-              },
-              {
-                order: 2,
-                identifier: 'module-3',
-                name: 'Module 3: Advanced Concepts',
-                type: 'composite',
-                data: [
-                  {
-                    order: 0,
-                    identifier: 'module-3-topics',
-                    name: 'Topics',
-                    type: 'list',
-                    list: [
-                      'Complex Scenarios',
-                      'Optimization Techniques',
-                      'Industry Patterns',
-                      'Projects and Case Studies',
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        order: 5,
-        identifier: 'faqs',
-        name: 'FAQs',
-        type: 'faq',
-        faqItems: [
-          {
-            question: 'Who is this course suitable for?',
-            answer:
-              'This course is designed for beginners and intermediate learners who want to master the subject. No prior experience is required.',
-          },
-          {
-            question: 'What is the course duration?',
-            answer:
-              'The course typically takes 6-8 weeks to complete, depending on your pace. You can access all materials anytime.',
-          },
-          {
-            question: 'Is there a certificate upon completion?',
-            answer:
-              'Yes, you will receive a completion certificate that can be shared on professional networks.',
-          },
-          {
-            question: 'What if I have doubts during the course?',
-            answer:
-              'Our instructors are available to answer questions through live sessions and discussion forums.',
-          },
-          {
-            question: 'Can I access the course materials after completion?',
-            answer:
-              'Yes, you have lifetime access to all course materials and any future updates.',
-          },
-        ],
-      },
-    ];
-  }
 
   const courseInfoSpec = specItems.find(
     (s) => s.identifier === 'course_info' || s.name === 'Course Info',
@@ -1002,15 +698,6 @@ export default function CourseDetailPage({
       heroStats.push([key, val]);
     }
   });
-
-  // Add mock data if empty for visualization
-  if (heroStats.length === 0) {
-    heroStats.push(
-      ['Standard', 'CBSE/ICSE'],
-      ['Board Year', '2024-25'],
-      ['START-END DATE', 'Jan 2024 - Mar 2024'],
-    );
-  }
   const courseLanguage = (
     courseInfoSpec?.table?.['Language'] || 'Hindi'
   ).trim();
@@ -1021,17 +708,6 @@ export default function CourseDetailPage({
   const navItems = specItems
     .filter((s) => NAV_MAP[s.identifier])
     .map((s) => ({ id: s.identifier, label: NAV_MAP[s.identifier] || s.name }));
-
-  // Add mock data if empty for visualization
-  if (navItems.length === 0) {
-    navItems.push(
-      { id: 'features', label: 'Features' },
-      { id: 'about_course', label: 'About' },
-      { id: 'demo_lectures', label: 'Demo Lectures' },
-      { id: 'syllabus', label: 'Syllabus' },
-      { id: 'faqs', label: 'FAQs' },
-    );
-  }
 
   const [activeNav, setActiveNav] = useState<string>(navItems[0]?.id || '');
 
@@ -1071,167 +747,135 @@ export default function CourseDetailPage({
     product?.featuredAsset?.preview ||
     IMG_PRATIK;
 
-  const [courseType, setCourseType] = useState<string>('');
-  const [mode, setMode] = useState<string>('');
-
   return (
     <div className="bg-white" data-course-slug={slug ?? ''}>
       {/* ── Hero section ── */}
-      <div className="relative border-b border-slate-200 pb-12 pt-16 md:pt-20 lg:pt-24">
+      <div className="relative border-b border-slate-100 pb-12 pt-16 md:pt-20 lg:pt-24">
         {/* Abstract background pattern/image */}
-        <div className="pointer-events-none absolute -top-32 left-0 h-[530px] w-full bg-[url('/assets/images/homepage/detail-page-header.png')] bg-cover" />
+        <div className="pointer-events-none absolute -top-32 left-0 h-100 w-full bg-[url('/assets/images/homepage/detail-page-header.png')] bg-contain bg-top opacity-60 4xl:min-h-125" />
 
-        {/* big card */}
-        <div className="max-w-330 border gap-[50px] rounded-4xl border-[#DFD4EE] bg-white mx-auto p-9 relative z-10">
-          {/* top part */}
-          <div className="flex flex-row items-center gap-9">
-            {/* Left - Hero Content */}
-            <div className="flex flex-col gap-[30px]">
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-2 text-lightgray/70">
-                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+        <div className="max-w-330 mx-auto px-4 lg:px-0 relative z-10">
+          <div className="relative flex min-h-[500px] flex-col justify-between overflow-hidden rounded-[40px] border border-[#e2e8f0] bg-white p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] sm:p-8 lg:h-[571px] lg:p-9">
+            <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-14">
+              {/* Left - Hero Content */}
+              <div className="flex-1 space-y-6 lg:space-y-10">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-slate-200 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#081627CC]">
                       {courseLanguage}
                     </span>
                     {isLive && (
-                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
-                        <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
-                        {'Live'}
+                      <span className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#081627CC]">
+                        <div className="size-1.5 rounded-full bg-slate-400" />
+                        Live
                       </span>
                     )}
                   </div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl lg:leading-[1.15]">
+                  <h1 className="text-3xl font-bold tracking-tight text-[#0f172a] sm:text-4xl lg:text-5xl lg:leading-[1.15]">
                     {title}
                   </h1>
+                  {description && (
+                    <div
+                      className="max-w-2xl text-lg font-medium leading-relaxed text-slate-500 sm:text-xl lg:line-clamp-2"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
+                  )}
                 </div>
 
-                {description && (
-                  <div
-                    className="max-w-2xl text-lg font-medium leading-relaxed text-slate-500 sm:text-xl lg:line-clamp-2"
-                    dangerouslySetInnerHTML={{ __html: description }}
-                  />
-                )}
-              </div>
-
-              {/* selection */}
-              <div className="flex gap-6 w-full">
-                <CustomDropdown
-                  label="Select Course Type"
-                  value={courseType}
-                  onChange={setCourseType}
-                  options={[
-                    { value: 'recorded', label: 'Recorded' },
-                    { value: 'live', label: 'Live' },
-                  ]}
-                />
-
-                <CustomDropdown
-                  label="Mode"
-                  value={mode}
-                  onChange={setMode}
-                  options={[
-                    { value: 'google-drive', label: 'Google Drive' },
-                    { value: 'zoom', label: 'Zoom' },
-                    { value: 'recorded', label: 'Recorded' },
-                  ]}
-                />
-              </div>
-
-              {/* price */}
-
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                {price && (
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-[#0f172a] sm:text-4xl">
-                      {price}
-                    </span>
-                    <span className="text-lg font-medium text-slate-300 line-through sm:text-xl">
-                      ₹
-                      {(product?.priceWithTax
-                        ? (product.priceWithTax * 1.5) / 100
-                        : 0
-                      ).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={handleEnroll}
-                  disabled={isAdding || !product?.variantId}
-                  className="primary-btn flex w-[449px] items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%]"
-                >
-                  {isAdding ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Loader2 className="size-5 animate-spin" />
-                      Adding…
-                    </span>
-                  ) : (
-                    'Enroll Now'
+                <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                  {price && (
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-3xl font-bold text-[#0f172a] sm:text-4xl">
+                        {price}
+                      </span>
+                      <span className="text-lg font-medium text-slate-300 line-through sm:text-xl">
+                        ₹
+                        {(product?.priceWithTax
+                          ? (product.priceWithTax * 1.5) / 100
+                          : 0
+                        ).toLocaleString('en-IN')}
+                      </span>
+                    </div>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleEnroll}
+                    disabled={isAdding || !product?.variantId}
+                    className="w-full rounded-full bg-linear-to-r from-[#3a6bfc] to-[#2a58e6] px-12 py-4.5 text-[17px] font-bold text-white shadow-[0_12px_28px_-6px_rgba(58,107,252,0.45)] transition-all hover:shadow-[0_16px_36px_-6px_rgba(58,107,252,0.55)] active:scale-[0.98] sm:w-[320px] lg:w-[451px] disabled:opacity-60"
+                  >
+                    {isAdding ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="size-5 animate-spin" />
+                        Adding…
+                      </span>
+                    ) : (
+                      'Enroll Now'
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Right - Faculty Image Box */}
-            <div className="flex w-[510px] justify-end">
-              {/* Image Container with Original Primary Logic */}
-              <div className="relative  h-[340px] w-full max-w-[510px] rounded-2xl bg-[#faeae5] overflow-hidden mb-0">
+              {/* Right - Faculty Image Box */}
+              <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[32px] bg-[#ede9fe] sm:aspect-video lg:h-[340px] lg:w-[420px] xl:w-[480px]">
                 <img
                   src={facultyImage}
-                  alt={product?.faculties?.[0]?.name || 'Faculty'}
-                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  alt="Course faculty"
+                  className="absolute left-1/2 top-0 h-full w-full -translate-x-1/2 object-cover object-top"
                 />
+                {product?.faculties?.[0]?.name && (
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+                    <div className="rounded-full border border-white/20 bg-black/30 px-6 py-2.5 backdrop-blur-md">
+                      <p className="whitespace-nowrap text-lg font-bold text-white">
+                        {product.faculties[0].name}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
-                  <span className="text-base md:text-xl font-medium text-white leading-[1.2]">
-                    {product?.faculties?.[0]?.name || 'Faculty Name'}
-                  </span>
+            {/* Bottom Info Bar */}
+            {heroStats.length > 0 && (
+              <div className="mt-10 rounded-2xl border border-[#DFD4EE] bg-[#f8fafc]/50 px-4 sm:px-6 py-5 lg:mt-0 lg:bg-white">
+                <div className="flex flex-wrap sm:flex-nowrap divide-y sm:divide-y-0 sm:divide-x divide-[#DFD4EE]">
+                  {heroStats.map(([label, val], i) => (
+                    <div
+                      key={label}
+                      className="w-1/2 sm:w-auto flex-1 px-3 sm:px-6 py-3 sm:py-0 flex flex-col justify-center"
+                    >
+                      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400">
+                        {label}
+                      </p>
+
+                      <p
+                        className={`text-[18px] sm:text-[22px] lg:text-[24px] font-bold text-[#1e293b] leading-tight ${
+                          i === heroStats.length - 1 ? 'whitespace-nowrap' : ''
+                        }`}
+                      >
+                        {val}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
-
-          {/* Bottom Info Bar */}
-          {heroStats.length > 0 && (
-            <div className="mt-14 rounded-2xl border border-[#DFD4EE] bg-[#f8fafc]/50 px-4 sm:px-8 py-6 lg:bg-white">
-              <div className="flex flex-wrap sm:flex-nowrap divide-y sm:divide-y-0 sm:divide-x divide-[#0816271A]/80">
-                {heroStats.map(([label, val], i) => (
-                  <div
-                    key={label}
-                    className="w-1/2 sm:w-auto flex-1 px-3 gap-4 sm:px-6 py-3 sm:py-0 flex flex-col justify-center"
-                  >
-                    <p className="text-sm font-semibold uppercase tracking-widest text-lightgray/50">
-                      {label}
-                    </p>
-
-                    <p
-                      className={`text-[18px] sm:text-[22px] lg:text-[24px] font-semibold text-[#1e293b] leading-tight ${
-                        i === heroStats.length - 1 ? 'whitespace-nowrap' : ''
-                      }`}
-                    >
-                      {val}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {/* ── Sub-nav ── */}
       {navItems.length > 0 && (
-        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-xl hidden lg:block">
+        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-xl hidden lg:block shadow-sm">
           <div className="custom-container flex gap-10">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => scrollToSection(item.id)}
-                className={`py-6 text-[20px] font-semibold transition-all relative ${
+                className={`py-6 text-[20px] font-bold transition-all relative ${
                   activeNav === item.id
                     ? 'text-[#3a6bfc]'
-                    : 'text-lightgray/50 hover:text-slate-700'
+                    : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
                 {item.label}
@@ -1245,114 +889,100 @@ export default function CourseDetailPage({
       )}
 
       {/* ── Main body ── */}
-      <div className="w-full max-w-350 mx-auto px-4 py-12 space-y-20 lg:space-y-32">
+      <div className="w-full max-w-350 mx-auto px-4 py-16 lg:py-24 space-y-20 lg:space-y-32">
         <div className="flex flex-col lg:flex-row lg:items-start gap-10 lg:gap-8 xl:gap-12">
-          {/* Main Content - Left Column */}
+          {/* Main column */}
           <div className="min-w-0 flex-1 space-y-20 lg:max-w-none">
-            {/* Features Section */}
-            {activeNav === 'features' && (
-              <section id="features" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="Features" />
-                <FeaturesSection specItems={specItems} />
-              </section>
-            )}
+            {specItems
+              .filter(
+                (spec) =>
+                  spec.identifier?.toLowerCase() !== 'call_us' &&
+                  spec.type !== 'contact_support',
+              )
+              .map((spec) => {
+                if (spec.identifier === 'course_info') return null;
 
-            {/* About Course Section */}
-            {activeNav === 'about_course' && (
-              <section id="about_course" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="About" />
-                {(() => {
-                  const aboutSpec = specItems.find(
-                    (s) => s.identifier === 'about_course',
+                if (spec.identifier === 'features') {
+                  return (
+                    <section
+                      key={spec.identifier}
+                      id={spec.identifier}
+                      className="scroll-mt-32 space-y-8"
+                    >
+                      <SectionTitle title={spec.name} />
+                      <FeaturesSection specItems={specItems} />
+                    </section>
                   );
-                  return aboutSpec ? (
-                    <div className="space-y-6">
-                      {aboutSpec.data?.map((item, idx) => (
-                        <div key={idx}>
-                          <SpecBlock item={item} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 italic">
-                      No course description available
-                    </p>
-                  );
-                })()}
-              </section>
-            )}
+                }
 
-            {/* Demo Lectures Section */}
-            {activeNav === 'demo_lectures' && (
-              <section id="demo_lectures" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="Demo Lectures" />
-                {(() => {
-                  const demoSpec = specItems.find(
-                    (s) => s.identifier === 'demo_lectures',
+                if (spec.identifier === 'syllabus') {
+                  return (
+                    <section
+                      key={spec.identifier}
+                      id={spec.identifier}
+                      className="scroll-mt-32 space-y-8"
+                    >
+                      <SectionTitle title={spec.name} />
+                      <SyllabusSection item={spec} />
+                    </section>
                   );
-                  return demoSpec ? (
-                    <div className="space-y-6">
-                      {demoSpec.videoItems && demoSpec.videoItems.length > 0 ? (
-                        <VideoCarousel items={demoSpec.videoItems} />
-                      ) : (
-                        demoSpec.data?.map((item, idx) => (
-                          <div key={idx}>
-                            <SpecBlock item={item} />
-                          </div>
-                        ))
+                }
+
+                if (spec.identifier === 'demo_lectures') {
+                  return (
+                    <section
+                      key={spec.identifier}
+                      id={spec.identifier}
+                      className="relative scroll-mt-32 space-y-10"
+                    >
+                      <SectionTitle title={spec.name} />
+                      {spec.videoItems && (
+                        <VideoCarousel items={spec.videoItems} />
                       )}
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 italic">
-                      No demo lectures available
-                    </p>
+                    </section>
                   );
-                })()}
-              </section>
-            )}
+                }
 
-            {/* Syllabus Section */}
-            {activeNav === 'syllabus' && (
-              <section id="syllabus" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="Curriculum" />
-                {(() => {
-                  const syllabusSpec = specItems.find(
-                    (s) => s.identifier === 'syllabus',
+                // call_us is handled below the grid
+                if (spec.identifier === 'faqs') {
+                  return (
+                    <section
+                      key={spec.identifier}
+                      id={spec.identifier}
+                      className="scroll-mt-32 space-y-10"
+                    >
+                      <SectionTitle title={spec.name} />
+                      {spec.faqItems && <FaqSection items={spec.faqItems} />}
+                    </section>
                   );
-                  return syllabusSpec ? (
-                    <SyllabusSection item={syllabusSpec} />
-                  ) : (
-                    <p className="text-slate-500 italic">
-                      No curriculum available
-                    </p>
-                  );
-                })()}
-              </section>
-            )}
+                }
 
-            {/* FAQs Section */}
-            {activeNav === 'faqs' && (
-              <section id="faqs" className="scroll-mt-32 space-y-8">
-                <SectionTitle title="FAQs" />
-                {(() => {
-                  const faqSpec = specItems.find(
-                    (s) => s.identifier === 'faqs',
-                  );
-                  return faqSpec?.faqItems && faqSpec.faqItems.length > 0 ? (
-                    <FaqSection items={faqSpec.faqItems} />
-                  ) : (
-                    <p className="text-slate-500 italic">No FAQs available</p>
-                  );
-                })()}
+                return (
+                  <section
+                    key={spec.identifier}
+                    id={spec.identifier}
+                    className="scroll-mt-32 space-y-8"
+                  >
+                    <SectionTitle title={spec.name} />
+                    <SpecBlock item={spec} depth={0} />
+                  </section>
+                );
+              })}
+
+            {specItems.length === 0 && description && (
+              <section id="about" className="scroll-mt-32 space-y-8">
+                <SectionTitle title="About Course" />
+                <div
+                  className="text-lg leading-relaxed text-slate-700"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
               </section>
             )}
           </div>
 
-          {/* Sticky Sidebar - Right Column */}
-
-          {/* right Sticky sidebar */}
-          <aside className="w-full shrink-0 lg:sticky lg:top-32 lg:w-[440px] hidden  lg:block">
-            <div className="flex flex-col rounded-[24px] border border-slate-300 bg-white p-6 shadow-2xl shadow-slate-200/50">
+          {/* Sticky sidebar */}
+          <aside className="w-full shrink-0 lg:sticky lg:top-32 lg:w-[440px] hidden lg:block">
+            <div className="flex flex-col rounded-[24px] border border-slate-100 bg-white p-6 shadow-2xl shadow-slate-200/50">
               {/* Image Section */}
               <div className="relative overflow-hidden rounded-2xl bg-[#eee8f6] shadow-inner mb-6 h-[246px]">
                 <img
@@ -1360,26 +990,19 @@ export default function CourseDetailPage({
                   alt="Course preview"
                   className="w-full h-full object-cover opacity-95 transition-transform hover:scale-105"
                 />
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
-                  <span className="text-base md:text-lg font-medium text-white leading-[1.2]">
-                    {product?.faculties?.[0]?.name || 'Faculty Name'}
-                  </span>
-                </div>
               </div>
 
               {/* Content Section */}
               <div className="space-y-5 ">
                 {/* Tags */}
-                <div className="flex items-center gap-2 text-lightgray/70">
-                  <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
-                    {courseLanguage}
+                <div className="flex gap-2">
+                  <span className="rounded-full bg-transparent px-4 py-1.5 text-sm font-bold text-[#334155] border border-slate-200">
+                    Hindi
                   </span>
-                  {isLive && (
-                    <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
-                      <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
-                      {'Live'}
-                    </span>
-                  )}
+                  <span className="flex items-center gap-2 rounded-full bg-transparent px-4 py-1.5 text-sm font-bold text-[#334155] border border-slate-200">
+                    <div className="size-2 rounded-full border-[1.5px] border-[#334155]/60 bg-slate-200" />
+                    Live
+                  </span>
                 </div>
 
                 {/* Title & Price */}
@@ -1387,29 +1010,6 @@ export default function CourseDetailPage({
                   <h3 className="text-[24px] text-slate-900 leading-[1.2] font-medium tracking-[-0.02em]">
                     {title}
                   </h3>
-
-                  <div className="flex flex-col gap-6 w-full">
-                    <CustomDropdown
-                      label="Select Course Type"
-                      value={courseType}
-                      onChange={setCourseType}
-                      options={[
-                        { value: 'recorded', label: 'Recorded' },
-                        { value: 'live', label: 'Live' },
-                      ]}
-                    />
-
-                    <CustomDropdown
-                      label="Mode"
-                      value={mode}
-                      onChange={setMode}
-                      options={[
-                        { value: 'google-drive', label: 'Google Drive' },
-                        { value: 'zoom', label: 'Zoom' },
-                        { value: 'recorded', label: 'Recorded' },
-                      ]}
-                    />
-                  </div>
 
                   {price && (
                     <div className="flex items-baseline gap-2">
@@ -1433,7 +1033,7 @@ export default function CourseDetailPage({
                 type="button"
                 onClick={handleEnroll}
                 disabled={isAdding || !product?.variantId}
-                className="primary-btn flex w-full mt-8 items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%]"
+                className="w-full rounded-full bg-linear-to-b from-[#3a6bfc] to-[#2a58e6] py-4 text-[17px] font-semibold text-white transition-all active:scale-[0.97] shadow-[0_12px_28px_-6px_rgba(58,107,252,0.45)] hover:shadow-[0_16px_36px_-6px_rgba(58,107,252,0.55)] border-t border-white/20 mt-8 disabled:opacity-60"
               >
                 {isAdding ? (
                   <span className="inline-flex items-center gap-2">

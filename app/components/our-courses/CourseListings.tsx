@@ -299,8 +299,8 @@ export default function CourseListings({
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   // States for all filters
-  const [selectedSort, setSelectedSort] = useState<string>('Relevant');
-  const [selectedPricing, setSelectedPricing] = useState<string>('All');
+  const [selectedSort, setSelectedSort] = useState<string>('');
+  const [selectedPricing, setSelectedPricing] = useState<string>('');
   const [selectedLanguage, setSelectedLanguage] = useState<string[]>([]);
   const [selectedSubjects, setSelectedSubjects] = useState<string>('');
   const [selectedFaculties, setSelectedFaculties] = useState<string[]>([]);
@@ -374,7 +374,7 @@ export default function CourseListings({
                 onClick={() => toggleModal('sort')}
                 className={getBtnClass(activeModal === 'sort')}
               >
-                <span className="font-semibold">{selectedSort}</span>
+                Sort By:<span className="font-semibold">{selectedSort}</span>
                 <ChevronDown isOpen={activeModal === 'sort'} />
               </button>
               {activeModal === 'sort' && (
@@ -611,7 +611,7 @@ export default function CourseListings({
                 onClick={() => toggleModal('pricing')}
                 className={getBtnClass(activeModal === 'pricing')}
               >
-                <span className="font-semibold">{selectedPricing}</span>{' '}
+                {selectedPricing ? `${selectedPricing}` : 'Pricing'}
                 <ChevronDown isOpen={activeModal === 'pricing'} />
               </button>
               {activeModal === 'pricing' && (
