@@ -148,7 +148,10 @@ const OurTeam: React.FC = () => {
                     />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <h3 className="text-sm sm:text-2xl font-semibold leading-snug tracking-tight text-lightgray">
+                    <h3
+                      className="text-sm sm:text-2xl font-medium leading-snug tracking-tight text-lightgray"
+                      style={{ letterSpacing: '-0.01em' }}
+                    >
                       {member.name}
                     </h3>
                     <p className="text-sm md:text-base font-normal leading-[120%] text-lightgray/60 sm:text-base">

@@ -185,8 +185,8 @@ function ResultStatStrip({
 
 export function QuizIntroScreen({ session }: { session: QuizSession }) {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc] md:bg-[#f5f7ff]">
-      <header className="fixed left-0 right-0 top-0 z-50 bg-[#f8fafc]/90 backdrop-blur-md md:hidden">
+    <div className="flex flex-col min-h-screen bg-[#F5F7FF]">
+      <header className="fixed left-0 right-0 top-0 z-50 backdrop-blur-md md:hidden">
         <div className="flex h-14 items-center px-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
           <Link
             to="/free-resources"
@@ -202,7 +202,7 @@ export function QuizIntroScreen({ session }: { session: QuizSession }) {
         <QuizTopBar progress={0.04} hideProgress />
       </div>
 
-      <div className="custom-container flex-1 px-4 pb-28 pt-[calc(4.5rem+env(safe-area-inset-top))] sm:pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-6 md:pb-20 md:pt-40 lg:pt-48 bg-[#F5F7FF]">
+      <div className="custom-container flex-1 px-4 pb-34 sm:px-6  md:pt-40  ">
         <div className="mx-auto flex w-full max-w-[877px] flex-col gap-6 sm:gap-8 4xl:gap-12!">
           <div className="flex flex-col gap-3 md:gap-4">
             <div className="hidden flex-wrap items-center gap-2 md:flex">

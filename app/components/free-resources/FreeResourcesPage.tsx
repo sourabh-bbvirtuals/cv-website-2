@@ -1424,8 +1424,8 @@ export default function FreeResourcesPage({
           <p className="text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px]">
             {active.label} ({active.count})
           </p>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-3">
-            <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg">
+          <div className="scrollbar-hide flex overflow-x-auto items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
+            <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">
               Filter by:
             </span>
             <PillSelect

@@ -375,9 +375,9 @@ export default function CourseListings({
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-2 lg:gap-2">
+          <div className="scrollbar-hide flex items-center gap-2 sm:gap-2 lg:gap-2 overflow-x-auto sm:overflow-x-visible sm:flex-wrap">
             {/* SortBy Dropdown */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none shrink-0 sm:shrink">
               <button
                 onClick={() => toggleModal('sort')}
                 className={getBtnClass(activeModal === 'sort')}
@@ -419,7 +419,7 @@ export default function CourseListings({
             </div>
 
             {/* Subjects Dropdown */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none shrink-0 sm:shrink">
               <button
                 onClick={() => toggleModal('subjects')}
                 className={getBtnClass(activeModal === 'subjects')}
@@ -460,7 +460,7 @@ export default function CourseListings({
             </div>
 
             {/* Faculty Dropdown */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none shrink-0 sm:shrink">
               <button
                 onClick={() => toggleModal('faculty')}
                 className={getBtnClass(activeModal === 'faculty')}
@@ -538,7 +538,7 @@ export default function CourseListings({
             </div>
 
             {/* Language Dropdown */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none shrink-0 sm:shrink">
               <button
                 onClick={() => toggleModal('language')}
                 className={getBtnClass(activeModal === 'language')}
@@ -626,7 +626,7 @@ export default function CourseListings({
             </div>
 
             {/* Pricing Dropdown */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none shrink-0 sm:shrink">
               <button
                 onClick={() => toggleModal('pricing')}
                 className={getBtnClass(activeModal === 'pricing')}
