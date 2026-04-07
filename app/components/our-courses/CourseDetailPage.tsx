@@ -718,11 +718,11 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
   console.log('Rendering syllabus with data:', data);
   return (
     <div className="space-y-6">
-      <div
+      {/* <div
         className={`flex max-w-max text-[#3A6BFC] font-medium items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm leading-[150%] lg:text-base lg:leading-[150%] border-[#3A6BFC]/20 bg-[#3A6BFC1A]/30`}
       >
         Subject
-      </div>
+      </div> */}
       <div className="flex flex-col gap-5 sm:gap-6 relative">
         {/* Subtle vertical connector line connecting numbers */}
         <div className="absolute left-[13px] top-[40px] bottom-[40px] w-px bg-slate-200 hidden sm:block" />
@@ -833,13 +833,13 @@ function SyllabusSection({ item }: { item: SpecItem }) {
               key={i}
               type="button"
               onClick={() => setActiveTab(i)}
-              className={`rounded-full px-5 py-2 sm:px-7 sm:py-2.5 text-sm sm:text-[15px] font-bold transition-all border ${
+              className={`rounded-full font-medium transition-all border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm leading-[150%] lg:text-base lg:leading-[150%]${
                 activeTab === i
-                  ? 'border-[#3a6bfc]/30 bg-blue-50/50 text-[#3a6bfc] shadow-[0_2px_8px_rgba(58,107,252,0.08)]'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-[#081627] hover:bg-slate-50'
+                  ? ' text-[#3A6BFC]  shadow-[0_2px_8px_rgba(58,107,252,0.08)]  border-[#3A6BFC]/20 bg-[#3A6BFC1A]/30'
+                  : 'bg-white text-lightgray/60 border-lightgray/5 hover:text-lightgray/60 hover:bg-lightgray/5'
               }`}
             >
-              {subj.name}
+              {subj.name}ddddd
             </button>
           ))}
         </div>
