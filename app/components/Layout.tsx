@@ -16,13 +16,13 @@ export default function Layout({ children, bare }: LayoutProps) {
   const isOurCoursesPage = location.pathname === '/our-courses';
 
   if (bare) {
-    return <div className="bg-[#F5F7FF]">{children}</div>;
+    return <div className="min-h-full ">{children}</div>;
   }
 
   return (
     <div className={`min-h-full ${isOurCoursesPage ? 'bg-[#FFF8F9]' : ''}`}>
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-50">
+      <header className="absolute top-0 left-4 right-4 z-50">
         {/* Top Header */}
         <TopHeader />
 

@@ -6,11 +6,9 @@ const Hero = ({
   subtitle?: string;
 }) => {
   return (
-    <section className="min-h-100 4xl:min-h-150! pb-6 md:pb-10 4xl:pb-15! flex items-end bg-[#FFF8F9] border-b border-[#0816271A]">
+    <section className="h-[295px] pb-6 md:pb-10 4xl:pb-15! flex items-end bg-[#FFF8F9] border-b border-[#0816271A]">
       <div className="custom-container">
-        <h2 className="section-heading mb-3 sm:mb-4 text-2xl md:text-5xl font-semibold">
-          {title}
-        </h2>
+        <h2 className="section-heading mb-3 sm:mb-4">{title}</h2>
         <p className="text-lightgray font-normal text-base lg:text-xl leading-[150%]">
           {subtitle}
         </p>

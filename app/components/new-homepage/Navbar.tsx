@@ -129,19 +129,19 @@ const Navbar = () => {
           <div className="flex flex-col gap-3">
             <a
               href="/"
-              className="text-lightgray font-semibold text-lg hover:text-blue-600 transition-colors"
+              className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
             >
               Home
             </a>
             <a
               href="/our-courses"
-              className="text-lightgray font-semibold text-lg hover:text-blue-600 transition-colors"
+              className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
             >
               Our Courses
             </a>
             <a
               href="/free-resources"
-              className="text-lightgray font-semibold text-lg hover:text-blue-600 transition-colors"
+              className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
             >
               Free Resources
             </a>
@@ -149,14 +149,14 @@ const Navbar = () => {
             {!isLoggedIn ? (
               <a
                 href="/sign-in"
-                className="text-lightgray font-semibold text-lg hover:text-blue-600 transition-colors pt-2"
+                className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2"
               >
                 Login
               </a>
             ) : (
               <a
                 href="/account"
-                className="text-lightgray font-semibold text-lg hover:text-blue-600 transition-colors pt-2 flex items-center gap-2"
+                className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2 flex items-center gap-2"
               >
                 <User size={20} />
                 My Account

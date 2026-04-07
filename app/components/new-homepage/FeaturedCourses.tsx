@@ -1,9 +1,6 @@
 import { Link } from '@remix-run/react';
 import { ArrowRight } from 'lucide-react';
-import React, { useRef } from 'react';
-import type { Swiper as SwiperType } from 'swiper';
-import { Navigation } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import React, { useState, useEffect } from 'react';
 import { CourseCard } from './CourseCard';
 import { useBoardSelection } from '~/context/BoardSelectionContext';
 
@@ -135,11 +132,100 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
     dynamicCourses && dynamicCourses.length > 0
       ? dynamicCourses
       : fallbackCourses;
-  const swiperRef = useRef<SwiperType | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slidesPerView, setSlidesPerView] = useState(1.05);
+  const [spaceBetween, setSpaceBetween] = useState(30);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
   const { selectedSlug } = useBoardSelection();
   const coursesHref = selectedSlug
     ? `/courses/${selectedSlug}`
     : '/our-courses';
+
+  // Handle responsive breakpoints
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) {
+        setSlidesPerView(3.2);
+        setSpaceBetween(20);
+      } else if (width >= 1024) {
+        setSlidesPerView(2.5);
+        setSpaceBetween(24);
+      } else if (width >= 768) {
+        setSlidesPerView(1.7);
+        setSpaceBetween(100);
+      } else if (width >= 640) {
+        setSlidesPerView(1.2);
+        setSpaceBetween(50);
+      } else {
+        setSlidesPerView(1.05);
+        setSpaceBetween(30);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Calculate max slides
+  const maxSlides = Math.ceil(
+    displayCourses.length - Math.floor(slidesPerView),
+  );
+
+  const handlePrev = () => {
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNext = () => {
+    setCurrentSlide((prev) => Math.min(prev + 1, maxSlides));
+  };
+
+  // Drag handlers
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    const startX =
+      'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    setDragStart(startX);
+    setDragOffset(0);
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentX =
+      'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const diff = currentX - dragStart;
+    setDragOffset(diff);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    const threshold = 50; // minimum pixels to trigger slide change
+
+    if (Math.abs(dragOffset) > threshold) {
+      if (dragOffset > 0) {
+        handlePrev();
+      } else {
+        handleNext();
+      }
+    }
+    setDragOffset(0);
+  };
+
+  // Calculate slide width based on viewport and slides per view
+  const getSlideWidth = () => {
+    if (typeof window === 'undefined') return 390;
+    const width = window.innerWidth;
+    if (width >= 1280) return 414; // 390 + 24px gap
+    if (width >= 1024) return 414; // 390 + 24px gap
+    if (width >= 768) return 308; // approximate for tablet
+    if (width >= 640) return 272; // approximate for small devices
+    return 272; // mobile
+  };
+
+  const slideWidth = getSlideWidth();
 
   return (
     <section className="bg-white">
@@ -170,83 +256,41 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
 
         {/* Swiper Slider with Bleed Logic */}
         <div className="relative group">
-          <Swiper
-            modules={[Navigation]}
-            onBeforeInit={(swiper) => {
-              swiperRef.current = swiper;
-            }}
-            navigation={{
-              nextEl: '.swiper-button-next-courses',
-              prevEl: '.swiper-button-prev-courses',
-            }}
-            spaceBetween={16}
-            slidesPerView={1.05}
-            speed={600}
-            grabCursor={true}
-            draggable={true}
-            touchEventsTarget="container"
-            breakpoints={{
-              640: { slidesPerView: 1.2, spaceBetween: 16 },
-              768: { slidesPerView: 1.7, spaceBetween: 16 },
-              1024: { slidesPerView: 2.5, spaceBetween: 20 },
-              1280: { slidesPerView: 3.2, spaceBetween: 20 },
-            }}
-            className="w-full "
+          <div
+            className="overflow-hidden cursor-grab active:cursor-grabbing select-none "
+            onMouseDown={handleDragStart}
+            onMouseMove={handleDragMove}
+            onMouseUp={handleDragEnd}
+            onMouseLeave={handleDragEnd}
+            onTouchStart={handleDragStart}
+            onTouchMove={handleDragMove}
+            onTouchEnd={handleDragEnd}
           >
-            {displayCourses.map((course, index) => (
-              <SwiperSlide
-                key={`${course.id}-${index}`}
-                className="h-auto! p-1"
-              >
-                <CourseCard course={course} isAlternate={index % 2 === 1} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-
-          {/* Navigation Buttons */}
-          <button
-            className="swiper-button-prev-courses absolute left-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-[rgba(8,22,39,0.1)] shadow-md hover:bg-gray-50 transition-colors opacity-0 group-hover:opacity-100"
-            onClick={() => swiperRef.current?.slidePrev()}
-            aria-label="Previous courses"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              className={`flex mx-4 mb-4 ${
+                isDragging ? '' : 'transition-transform duration-600 ease-out'
+              }`}
+              style={{
+                transform: `translateX(calc(${-(
+                  currentSlide * slideWidth
+                )}px + ${dragOffset}px))`,
+                gap: `${spaceBetween}px`,
+              }}
             >
-              <path
-                d="M12.5 15L7.5 10L12.5 5"
-                stroke="#081627"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          <button
-            className="swiper-button-next-courses absolute right-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-[rgba(8,22,39,0.1)] shadow-md hover:bg-gray-50 transition-colors opacity-0 group-hover:opacity-100"
-            onClick={() => swiperRef.current?.slideNext()}
-            aria-label="Next courses"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M7.5 15L12.5 10L7.5 5"
-                stroke="#081627"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              {displayCourses.map((course, index) => (
+                <div
+                  key={`${course.id}-${index}`}
+                  className="flex-shrink-0 pointer-events-none md:w-[390px]"
+                  style={{
+                    width: `${slideWidth}px`,
+                    minWidth: `${slideWidth}px`,
+                  }}
+                >
+                  <CourseCard course={course} isAlternate={index % 2 === 1} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Mobile View - Link Below Cards */}

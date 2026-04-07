@@ -13,6 +13,7 @@ import {
   Pencil,
   CheckCircle2,
   Loader2,
+  Info,
 } from 'lucide-react';
 import parse from 'html-react-parser';
 import { useFetcher, useNavigate } from '@remix-run/react';
@@ -121,13 +122,9 @@ function CustomDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 rounded-full border border-slate-200 bg-white text-left text-base font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#3a6bfc] focus:border-transparent transition-all hover:border-slate-300 flex items-center justify-between"
+        className="w-full px-4 py-2 rounded-full border text-[#081627] border-slate-200 bg-white text-left text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#3a6bfc] focus:border-transparent transition-all hover:border-slate-300 flex items-center justify-between"
       >
-        <span
-          className={
-            selectedOption ? 'text-slate-700 font-medium' : 'text-slate-400'
-          }
-        >
+        <span className={selectedOption ? '' : ''}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
@@ -149,12 +146,13 @@ function CustomDropdown({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full px-5 py-3 text-left text-base font-medium transition-colors flex items-center gap-3 ${
+                className={`w-full px-5 py-3 text-left text-base font-medium transition-colors flex items-center justify-between gap-3 ${
                   value === option.value
                     ? 'bg-blue-50 text-[#3a6bfc]'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    : 'text-[#081627] hover:bg-slate-50'
                 }`}
               >
+                <span>{option.label}</span>
                 {value === option.value && (
                   <div className="flex size-5 items-center justify-center rounded-full bg-[#3a6bfc]">
                     <svg
@@ -170,7 +168,6 @@ function CustomDropdown({
                     </svg>
                   </div>
                 )}
-                <span>{option.label}</span>
               </button>
             ))}
           </div>
@@ -467,14 +464,12 @@ function FacultiesCarousel({
                   <h3 className="text-base font-semibold text-slate-900">
                     {faculty.name}
                   </h3>
-                  <p className="text-xs sm:text-sm text-lightgray/50">
-                    {'CA, M.com'}
-                  </p>
+                  <p className="text-base text-lightgray/50">{'CA, M.com'}</p>
                 </div>
               </div>
 
               {/* Description */}
-              <div className="flex flex-col gap-2 w-full text-xs sm:text-sm text-lightgray/50 leading-relaxed flex-1">
+              <div className="flex flex-col gap-2 w-full text-base text-lightgray/50 leading-relaxed flex-1">
                 {isExpanded ? (
                   <>
                     <p>{faculty.description}</p>
@@ -646,9 +641,21 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
 
             {includedEntries.map(([label, value]) => (
               <div key={label} className="flex flex-col gap-1">
-                <p className="text-[11px] sm:text-sm font-normal text-slate-400">
-                  {label}
-                </p>
+                <div className="flex items-center gap-1.5 group relative">
+                  <p className="text-[11px] sm:text-sm font-normal text-slate-400 truncate">
+                    {label}
+                  </p>
+                  <div className="relative">
+                    <Info className="size-3 sm:size-3.5 text-slate-500 shrink-0 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-50 whitespace-nowrap">
+                      <div className="bg-slate-900 text-white text-xs px-2 py-1 rounded shadow-lg">
+                        {label}
+                      </div>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900" />
+                    </div>
+                  </div>
+                </div>
                 <p className="text-base sm:text-lg font-medium text-white leading-tight">
                   {value}
                 </p>
@@ -708,13 +715,13 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
 
   if (data.length === 0)
     return <p className="text-slate-500 italic">No syllabus data available</p>;
-
+  console.log('Rendering syllabus with data:', data);
   return (
     <div className="space-y-6">
       <div
         className={`flex max-w-max text-[#3A6BFC] font-medium items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm leading-[150%] lg:text-base lg:leading-[150%] border-[#3A6BFC]/20 bg-[#3A6BFC1A]/30`}
       >
-        Accountancy
+        Subject
       </div>
       <div className="flex flex-col gap-5 sm:gap-6 relative">
         {/* Subtle vertical connector line connecting numbers */}
@@ -829,7 +836,7 @@ function SyllabusSection({ item }: { item: SpecItem }) {
               className={`rounded-full px-5 py-2 sm:px-7 sm:py-2.5 text-sm sm:text-[15px] font-bold transition-all border ${
                 activeTab === i
                   ? 'border-[#3a6bfc]/30 bg-blue-50/50 text-[#3a6bfc] shadow-[0_2px_8px_rgba(58,107,252,0.08)]'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700 hover:bg-slate-50'
+                  : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-[#081627] hover:bg-slate-50'
               }`}
             >
               {subj.name}
@@ -1223,11 +1230,11 @@ export default function CourseDetailPage({
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 text-lightgray/70">
-                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
+                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-lightgray">
                       {courseLanguage}
                     </span>
                     {isLive && (
-                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
+                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-lightgray">
                         <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                         {'Live'}
                       </span>
@@ -1238,16 +1245,16 @@ export default function CourseDetailPage({
                   </h1>
                 </div>
 
-                {description && (
+                {/* {description && (
                   <div
                     className="max-w-2xl text-lg font-medium leading-relaxed text-slate-500 sm:text-xl lg:line-clamp-2"
                     dangerouslySetInnerHTML={{ __html: description }}
                   />
-                )}
+                )} */}
               </div>
 
               {/* selection */}
-              <div className="flex gap-6 w-full">
+              <div className="flex gap-6 w-full mt-10">
                 <CustomDropdown
                   label="Select Course Type"
                   value={courseType}
@@ -1326,7 +1333,7 @@ export default function CourseDetailPage({
 
           {/* Bottom Info Bar */}
           {heroStats.length > 0 && (
-            <div className="mt-14 rounded-2xl border border-[#DFD4EE] bg-[#f8fafc]/50 px-4 sm:px-8 py-6 lg:bg-white">
+            <div className="mt-14 rounded-2xl border border-[#DFD4EE] bg-[#f8fafc]/50 px-2 py-6 lg:bg-white">
               <div className="flex flex-wrap sm:flex-nowrap divide-y sm:divide-y-0 sm:divide-x divide-[#0816271A]/80">
                 {heroStats.map(([label, val], i) => (
                   <div
@@ -1364,7 +1371,7 @@ export default function CourseDetailPage({
                 className={`py-6 text-[20px] font-semibold transition-all relative ${
                   activeNav === item.id
                     ? 'text-[#3a6bfc]'
-                    : 'text-lightgray/50 hover:text-slate-700'
+                    : 'text-lightgray/50 hover:text-[#081627]'
                 }`}
               >
                 {item.label}

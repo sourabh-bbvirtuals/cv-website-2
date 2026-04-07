@@ -9,6 +9,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { Link } from '@remix-run/react';
 import { Calculator, ChevronDown, Download, Eye, Play, X } from 'lucide-react';
+import { PillSelect } from '../ui/PillSelect';
 import {
   MetaLineWithBullets,
   metaSepCharClass,
@@ -826,6 +827,29 @@ function durationMatchesFilter(
   }
 }
 
+// Helper function to get subject styling by label
+function getSubjectStyling(label: string): SubjectPill | null {
+  if (label === 'All Subjects') return null;
+
+  // Collect all unique subjects from all card arrays
+  const allCards = [
+    ...RESOURCE_CARDS,
+    ...FORMULA_CARDS,
+    ...STUDY_NOTES_CARDS,
+    ...PAST_PAPER_CARDS,
+    ...QUIZ_LIST,
+    ...FREE_VIDEO_CARDS,
+  ] as any[];
+
+  for (const card of allCards) {
+    if (card.subject && card.subject.label === label) {
+      return card.subject;
+    }
+  }
+
+  return null;
+}
+
 const SUBJECT_OPTIONS = [
   'All Subjects',
   'Accountancy',
@@ -1007,21 +1031,20 @@ function FreeVideoListingCard({
           </div>
         </button>
       </div>
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm leading-[150%] lg:text-base lg:leading-[150%]">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
           <div
-            className={`flex items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
+            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
           >
-            <span
-              className={`size-1.5 sm:size-2 shrink-0 rounded-full ${subject.dot}`}
-            />
+            <span className={`size-2 shrink-0 rounded-full ${subject.dot}`} />
+
             {subject.label}
           </div>
-          <div className="rounded border border-[rgba(8,22,39,0.1)] px-2 sm:px-3 py-0.5 sm:py-1 font-medium leading-[150%] text-lightgray/50 text-xs sm:text-sm lg:text-base lg:leading-[150%]">
+          <div className="rounded border border-[rgba(8,22,39,0.1)] px-2 sm:px-3 py-0.5 sm:py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
             {board}
           </div>
         </div>
-        <p className="text-xs sm:text-sm font-medium text-lightgray/50">
+        <p className="text-sm font-medium text-lightgray/50">
           CHAPTER {chapter}
         </p>
         <h2 className="line-clamp-2 text-lg sm:text-xl font-medium leading-[150%] tracking-[-0.24px] text-lightgray lg:leading-[150%]">
@@ -1033,7 +1056,7 @@ function FreeVideoListingCard({
           type="button"
           disabled={!canWatch}
           onClick={() => canWatch && onWatch?.()}
-          className={`flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-xs sm:text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
+          className={`flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
             canWatch
               ? 'hover:bg-[rgba(58,107,252,0.06)]'
               : 'cursor-not-allowed opacity-50'
@@ -1052,7 +1075,7 @@ function FreeVideoListingCard({
             downloadUrl &&
             triggerBrowserDownload(downloadUrl, downloadFilename ?? 'download')
           }
-          className={`flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-xs sm:text-sm font-medium leading-[150%] text-gray-700 transition-colors lg:text-base lg:leading-[150%] ${
+          className={`flex h-8 sm:h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[#0816271A] bg-white text-sm font-medium leading-[150%] text-gray-700 transition-colors lg:text-base lg:leading-[150%] ${
             canDownload
               ? 'hover:bg-[rgba(58,107,252,0.06)]'
               : 'cursor-not-allowed opacity-50'
@@ -1111,7 +1134,7 @@ function FigmaListingCard({
   return (
     <article className="flex flex-col justify-between overflow-hidden gap-16 rounded-2xl bg-white py-6 ring-1 ring-[rgba(8,22,39,0.06)]">
       <div className="flex w-full min-w-0 flex-col gap-3">
-        <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-6 lg:text-base lg:leading-[150%]">
+        <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-3 md:px-6 lg:text-base lg:leading-[150%]">
           <div
             className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
           >
@@ -1122,116 +1145,20 @@ function FigmaListingCard({
             {board}
           </div>
         </div>
-        <div className="px-6">
+        <div className="px-3 md:px-6 ">
           <p className="text-sm font-medium text-lightgray/50">
             CHAPTER {chapter}
           </p>
         </div>
-        <div className="flex w-full min-w-0 flex-col px-6">
+        <div className="flex w-full min-w-0 flex-col px-3 md:px-6 ">
           <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
             {title}
           </h2>
         </div>
-        <div className="px-6">{metaBlock}</div>
+        <div className="px-3 md:px-6 ">{metaBlock}</div>
       </div>
       {footer}
     </article>
-  );
-}
-
-function PillSelect({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [menuRect, setMenuRect] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
-
-  const updateMenuRect = () => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setMenuRect({ top: r.bottom + 6, left: r.left });
-  };
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    updateMenuRect();
-    const onReposition = () => updateMenuRect();
-    window.addEventListener('resize', onReposition);
-    window.addEventListener('scroll', onReposition, true);
-    return () => {
-      window.removeEventListener('resize', onReposition);
-      window.removeEventListener('scroll', onReposition, true);
-    };
-  }, [open]);
-
-  const portal =
-    open &&
-    menuRect &&
-    typeof document !== 'undefined' &&
-    createPortal(
-      <>
-        <button
-          type="button"
-          aria-label="Close"
-          className="fixed inset-0 z-1000 cursor-default bg-transparent"
-          onClick={() => setOpen(false)}
-        />
-        <div
-          role="listbox"
-          className="scrollbar-hide fixed z-1001 flex w-max max-h-60 min-w-0 flex-col overflow-y-auto rounded-xl text-gray-700 border border-lightgray/10 bg-white shadow-lg"
-          style={{
-            top: menuRect.top,
-            left: menuRect.left,
-          }}
-        >
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              role="option"
-              aria-selected={opt === value}
-              className={`w-full whitespace-nowrap px-4 py-2.5 text-left text-base leading-[150%] ${
-                opt === value
-                  ? 'bg-lightgray/5 font-medium text-lightgray'
-                  : 'text-lightgray/80 hover:bg-lightgray/5'
-              }`}
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </>,
-      document.body,
-    );
-
-  return (
-    <div className="relative" ref={wrapRef}>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-9 items-center gap-2 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-2 text-base font-medium leading-[150%] text-lightgray sm:px-4 sm:leading-[150%]"
-      >
-        <span className="max-w-[140px] truncate">{value}</span>
-        <ChevronDown className="size-4 shrink-0 opacity-60" />
-      </button>
-      {portal}
-    </div>
   );
 }
 
@@ -1241,7 +1168,7 @@ export default function FreeResourcesPage({
   initialTab?: TabId;
 }) {
   const [tab, setTab] = useState<TabId>(initialTab);
-  const [subject, setSubject] = useState('All Subjects');
+  const [subjects, setSubjects] = useState<string[]>([]);
   const [chapter, setChapter] = useState('All Chapters');
   const [year, setYear] = useState('All Years');
   const [board, setBoard] = useState('All Boards');
@@ -1293,42 +1220,90 @@ export default function FreeResourcesPage({
 
   const active = useMemo(() => TABS.find((t) => t.id === tab)!, [tab]);
 
+  // Get available subjects for current tab
+  const availableSubjects = useMemo(() => {
+    let cardsToCheck: any[] = [];
+
+    if (tab === 'formula') cardsToCheck = FORMULA_CARDS;
+    else if (tab === 'notes') cardsToCheck = STUDY_NOTES_CARDS;
+    else if (tab === 'papers') cardsToCheck = PAST_PAPER_CARDS;
+    else if (tab === 'quizzes') cardsToCheck = QUIZ_LIST;
+    else if (tab === 'videos') cardsToCheck = FREE_VIDEO_CARDS;
+    else cardsToCheck = RESOURCE_CARDS; // default for 'mock'
+
+    // Extract unique subject labels
+    const subjects = [...new Set(cardsToCheck.map((c) => c.subject.label))];
+    // Sort alphabetically
+    return [...subjects.sort()];
+  }, [tab]);
+
   const filteredCards = useMemo(() => {
-    if (subject === 'All Subjects') return RESOURCE_CARDS;
-    return RESOURCE_CARDS.filter((c) => c.subject.label === subject);
-  }, [subject]);
+    let list = RESOURCE_CARDS;
+    if (subjects.length > 0) {
+      list = list.filter((c) => subjects.includes(c.subject.label));
+    }
+    if (board !== 'All Boards') {
+      list = list.filter((c) => c.board === board);
+    }
+    if (chapter !== 'All Chapters') {
+      list = list.filter(
+        (c) => c.chapter === parseInt(chapter.replace('Chapter ', '')),
+      );
+    }
+    return list;
+  }, [subjects, board, chapter]);
 
   const filteredFormulaCards = useMemo(() => {
-    if (subject === 'All Subjects') return FORMULA_CARDS;
-    return FORMULA_CARDS.filter((c) => c.subject.label === subject);
-  }, [subject]);
+    let list = FORMULA_CARDS;
+    if (subjects.length > 0) {
+      list = list.filter((c) => subjects.includes(c.subject.label));
+    }
+    if (board !== 'All Boards') {
+      list = list.filter((c) => c.board === board);
+    }
+    if (chapter !== 'All Chapters') {
+      list = list.filter(
+        (c) => c.chapter === parseInt(chapter.replace('Chapter ', '')),
+      );
+    }
+    return list;
+  }, [subjects, board, chapter]);
 
   const filteredStudyNotesCards = useMemo(() => {
     let list = STUDY_NOTES_CARDS;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
+    if (subjects.length > 0) {
+      list = list.filter((c) => subjects.includes(c.subject.label));
+    }
+    if (board !== 'All Boards') {
+      list = list.filter((c) => c.board === board);
     }
     if (year !== 'All Years') {
       list = list.filter((c) => c.year === year);
     }
     return list;
-  }, [subject, year]);
+  }, [subjects, board, year]);
 
   const filteredPastPaperCards = useMemo(() => {
     let list = PAST_PAPER_CARDS;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
+    if (subjects.length > 0) {
+      list = list.filter((c) => subjects.includes(c.subject.label));
+    }
+    if (board !== 'All Boards') {
+      list = list.filter((c) => c.board === board);
     }
     if (year !== 'All Years') {
       list = list.filter((c) => c.year === year);
     }
     return list;
-  }, [subject, year]);
+  }, [subjects, board, year]);
 
   const filteredQuizCards = useMemo(() => {
     let list = QUIZ_LIST;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
+    if (subjects.length > 0) {
+      list = list.filter((c) => subjects.includes(c.subject.label));
+    }
+    if (board !== 'All Boards') {
+      list = list.filter((c) => c.board === board);
     }
     if (quizDifficulty !== 'All Difficulties') {
       const map: Record<string, QuizDifficulty> = {
@@ -1340,12 +1315,15 @@ export default function FreeResourcesPage({
       if (d) list = list.filter((c) => c.difficulty === d);
     }
     return list;
-  }, [subject, quizDifficulty]);
+  }, [subjects, board, quizDifficulty]);
 
   const filteredFreeVideos = useMemo(() => {
     let list = FREE_VIDEO_CARDS;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
+    if (subjects.length > 0) {
+      list = list.filter((c) => subjects.includes(c.subject.label));
+    }
+    if (board !== 'All Boards') {
+      list = list.filter((c) => c.board === board);
     }
     if (year !== 'All Years') {
       list = list.filter((c) => c.year === year);
@@ -1354,14 +1332,14 @@ export default function FreeResourcesPage({
       durationMatchesFilter(c.durationMinutes, videoDuration),
     );
     return list;
-  }, [subject, year, videoDuration]);
+  }, [subjects, board, year, videoDuration]);
 
   return (
     <div className="bg-[#f7f8ff] md:pb-4 lg:pb-8 4xl:pb-16!">
       {/* Hero band + tab strip — slant bars SVG (1920×397), responsive height */}
       <section className="relative overflow-hidden bg-[#edecfd] pt-14 md:pt-36 xl:pt-40">
         <div
-          className="pointer-events-none absolute -left-24 top-0 z-0 h-[min(420px,48vh)] min-h-[220px]  opacity-40 sm:min-h-[260px] sm:h-[397px] md:left-1/2 md:w-screen  md:-translate-x-1/2 lg:h-[420px]"
+          className="pointer-events-none absolute  top-0 z-0 h-[min(420px,48vh)] min-h-[220px]  opacity-40 sm:min-h-[260px] sm:h-[397px] w-full  lg:h-[420px]"
           aria-hidden
         >
           <FreeResourcesHeroSlantSvg />
@@ -1379,60 +1357,116 @@ export default function FreeResourcesPage({
               </p>
             </div>
           </div>
-
-          <div className="sticky top-0 z-30 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
-            <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
-              <div className="scrollbar-hide flex min-h-14 sm:min-h-18 w-full flex-1 overflow-x-auto">
-                {TABS.map((t) => {
-                  const isActive = t.id === tab;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => setTab(t.id)}
-                      type="button"
-                      className={`flex flex-row items-center justify-center gap-2 sm:gap-4 border-b-[3px] pb-1 sm:pb-2 sm:pb-4 py-2 sm:py-4 px-2 sm:px-4 transition-colors w-auto sm:w-[260px] flex-shrink-0 ${
-                        isActive
-                          ? `${t.borderActive} bg-white`
-                          : 'border-transparent bg-white hover:bg-[#fafbff]'
-                      }`}
-                    >
-                      <div
-                        className={`flex size-8 sm:size-12 items-center justify-center overflow-hidden rounded-lg ${t.iconWrap}`}
-                      >
-                        {t.icon}
-                      </div>
-                      <span
-                        className={`hidden sm:inline text-center text-base font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
-                          t.id === 'mock' && isActive
-                            ? 'font-semibold text-lightgray'
-                            : 'font-medium text-lightgray'
-                        }`}
-                      >
-                        {t.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
         </div>
       </section>
+      {/* Tab strip */}
+      <div className="sticky top-0 z-10 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
+        <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
+          <div className="scrollbar-hide flex min-h-14 px-4 sm:px-0 sm:min-h-18 w-full flex-1 overflow-x-auto">
+            {TABS.map((t) => {
+              const isActive = t.id === tab;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  type="button"
+                  className={`flex flex-row items-center justify-center gap-2 sm:gap-4 border-b-[3px] pb-1 sm:pb-2 sm:pb-4 py-2 sm:py-4 px-2 transition-colors w-auto sm:w-52 flex-shrink-0 ${
+                    isActive
+                      ? `${t.borderActive} bg-white`
+                      : 'border-transparent bg-white hover:bg-[#fafbff]'
+                  }`}
+                >
+                  <div
+                    className={`flex size-7 sm:size-12 items-center justify-center overflow-hidden rounded-lg ${t.iconWrap}`}
+                  >
+                    {t.icon}
+                  </div>
+                  <span
+                    className={`inline text-center text-sm font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
+                      t.id === 'mock' && isActive
+                        ? 'sm:font-semibold text-black'
+                        : 'font-medium text-lightgray'
+                    }`}
+                  >
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-      <div className="border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-md">
+      {/* Subjects Bar */}
+      <div className="md:hidden sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl">
         <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px]">
+          <div className="scrollbar-hide overflow-x-auto sm:overflow-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
+            {availableSubjects.map((subj) => {
+              const subjectStyling = getSubjectStyling(subj);
+              const isActive = subjects.includes(subj);
+
+              return (
+                <button
+                  key={subj}
+                  onClick={() => {
+                    if (isActive) {
+                      setSubjects(subjects.filter((s) => s !== subj));
+                    } else {
+                      setSubjects([...subjects, subj]);
+                    }
+                  }}
+                  type="button"
+                  className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap border flex items-center gap-1 ${
+                    isActive && subjectStyling
+                      ? `${subjectStyling.bg} ${subjectStyling.border} ${subjectStyling.text}`
+                      : isActive && !subjectStyling
+                      ? 'bg-[#3a6bfc] border-[#3a6bfc] text-white'
+                      : subjectStyling
+                      ? `${subjectStyling.bg} ${subjectStyling.border} ${subjectStyling.text} hover:opacity-80`
+                      : 'bg-[rgba(8,22,39,0.06)] border-[rgba(8,22,39,0.1)] text-lightgray hover:bg-[rgba(8,22,39,0.1)]'
+                  }`}
+                >
+                  <span>{subj}</span>
+                  {isActive && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSubjects(subjects.filter((s) => s !== subj));
+                      }}
+                      type="button"
+                      className="flex items-center justify-center hover:opacity-70 transition-opacity"
+                      aria-label={`Remove ${subj} filter`}
+                    >
+                      <svg
+                        className="size-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Filter bar */}
+      <div className="sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl">
+        <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="hidden md:inline text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px]">
             {active.label} ({active.count})
           </p>
-          <div className="scrollbar-hide flex overflow-x-auto items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
+          <div className="scrollbar-hide overflow-x-auto sm:overflow-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
             <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">
               Filter by:
             </span>
-            <PillSelect
-              value={subject}
-              options={SUBJECT_OPTIONS}
-              onChange={setSubject}
-            />
             <PillSelect
               value={board}
               options={BOARD_OPTIONS}
@@ -1482,33 +1516,38 @@ export default function FreeResourcesPage({
             {filteredFormulaCards.map((card, i) => (
               <article
                 key={`${card.title}-${card.subject.label}-${i}`}
-                className="rounded-2xl flex flex-col gap-4 sm:gap-6 bg-white p-4 sm:p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
+                className="rounded-2xl flex flex-col gap-4 sm:gap-6 bg-white px-3 md:px-6 py-6 ring-1 ring-[rgba(8,22,39,0.06)]"
               >
-                <div className="flex flex-col gap-2 sm:gap-3">
-                  <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base">
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-wrap gap-2   text-sm lg:text-base">
                     <div
-                      className={`flex items-center gap-2 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
                     >
                       <span
-                        className={`size-1.5 sm:size-2 shrink-0 rounded-full ${card.subject.dot}`}
+                        className={`size-2 shrink-0 rounded-full ${card.subject.dot}`}
                       />
+
                       {card.subject.label}
                     </div>
-                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-2 sm:px-3 py-0.5 sm:py-1 font-medium text-lightgray/50 text-xs sm:text-sm lg:text-base">
+                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
                       {card.board}
                     </div>
                   </div>
-                  <p className="text-xs sm:text-sm font-medium text-lightgray/50">
-                    CHAPTER {card.chapter}
-                  </p>
-                  <h2 className="text-lg sm:text-xl font-medium tracking-tight text-lightgray">
-                    {card.title}
-                  </h2>
+                  <div className=" ">
+                    <p className="text-sm font-medium text-lightgray/50">
+                      CHAPTER {card.chapter}
+                    </p>
+                  </div>
+                  <div className="flex w-full min-w-0 flex-col  ">
+                    <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
+                      {card.title}
+                    </h2>
+                  </div>
                 </div>
 
                 {/* card */}
                 <div
-                  className={`h-[90px] sm:h-[130px] w-[min(100%,378.66668701171875px)] rounded-2xl ${card.gradient} flex items-center justify-center overflow-hidden mx-auto`}
+                  className={`h-[90px] sm:h-[130px] w-[min(100%,378.66668701171875px)] rounded-2xl ${card.gradient} flex items-center justify-center overflow-hidden mx-auto `}
                 >
                   <div className="grid h-[80px] sm:h-[114px] w-full grid-cols-[0.5fr_auto_0.5fr] sm:grid-cols-[1fr_auto_1fr] gap-1 sm:gap-2">
                     {/* left card */}
@@ -1548,7 +1587,7 @@ export default function FreeResourcesPage({
                 metaLeft={card.metaLeft}
                 metaRight={card.metaRight}
                 footer={
-                  <div className="flex w-full gap-3 px-6">
+                  <div className="flex w-full gap-3 px-3 md:px-6">
                     <button
                       type="button"
                       className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
@@ -1573,7 +1612,7 @@ export default function FreeResourcesPage({
             {filteredPastPaperCards.map((card, i) => (
               <article className="flex flex-col justify-between overflow-hidden gap-5 rounded-2xl bg-white py-6 ring-1 ring-[rgba(8,22,39,0.06)]">
                 <div className="flex w-full min-w-0 flex-col gap-5">
-                  <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-6 lg:text-base lg:leading-[150%]">
+                  <div className="flex flex-wrap gap-2 text-sm leading-[150%] px-3 md:px-6 lg:text-base lg:leading-[150%]">
                     <div
                       className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm md:text-base font-medium leading-[150%] lg:text-base lg:leading-[150%] ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
                     >
@@ -1595,7 +1634,7 @@ export default function FreeResourcesPage({
                       </span>
                     </div>
                   ) : (
-                    <div className="flex w-full min-w-0 flex-col gap-3 px-6">
+                    <div className="flex w-full min-w-0 flex-col gap-3 px-3 md:px-6">
                       <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
                         {card.title}
                       </h2>
@@ -1612,7 +1651,7 @@ export default function FreeResourcesPage({
                     </div>
                   )}
                 </div>
-                <div className="flex w-full gap-3 px-6">
+                <div className="flex w-full gap-3 px-3 md:px-6">
                   <button
                     type="button"
                     className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
@@ -1675,7 +1714,7 @@ export default function FreeResourcesPage({
                 title={card.title}
                 metaLine={card.meta}
                 footer={
-                  <div className="flex w-full gap-3 px-6">
+                  <div className="flex w-full gap-3 px-3 md:px-6">
                     <button
                       type="button"
                       className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"

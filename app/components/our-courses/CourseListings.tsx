@@ -343,24 +343,24 @@ export default function CourseListings({
     `flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
       isActive
         ? 'bg-lightgray text-white border-lightgray'
-        : 'bg-white text-lightgray border-lightgray/10 hover:border-lightgray/30'
+        : 'bg-white text-lightgray border-lightgray/10 hover:bg-lightgray/5'
     }`;
 
   return (
     <section className="w-full bg-white py-10 lg:py-12 4xl:py-16!">
       <div className="custom-container">
-        {activeModal && (
+        {/* {activeModal && (
           <button
             type="button"
             aria-label="Close filter modal"
             onClick={() => setActiveModal(null)}
             className="fixed inset-0 z-40 bg-black/20 sm:hidden"
           />
-        )}
+        )} */}
 
         {/* Filter Section */}
         <div
-          className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 z-20 mb-8"
+          className="sticky top-0 flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 z-20 mb-8 bg-white py-4"
           ref={filterRef}
         >
           <div className="flex items-center justify-between lg:block">
@@ -390,7 +390,7 @@ export default function CourseListings({
               </button>
               {activeModal === 'sort' && (
                 <div
-                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {[
@@ -435,7 +435,7 @@ export default function CourseListings({
               </button>
               {activeModal === 'subjects' && (
                 <div
-                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {subjectOptions.map((subject) => (
@@ -638,7 +638,7 @@ export default function CourseListings({
               </button>
               {activeModal === 'pricing' && (
                 <div
-                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
+                  className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-lightgray/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:absolute sm:top-[calc(100%+8px)] sm:left-0 sm:w-[200px] sm:translate-x-0 sm:translate-y-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {['All', 'Free', 'Paid'].map((price) => (
@@ -671,7 +671,7 @@ export default function CourseListings({
         </div>
 
         {/* Course Grid */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col items-center md:grid gap-4 sm:gap-6  md:px-4 md:grid-cols-2 lg:grid-cols-3">
           {mappedCourses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}

@@ -10,7 +10,7 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
       to={detailTo}
       className="block h-full rounded-[20px] text-inherit no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2962ff] focus-visible:ring-offset-2"
     >
-      <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] overflow-hidden shadow-[0px_4px_8px_0px_rgba(0,0,0,0.03),0px_15px_15px_0px_rgba(0,0,0,0.02)]">
+      <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] shadow-sm w-[294.5px] h-[354px] md:w-[390px] md:h-[456px]">
         {/* Top Header */}
         <div className="flex flex-col justify-between h-full">
           <div className="p-[15px] pb-0 flex flex-col gap-2">
@@ -87,25 +87,25 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
         <div className="border-t border-[rgba(8,22,39,0.1)] flex flex-row items-center gap-0">
           <div className="flex-1 space-y-2 text-sm leading-[1.2] text-lightgray min-w-0 px-2 sm:px-4 sm:py-3">
             <div className="flex gap-0.5 justify-between">
-              <span className="font-normal text-xs sm:text-sm opacity-50 shrink-0">
+              <span className="font-normal text-xs md:text-sm opacity-50 shrink-0">
                 Starts on
               </span>
-              <span className="font-medium  text-xs sm:text-sm">
+              <span className="font-medium  text-xs md:text-sm">
                 {course.starts}
               </span>
             </div>
             <div className="flex gap-0.5 justify-between">
-              <span className="font-normal  text-xs sm:text-sm opacity-50 shrink-0">
+              <span className="font-normal  text-xs md:text-sm opacity-50 shrink-0">
                 Ends on
               </span>
-              <span className="font-medium text-xs sm:text-sm">
+              <span className="font-medium text-xs md:text-sm">
                 {course.ends}
               </span>
             </div>
           </div>
           <div className="block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3" />
-          <div className="flex flex-col sm:flex-row items-center gap-1 justify-end min-w-[140px] p-1 sm:p-2 pl-0 pb-2 sm:pb-4">
-            <span className="font-bold text-base sm:text-xl text-lightgray leading-[1.2]">
+          <div className="flex flex-col md:flex-row items-center gap-1 justify-end min-w-[120px] p-1 sm:p-2 pl-0 pb-2 sm:pb-4">
+            <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
               {course.price}
             </span>
             <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
