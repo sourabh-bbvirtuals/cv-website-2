@@ -255,41 +255,13 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
         </div>
 
         {/* Swiper Slider with Bleed Logic */}
-        <div className="relative group">
-          <div
-            className="overflow-hidden cursor-grab active:cursor-grabbing select-none "
-            onMouseDown={handleDragStart}
-            onMouseMove={handleDragMove}
-            onMouseUp={handleDragEnd}
-            onMouseLeave={handleDragEnd}
-            onTouchStart={handleDragStart}
-            onTouchMove={handleDragMove}
-            onTouchEnd={handleDragEnd}
-          >
-            <div
-              className={`flex mx-4 mb-4 ${
-                isDragging ? '' : 'transition-transform duration-600 ease-out'
-              }`}
-              style={{
-                transform: `translateX(calc(${-(
-                  currentSlide * slideWidth
-                )}px + ${dragOffset}px))`,
-                gap: `${spaceBetween}px`,
-              }}
-            >
-              {displayCourses.map((course, index) => (
-                <div
-                  key={`${course.id}-${index}`}
-                  className="flex-shrink-0 pointer-events-none md:w-[390px]"
-                  style={{
-                    width: `${slideWidth}px`,
-                    minWidth: `${slideWidth}px`,
-                  }}
-                >
-                  <CourseCard course={course} isAlternate={index % 2 === 1} />
-                </div>
-              ))}
-            </div>
+        <div className="relative">
+          <div className={`flex overflow-x-auto scrollbar-hide py-3 gap-4 `}>
+            {displayCourses.map((course, index) => (
+              <div key={`${course.id}-${index}`} className="">
+                <CourseCard course={course} isAlternate={index % 2 === 1} />
+              </div>
+            ))}
           </div>
         </div>
 

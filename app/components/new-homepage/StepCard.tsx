@@ -73,7 +73,7 @@ export default function StepCard({
       {/* Card - always centered */}
       <div
         ref={containerRef}
-        className="h-[510px] w-[680px] overflow-hidden rounded-2xl bg-[#F5F7FF]"
+        className="h-[550px] w-[700px] overflow-hidden rounded-2xl bg-[#F5F7FF]"
       />
 
       {/* Content */}

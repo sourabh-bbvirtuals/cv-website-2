@@ -105,9 +105,7 @@ export default function HowItWorks() {
         if (ref.current) {
           const element = ref.current;
           const rect = element.getBoundingClientRect();
-          const elementTop = window.scrollY + rect.top;
           const viewportHeight = window.innerHeight;
-          const elementHeight = rect.height;
 
           // Start: earlier in viewport (60% above center for slower appearance)
           const startScroll = centerScrolls[index] - viewportHeight * 0.6;
@@ -156,11 +154,11 @@ export default function HowItWorks() {
       const p3 = center + (end - center) * 0.6; // 60% on descent path
 
       // Scale: smoother curve with more gradual transitions
-      // [start, p1, peak, p2, p3, end] → [0.45, 0.60, 0.82, 0.85, 0.65, 0.45]
+      // [start, p1, peak, p2, p3, end] → [0.45, 0.60, 0.95, 1.0, 0.75, 0.45]
       const scale = useTransform(
         scrollY,
         [start, p1, peak, p2, p3, end],
-        [0.45, 0.6, 0.82, 0.85, 0.65, 0.45],
+        [0.45, 0.6, 0.95, 1.0, 0.75, 0.45],
       );
 
       // Opacity: smoother fade with more gradual transitions

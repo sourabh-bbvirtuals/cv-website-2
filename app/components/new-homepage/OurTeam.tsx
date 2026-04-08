@@ -78,17 +78,17 @@ const OurTeam: React.FC = () => {
   return (
     <section className="overflow-hidden">
       <div className="custom-container">
-        <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-8 sm:mb-12 md:mb-16">
+        <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-2 sm:mb-12 md:mb-16">
           <div className="text-left max-sm:text-center">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Our Team
             </p>
             <h2 className="section-heading text-lightgray">
-              They are best at what they do
+              {'They are best at what they do'}
             </h2>
           </div>
 
-          <div className="flex gap-2 shrink-0">
+          <div className="hidden sm:flex gap-2 shrink-0">
             <button
               type="button"
               onClick={() => swiperRef.current?.slidePrev()}
@@ -108,7 +108,7 @@ const OurTeam: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full overflow-hidden">
+        <div className="w-full overflow-hidden mb-10 sm:mb-0">
           <Swiper
             modules={[Autoplay]}
             onBeforeInit={(swiper) => {
@@ -121,10 +121,10 @@ const OurTeam: React.FC = () => {
               disableOnInteraction: false,
               pauseOnMouseEnter: true,
             }}
-            spaceBetween={0}
-            slidesPerView={1}
+            spaceBetween={8}
+            slidesPerView={2}
             breakpoints={{
-              480: { slidesPerView: 1, spaceBetween: 0 },
+              480: { slidesPerView: 2, spaceBetween: 8 },
               640: { slidesPerView: 2.6, spaceBetween: 18 },
               768: { slidesPerView: 2.6, spaceBetween: 26 },
               1024: { slidesPerView: 3.2, spaceBetween: 30 },
@@ -132,11 +132,11 @@ const OurTeam: React.FC = () => {
             }}
             className="w-full"
           >
-            {teamData.map((member) => (
-              <SwiperSlide key={member.id}>
+            {teamData.map((member, index) => (
+              <SwiperSlide key={index}>
                 <article
-                  className={`group flex flex-col items-center px-1 text-center ${
-                    member.id % 2 === 0 ? 'mt-0 md:mt-17.75' : 'mt-0'
+                  className={`group flex flex-col items-center px-0.5 text-center ${
+                    index % 2 !== 0 ? 'mt-0 md:mt-17.75' : 'mt-0'
                   }`}
                 >
                   <div className="relative mb-3 sm:mb-5 flex w-36 h-36 md:w-70 md:h-77">
@@ -165,6 +165,25 @@ const OurTeam: React.FC = () => {
               </SwiperSlide>
             ))}
           </Swiper>
+        </div>
+
+        <div className="flex sm:hidden justify-center gap-2 mt-4">
+          <button
+            type="button"
+            onClick={() => swiperRef.current?.slidePrev()}
+            className="size-8 flex items-center justify-center rounded-[42px] bg-[rgba(8,22,39,0.03)] duration-300 hover:bg-[rgba(8,22,39,0.06)] cursor-pointer"
+            aria-label="Previous"
+          >
+            <SliderArrow />
+          </button>
+          <button
+            type="button"
+            onClick={() => swiperRef.current?.slideNext()}
+            className="size-8 flex items-center justify-center rounded-[42px] bg-[rgba(8,22,39,0.03)] duration-300 hover:bg-[rgba(8,22,39,0.06)] cursor-pointer rotate-180"
+            aria-label="Next"
+          >
+            <SliderArrow />
+          </button>
         </div>
       </div>
     </section>

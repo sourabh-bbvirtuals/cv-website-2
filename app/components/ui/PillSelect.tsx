@@ -103,12 +103,12 @@ export function PillSelect({
       {/* Dropdown Menu - now fixed with dynamic position */}
       {isOpen && (
         <div
-          className="fixed z-[9999] mt-2 w-40 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+          className="fixed z-[9999] mt-2 w-80 md:w-70  rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
           style={
             isMobile
               ? {
                   top: `50px`,
-                  left: `100px`,
+                  left: `10px`,
                 }
               : {}
           }

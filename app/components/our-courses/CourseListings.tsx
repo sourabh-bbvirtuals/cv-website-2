@@ -314,7 +314,7 @@ export default function CourseListings({
   }, []);
   // States for all filters
   const [selectedSort, setSelectedSort] = useState<string>('Relevant');
-  const [selectedPricing, setSelectedPricing] = useState<string>('All');
+  const [selectedPricing, setSelectedPricing] = useState<string>('');
   const [selectedLanguage, setSelectedLanguage] = useState<string[]>([]);
   const [selectedSubjects, setSelectedSubjects] = useState<string>('');
   const [selectedFaculties, setSelectedFaculties] = useState<string[]>([]);
@@ -518,11 +518,11 @@ export default function CourseListings({
                       isMobile
                         ? {
                             top: `90px`,
-                            left: `100px`,
+                            left: `10px`,
                           }
                         : {}
                     }
-                    className="fixed z-[9999]  w-40 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {[
@@ -575,11 +575,11 @@ export default function CourseListings({
                       isMobile
                         ? {
                             top: `90px`,
-                            left: `100px`,
+                            left: `10px`,
                           }
                         : {}
                     }
-                    className="fixed z-[9999]  w-40 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {subjectOptions.map((subject) => (
@@ -620,11 +620,11 @@ export default function CourseListings({
                       isMobile
                         ? {
                             top: `90px`,
-                            left: `100px`,
+                            left: `10px`,
                           }
                         : {}
                     }
-                    className="fixed z-[9999] w-50 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                    className="fixed z-[9999] w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* "All" Option */}
@@ -725,11 +725,11 @@ export default function CourseListings({
                       isMobile
                         ? {
                             top: `90px`,
-                            left: `100px`,
+                            left: `10px`,
                           }
                         : {}
                     }
-                    className="fixed z-[9999]  w-40 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* "All" Option */}
@@ -806,12 +806,12 @@ export default function CourseListings({
                 </button>
                 {activeModal === 'pricing' && (
                   <div
-                    className="fixed z-[9999]  w-40 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
                     style={
                       isMobile
                         ? {
                             top: `90px`,
-                            left: `100px`,
+                            left: `10px`,
                           }
                         : {}
                     }
@@ -857,7 +857,7 @@ export default function CourseListings({
                 to={detailTo}
                 className="block h-full rounded-[20px] text-inherit no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2962ff] focus-visible:ring-offset-2"
               >
-                <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] shadow-xs md:shadow-md w-[324.5px] h-[354px] md:w-[390px] md:h-[456px]">
+                <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] shadow-xs md:shadow-md w-[334.5px] h-[354px] md:w-[390px] md:h-[456px]">
                   {/* Top Header */}
                   <div className="flex flex-col justify-between h-full">
                     <div className="p-[15px] pb-0 flex flex-col gap-2">
@@ -922,11 +922,11 @@ export default function CourseListings({
                           </div>
                         )}
                         {/* {course.meta && course.meta[2] && ( */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-3 py-1">
+                        {/* <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-3 py-1">
                           <span className="text-sm md:text-base font-medium text-white leading-[1.2]">
                             {course.meta[2]}
                           </span>
-                        </div>
+                        </div> */}
                         {/* )} */}
                       </div>
                     </div>
@@ -952,7 +952,7 @@ export default function CourseListings({
                         </span>
                       </div>
                     </div>
-                    <div className="block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3" />
+                    <div className="w-px self-stretch bg-[rgba(8,22,39,0.1)] mx-3" />{' '}
                     <div className="flex flex-col md:flex-row items-center gap-1 justify-end min-w-[120px] p-1 sm:p-2 pl-0 pb-2 sm:pb-4">
                       <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
                         {course.price}

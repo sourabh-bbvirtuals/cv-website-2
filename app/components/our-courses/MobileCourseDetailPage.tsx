@@ -858,7 +858,7 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
               ${isLastRow ? 'border-b-0' : ''}
             `}
               >
-                <p className="text-xs  tracking-[1px] font-medium uppercase text-gray-400 truncate">
+                <p className="text-xs  tracking-[1px] font-medium uppercase text-gray-400">
                   {label}
                 </p>
                 <p className="text-base text-lightgray font-medium leading-tight">
@@ -1281,50 +1281,33 @@ export default function CourseDetailPage({
         </div>
 
         {/* Bottom Info Bar */}
+        {/* Bottom Info Bar */}
         {heroStats.length > 0 && (
-          <div className="mt-8">
-            <div className="grid grid-cols-3">
+          <div className="mt-8 border border-white/15">
+            <div className="flex flex-wrap divide-x divide-y divide-white/15">
               {heroStats.map(([label, val], i) => {
-                const truncate = (text: string) =>
-                  text.length > 12 ? text.slice(0, 12) + '...' : text;
-
-                const cols = 3;
-                const rowIndex = Math.floor(i / cols);
-                const totalRows = Math.ceil(heroStats.length / cols);
-
-                const isFirstRow = rowIndex === 0;
-                const isLastRow = rowIndex === totalRows - 1;
-
-                const isGridLastCol = (i + 1) % cols === 0;
-                const isLastItem = i === heroStats.length - 1;
-
-                let borders = '';
-
-                if (isFirstRow) {
-                  borders = 'border-t border-b';
-                  if (!isGridLastCol) borders += ' border-r';
-                } else if (isLastRow) {
-                  if (!isLastItem) borders = 'border-r';
-                } else {
-                  borders = 'border-b border-l';
-                  if (!isGridLastCol) borders += ' border-r';
-                }
+                const isLong = (label: string, val: string) =>
+                  (label?.length || 0) + (val?.length || 0) > 30;
+                const long = isLong(label, val);
 
                 return (
                   <div
-                    key={label}
-                    className={`w-auto gap-4 px-5 py-4 flex flex-col justify-center border-white/15 ${borders}`}
+                    key={i}
+                    className={`
+              px-5 py-4
+              flex flex-col justify-center
+              min-w-[140px]
+              
+              ${long ? 'w-full flex-none' : 'flex-1'}
+            `}
                   >
+                    {/* Label */}
                     <p className="text-xs font-semibold text-white/70 uppercase tracking-widest">
-                      {isLastItem ? label : truncate(label)}
+                      {label}
                     </p>
 
-                    <p
-                      className={`text-[15px] font-medium leading-tight ${
-                        isLastItem ? 'whitespace-nowrap' : ''
-                      }`}
-                    >
-                      {/* {isLastItem ? val : truncate(val)} */}
+                    {/* Value */}
+                    <p className="text-[15px] font-medium leading-tight">
                       {val}
                     </p>
                   </div>
