@@ -839,7 +839,7 @@ function SyllabusSection({ item }: { item: SpecItem }) {
                   : 'bg-white text-lightgray/60 border-lightgray/5 hover:text-lightgray/60 hover:bg-lightgray/5'
               }`}
             >
-              {subj.name}ddddd
+              {subj.name}
             </button>
           ))}
         </div>
@@ -882,207 +882,207 @@ export default function CourseDetailPage({
   );
 
   // Add mock data if empty for visualization
-  if (specItems.length === 0) {
-    specItems = [
-      {
-        order: 1,
-        identifier: 'features',
-        name: 'Features',
-        type: 'composite',
-        data: [
-          {
-            order: 0,
-            identifier: 'features-table',
-            name: 'Features Table',
-            type: 'table',
-            table: {
-              Language: 'English',
-              'No. of Lectures': '80-85',
-              Quizzes: '120+',
-              'Formula Cards': '100+',
-              'Mock Tests': '80+',
-              Notes: '32+',
-            },
-          },
-          {
-            order: 1,
-            identifier: 'features-list',
-            name: 'Course Highlights',
-            type: 'list',
-            list: [
-              'Live Classes by Master Teachers',
-              'Live in-class quizzes and leaderboard',
-              'Live in-class doubt solving',
-              'Recordings of previous classes',
-              'Assignments and class notes',
-              'Handwritten Teacher Notes after class',
-            ],
-          },
-        ],
-      },
-      {
-        order: 2,
-        identifier: 'about_course',
-        name: 'About',
-        type: 'composite',
-        data: [
-          {
-            order: 0,
-            identifier: 'about-desc',
-            name: 'Course Description',
-            type: 'html_text',
-            text: '<p>This comprehensive course is designed to help you master the fundamentals and advanced concepts. Our expert instructors bring years of industry experience to deliver high-quality content with practical applications.</p>',
-          },
-          {
-            order: 1,
-            identifier: 'about-benefits',
-            name: "What You'll Learn",
-            type: 'list',
-            list: [
-              'Master core concepts and theories',
-              'Practical implementation techniques',
-              'Real-world problem-solving strategies',
-              'Industry best practices',
-              'Hands-on project experience',
-              'Certification upon completion',
-            ],
-          },
-        ],
-      },
-      {
-        order: 3,
-        identifier: 'demo_lectures',
-        name: 'Demo Lectures',
-        type: 'video_carousel',
-        videoItems: [
-          {
-            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title: 'Introduction to Basics',
-            durationMinutes: 12,
-          },
-          {
-            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title: 'Fundamentals Deep Dive',
-            durationMinutes: 18,
-          },
-          {
-            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title: 'Advanced Concepts',
-            durationMinutes: 15,
-          },
-        ],
-      },
-      {
-        order: 4,
-        identifier: 'syllabus',
-        name: 'Syllabus',
-        type: 'composite',
-        data: [
-          {
-            order: 0,
-            identifier: 'syllabus-main',
-            name: 'Full Course',
-            type: 'composite',
-            data: [
-              {
-                order: 0,
-                identifier: 'module-1',
-                name: 'Module 1: Foundations',
-                type: 'composite',
-                data: [
-                  {
-                    order: 0,
-                    identifier: 'module-1-topics',
-                    name: 'Topics',
-                    type: 'list',
-                    list: [
-                      'Introduction and Overview',
-                      'Core Concepts',
-                      'Basic Principles',
-                      'Setup and Configuration',
-                    ],
-                  },
-                ],
-              },
-              {
-                order: 1,
-                identifier: 'module-2',
-                name: 'Module 2: Intermediate Topics',
-                type: 'composite',
-                data: [
-                  {
-                    order: 0,
-                    identifier: 'module-2-topics',
-                    name: 'Topics',
-                    type: 'list',
-                    list: [
-                      'Advanced Techniques',
-                      'Best Practices',
-                      'Real-world Applications',
-                      'Troubleshooting Guide',
-                    ],
-                  },
-                ],
-              },
-              {
-                order: 2,
-                identifier: 'module-3',
-                name: 'Module 3: Advanced Concepts',
-                type: 'composite',
-                data: [
-                  {
-                    order: 0,
-                    identifier: 'module-3-topics',
-                    name: 'Topics',
-                    type: 'list',
-                    list: [
-                      'Complex Scenarios',
-                      'Optimization Techniques',
-                      'Industry Patterns',
-                      'Projects and Case Studies',
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        order: 5,
-        identifier: 'faqs',
-        name: 'FAQs',
-        type: 'faq',
-        faqItems: [
-          {
-            question: 'Who is this course suitable for?',
-            answer:
-              'This course is designed for beginners and intermediate learners who want to master the subject. No prior experience is required.',
-          },
-          {
-            question: 'What is the course duration?',
-            answer:
-              'The course typically takes 6-8 weeks to complete, depending on your pace. You can access all materials anytime.',
-          },
-          {
-            question: 'Is there a certificate upon completion?',
-            answer:
-              'Yes, you will receive a completion certificate that can be shared on professional networks.',
-          },
-          {
-            question: 'What if I have doubts during the course?',
-            answer:
-              'Our instructors are available to answer questions through live sessions and discussion forums.',
-          },
-          {
-            question: 'Can I access the course materials after completion?',
-            answer:
-              'Yes, you have lifetime access to all course materials and any future updates.',
-          },
-        ],
-      },
-    ];
-  }
+  // if (specItems.length === 0) {
+  //   specItems = [
+  //     {
+  //       order: 1,
+  //       identifier: 'features',
+  //       name: 'Features',
+  //       type: 'composite',
+  //       data: [
+  //         {
+  //           order: 0,
+  //           identifier: 'features-table',
+  //           name: 'Features Table',
+  //           type: 'table',
+  //           table: {
+  //             Language: 'English',
+  //             'No. of Lectures': '80-85',
+  //             Quizzes: '120+',
+  //             'Formula Cards': '100+',
+  //             'Mock Tests': '80+',
+  //             Notes: '32+',
+  //           },
+  //         },
+  //         {
+  //           order: 1,
+  //           identifier: 'features-list',
+  //           name: 'Course Highlights',
+  //           type: 'list',
+  //           list: [
+  //             'Live Classes by Master Teachers',
+  //             'Live in-class quizzes and leaderboard',
+  //             'Live in-class doubt solving',
+  //             'Recordings of previous classes',
+  //             'Assignments and class notes',
+  //             'Handwritten Teacher Notes after class',
+  //           ],
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       order: 2,
+  //       identifier: 'about_course',
+  //       name: 'About',
+  //       type: 'composite',
+  //       data: [
+  //         {
+  //           order: 0,
+  //           identifier: 'about-desc',
+  //           name: 'Course Description',
+  //           type: 'html_text',
+  //           text: '<p>This comprehensive course is designed to help you master the fundamentals and advanced concepts. Our expert instructors bring years of industry experience to deliver high-quality content with practical applications.</p>',
+  //         },
+  //         {
+  //           order: 1,
+  //           identifier: 'about-benefits',
+  //           name: "What You'll Learn",
+  //           type: 'list',
+  //           list: [
+  //             'Master core concepts and theories',
+  //             'Practical implementation techniques',
+  //             'Real-world problem-solving strategies',
+  //             'Industry best practices',
+  //             'Hands-on project experience',
+  //             'Certification upon completion',
+  //           ],
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       order: 3,
+  //       identifier: 'demo_lectures',
+  //       name: 'Demo Lectures',
+  //       type: 'video_carousel',
+  //       videoItems: [
+  //         {
+  //           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  //           title: 'Introduction to Basics',
+  //           durationMinutes: 12,
+  //         },
+  //         {
+  //           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  //           title: 'Fundamentals Deep Dive',
+  //           durationMinutes: 18,
+  //         },
+  //         {
+  //           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  //           title: 'Advanced Concepts',
+  //           durationMinutes: 15,
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       order: 4,
+  //       identifier: 'syllabus',
+  //       name: 'Syllabus',
+  //       type: 'composite',
+  //       data: [
+  //         {
+  //           order: 0,
+  //           identifier: 'syllabus-main',
+  //           name: 'Full Course',
+  //           type: 'composite',
+  //           data: [
+  //             {
+  //               order: 0,
+  //               identifier: 'module-1',
+  //               name: 'Module 1: Foundations',
+  //               type: 'composite',
+  //               data: [
+  //                 {
+  //                   order: 0,
+  //                   identifier: 'module-1-topics',
+  //                   name: 'Topics',
+  //                   type: 'list',
+  //                   list: [
+  //                     'Introduction and Overview',
+  //                     'Core Concepts',
+  //                     'Basic Principles',
+  //                     'Setup and Configuration',
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               order: 1,
+  //               identifier: 'module-2',
+  //               name: 'Module 2: Intermediate Topics',
+  //               type: 'composite',
+  //               data: [
+  //                 {
+  //                   order: 0,
+  //                   identifier: 'module-2-topics',
+  //                   name: 'Topics',
+  //                   type: 'list',
+  //                   list: [
+  //                     'Advanced Techniques',
+  //                     'Best Practices',
+  //                     'Real-world Applications',
+  //                     'Troubleshooting Guide',
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               order: 2,
+  //               identifier: 'module-3',
+  //               name: 'Module 3: Advanced Concepts',
+  //               type: 'composite',
+  //               data: [
+  //                 {
+  //                   order: 0,
+  //                   identifier: 'module-3-topics',
+  //                   name: 'Topics',
+  //                   type: 'list',
+  //                   list: [
+  //                     'Complex Scenarios',
+  //                     'Optimization Techniques',
+  //                     'Industry Patterns',
+  //                     'Projects and Case Studies',
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       order: 5,
+  //       identifier: 'faqs',
+  //       name: 'FAQs',
+  //       type: 'faq',
+  //       faqItems: [
+  //         {
+  //           question: 'Who is this course suitable for?',
+  //           answer:
+  //             'This course is designed for beginners and intermediate learners who want to master the subject. No prior experience is required.',
+  //         },
+  //         {
+  //           question: 'What is the course duration?',
+  //           answer:
+  //             'The course typically takes 6-8 weeks to complete, depending on your pace. You can access all materials anytime.',
+  //         },
+  //         {
+  //           question: 'Is there a certificate upon completion?',
+  //           answer:
+  //             'Yes, you will receive a completion certificate that can be shared on professional networks.',
+  //         },
+  //         {
+  //           question: 'What if I have doubts during the course?',
+  //           answer:
+  //             'Our instructors are available to answer questions through live sessions and discussion forums.',
+  //         },
+  //         {
+  //           question: 'Can I access the course materials after completion?',
+  //           answer:
+  //             'Yes, you have lifetime access to all course materials and any future updates.',
+  //         },
+  //       ],
+  //     },
+  //   ];
+  // }
 
   const courseInfoSpec = specItems.find(
     (s) => s.identifier === 'course_info' || s.name === 'Course Info',
@@ -1123,13 +1123,13 @@ export default function CourseDetailPage({
   });
 
   // Add mock data if empty for visualization
-  if (heroStats.length === 0) {
-    heroStats.push(
-      ['Standard', 'CBSE/ICSE'],
-      ['Board Year', '2024-25'],
-      ['START-END DATE', 'Jan 2024 - Mar 2024'],
-    );
-  }
+  // if (heroStats.length === 0) {
+  //   heroStats.push(
+  //     ['Standard', 'CBSE/ICSE'],
+  //     ['Board Year', '2024-25'],
+  //     ['START-END DATE', 'Jan 2024 - Mar 2024'],
+  //   );
+  // }
   const courseLanguage = (
     courseInfoSpec?.table?.['Language'] || 'Hindi'
   ).trim();
@@ -1142,15 +1142,15 @@ export default function CourseDetailPage({
     .map((s) => ({ id: s.identifier, label: NAV_MAP[s.identifier] || s.name }));
 
   // Add mock data if empty for visualization
-  if (navItems.length === 0) {
-    navItems.push(
-      { id: 'features', label: 'Features' },
-      { id: 'about_course', label: 'About' },
-      { id: 'demo_lectures', label: 'Demo Lectures' },
-      { id: 'syllabus', label: 'Syllabus' },
-      { id: 'faqs', label: 'FAQs' },
-    );
-  }
+  // if (navItems.length === 0) {
+  //   navItems.push(
+  //     { id: 'features', label: 'Features' },
+  //     { id: 'about_course', label: 'About' },
+  //     { id: 'demo_lectures', label: 'Demo Lectures' },
+  //     { id: 'syllabus', label: 'Syllabus' },
+  //     { id: 'faqs', label: 'FAQs' },
+  //   );
+  // }
 
   const [activeNav, setActiveNav] = useState<string>(navItems[0]?.id || '');
 
@@ -1195,24 +1195,23 @@ export default function CourseDetailPage({
 
   // Add mock faculties data if empty for visualization
   const displayFaculties =
-    product?.faculties && product.faculties.length > 0
-      ? product.faculties
-      : [
-          {
-            name: 'CA Bhushal Gosar',
-            image:
-              'https://www.figma.com/api/mcp/asset/b5f8d002-8c8c-46bf-989e-9ae3a805bc23',
-            description:
-              "Grow with Google is an initiative that draws on Google's decades-long history of building products, platforms, and services that help people and businesses grow. We aim to help everyone – those who make up the workforce of today and the students who will drive the...",
-          },
-          {
-            name: 'CA Bhushal Gosar',
-            image:
-              'https://www.figma.com/api/mcp/asset/b5f8d002-8c8c-46bf-989e-9ae3a805bc23',
-            description:
-              "Grow with Google is an initiative that draws on Google's decades-long history of building products, platforms, and services that help people and businesses grow. We aim to help everyone – those who make up the workforce of today and the students who will drive the...",
-          },
-        ];
+    product?.faculties && product.faculties.length > 0 ? product.faculties : [];
+  // : [
+  //     {
+  //       name: 'CA Bhushal Gosar',
+  //       image:
+  //         'https://www.figma.com/api/mcp/asset/b5f8d002-8c8c-46bf-989e-9ae3a805bc23',
+  //       description:
+  //         "Grow with Google is an initiative that draws on Google's decades-long history of building products, platforms, and services that help people and businesses grow. We aim to help everyone – those who make up the workforce of today and the students who will drive the...",
+  //     },
+  //     {
+  //       name: 'CA Bhushal Gosar',
+  //       image:
+  //         'https://www.figma.com/api/mcp/asset/b5f8d002-8c8c-46bf-989e-9ae3a805bc23',
+  //       description:
+  //         "Grow with Google is an initiative that draws on Google's decades-long history of building products, platforms, and services that help people and businesses grow. We aim to help everyone – those who make up the workforce of today and the students who will drive the...",
+  //     },
+  //   ];
 
   return (
     <div className="bg-white" data-course-slug={slug ?? ''}>
@@ -1254,7 +1253,7 @@ export default function CourseDetailPage({
               </div>
 
               {/* selection */}
-              <div className="flex gap-6 w-full mt-10">
+              <div className="flex gap-4 w-full mt-10">
                 <CustomDropdown
                   label="Select Course Type"
                   value={courseType}
@@ -1285,7 +1284,7 @@ export default function CourseDetailPage({
                     <span className="text-3xl font-bold text-[#0f172a] sm:text-4xl">
                       {price}
                     </span>
-                    <span className="text-lg font-medium text-slate-300 line-through sm:text-xl">
+                    <span className="text-lg font-medium text-lightgray/40 line-through sm:text-xl">
                       ₹
                       {(product?.priceWithTax
                         ? (product.priceWithTax * 1.5) / 100
@@ -1494,7 +1493,7 @@ export default function CourseDetailPage({
                 <img
                   src={facultyImage}
                   alt="Course preview"
-                  className="w-full h-full object-cover opacity-95 transition-transform hover:scale-105"
+                  className="w-full h-full object-cover object-top opacity-95 transition-transform hover:scale-105"
                 />
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
                   <span className="text-base md:text-lg font-medium text-white leading-[1.2]">

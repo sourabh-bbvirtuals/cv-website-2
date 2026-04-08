@@ -75,7 +75,7 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
               {/* {course.meta && course.meta[2] && ( */}
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-3 py-1">
                 <span className="text-sm md:text-base font-medium text-white leading-[1.2]">
-                  {course.meta[2]}ddd
+                  {course.meta[2]}
                 </span>
               </div>
               {/* )} */}
