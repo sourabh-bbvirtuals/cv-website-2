@@ -8,7 +8,7 @@ import {
   RotateCcw,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { difficultyTextClass, type QuizSession } from './quizData';
 
 const LOGO_SRC = '/assets/logo.png';
@@ -187,8 +187,9 @@ function ResultStatStrip({
 
 export function QuizIntroScreen({ session }: { session: QuizSession }) {
   console.log('QuizIntroScreen session:', session);
+  // bg-[#F5F7FF]
   return (
-    <div className="relative bg-[#F5F7FF] ">
+    <div className="relative ">
       <header className="fixed left-0 right-0 top-0 z-50 backdrop-blur-md md:hidden pt-7">
         <div className="flex h-14 items-center px-2">
           <Link
@@ -205,7 +206,7 @@ export function QuizIntroScreen({ session }: { session: QuizSession }) {
         <QuizTopBar progress={0.04} hideProgress />
       </div>
 
-      <div className="custom-container flex-1 px-4  sm:px-6 pt-24 md:pb-30 pb-44">
+      <div className="custom-container flex-1 px-4  sm:px-6 pt-24">
         <div className="mx-auto flex w-full max-w-[877px] flex-col gap-6 sm:gap-8 4xl:gap-12!">
           <div className="flex flex-col gap-3 md:gap-4">
             <div className="hidden flex-wrap items-center gap-2 md:flex">
@@ -332,10 +333,52 @@ function QuizPlayQuestionNav({
   );
 }
 
+// Mock session for testing with 10 questions
+// const MOCK_SESSION: QuizSession = {
+//   slug: 'test-quiz',
+//   introTag: 'General Knowledge',
+//   title: 'Test Quiz',
+//   subtitle: 'Take this quiz to test your general knowledge',
+//   subject: {
+//     label: 'General Knowledge',
+//     dot: 'bg-[#0baf7e]',
+//     bg: 'bg-[rgba(11,175,126,0.05)]',
+//     border: 'border-[rgba(11,175,126,0.1)]',
+//     text: 'text-[#0baf7e]',
+//   },
+//   board: 'All Boards',
+//   difficulty: 'medium',
+//   stats: [
+//     { label: 'Total Questions', value: '10' },
+//     { label: 'Difficulty', value: 'Medium' },
+//     { label: 'Average Time', value: '5m' },
+//     { label: 'Category', value: 'General Knowledge' },
+//   ],
+//   instructions: [
+//     'Read each question carefully',
+//     'Select one answer per question',
+//     'You can skip questions and come back to them',
+//     'Review your answers before submitting',
+//   ],
+//   questions: [
+//     { text: 'What is the capital of France?', options: ['London', 'Berlin', 'Paris', 'Madrid'] },
+//     { text: 'Which planet is closest to the sun?', options: ['Venus', 'Mercury', 'Earth', 'Mars'] },
+//     { text: 'What is 2 + 2?', options: ['3', '4', '5', '6'] },
+//     { text: 'Who wrote Romeo and Juliet?', options: ['Jane Austen', 'William Shakespeare', 'Mark Twain', 'Charles Dickens'] },
+//     { text: 'What is the largest ocean?', options: ['Atlantic', 'Indian', 'Arctic', 'Pacific'] },
+//     { text: 'What is the chemical symbol for gold?', options: ['Gd', 'Go', 'Au', 'Ag'] },
+//     { text: 'In what year did World War II end?', options: ['1943', '1944', '1945', '1946'] },
+//     { text: 'What is the smallest prime number?', options: ['0', '1', '2', '3'] },
+//     { text: 'Which country has the most population?', options: ['India', 'China', 'USA', 'Indonesia'] },
+//     { text: 'What is the hardest natural substance?', options: ['Gold', 'Silver', 'Diamond', 'Platinum'] },
+//   ],
+// };
+
 export function QuizPlayScreen({ session }: { session: QuizSession }) {
   const total = session.questions.length;
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(
     new Set(),
   );
@@ -345,7 +388,32 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
   const q = session.questions[idx];
   const navCount = total;
 
-  const progress = 0.12 + (idx / Math.max(total, 1)) * 0.55;
+  const answeredCount = answeredQuestions.size + skippedQuestions.size;
+  const progress = 0.12 + (answeredCount / Math.max(total, 1)) * 0.88;
+
+  // Timer state (counting up from 0)
+  const [elapsed, setElapsed] = useState(0);
+
+  // Timer increment effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsed((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Load saved answer when question index changes
+  useEffect(() => {
+    setSelected(answers[idx] ?? null);
+  }, [idx, answers]);
 
   if (!q) {
     return (
@@ -365,12 +433,14 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
     setSelected(null);
   };
 
-  const answeredCount = answeredQuestions.size + skippedQuestions.size;
   const unansweredCount = Math.max(total - answeredCount, 0);
 
   const handleSelectAnswer = (optionIndex: number) => {
     setSelected(optionIndex);
-    setAnsweredQuestions((prev) => new Set([...prev, idx]));
+    setAnswers((prev) => ({
+      ...prev,
+      [idx]: optionIndex,
+    }));
   };
 
   const handleSkipQuestion = () => {
@@ -415,7 +485,7 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
             <span className="text-lightgray/50 text-lg">/{total}</span>
           </span>
           <span className="w-10 text-xl font-semibold tabular-nums text-lightgray">
-            12:20
+            {formatTime(elapsed)}
           </span>
         </div>
       </header>
@@ -439,14 +509,14 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                   type="button"
                   disabled={idx === 0}
                   onClick={handlePreviousQuestion}
-                  className="flex size-9 items-center justify-center rounded-full bg-[rgba(8,22,39,0.03)] text-lightgray/55 transition-colors enabled:hover:bg-[rgba(8,22,39,0.08)] disabled:opacity-40"
+                  className="flex size-9 items-center justify-center rounded-full bg-[rgba(8,22,39,0.03)] text-lightgray/55 transition-colors enabled:hover:bg-[rgba(8,22,39,0.08)] disabled:bg-[rgba(8,22,39,0.08)] disabled:text-lightgray/25 disabled:cursor-not-allowed"
                   aria-label="Previous question"
                 >
                   <ChevronLeft className="size-5" />
                 </button>
                 <button
                   type="button"
-                  disabled={idx >= total - 1}
+                  disabled={idx >= total - 1 || selected === null}
                   onClick={handleNextQuestion}
                   className="flex size-9 items-center justify-center rounded-full bg-[rgba(8,22,39,0.03)] text-lightgray/55 transition-colors enabled:hover:bg-[rgba(8,22,39,0.08)] disabled:opacity-40"
                   aria-label="Next question"
@@ -460,10 +530,11 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
             <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-1 px-6 md:px-0">
               {Array.from({ length: navCount }, (_, i) => {
                 const n = i + 1;
-                const disabled = i >= total;
                 const isAnswered = answeredQuestions.has(i);
                 const isSkipped = skippedQuestions.has(i);
                 const isAnsweredOrSkipped = isAnswered || isSkipped;
+                const disabled =
+                  i >= total || (i > idx && !isAnsweredOrSkipped);
                 return (
                   <button
                     key={`desktop-q-${n}`}
@@ -545,7 +616,7 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
               type="button"
               disabled={idx === 0}
               onClick={handlePreviousQuestion}
-              className="flex h-12 flex-1 items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.14)] bg-white text-sm font-semibold text-lightgray shadow-sm transition-colors enabled:active:bg-[rgba(8,22,39,0.04)] disabled:opacity-40"
+              className="flex h-12 flex-1 items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.14)] bg-white text-sm font-semibold text-lightgray shadow-sm transition-colors enabled:active:bg-[rgba(8,22,39,0.04)] disabled:bg-[rgba(8,22,39,0.05)] disabled:text-lightgray/30 disabled:border-[rgba(8,22,39,0.08)] disabled:cursor-not-allowed disabled:shadow-none"
             >
               <ArrowLeft className="size-4 shrink-0" strokeWidth={2.25} />
               Previous
@@ -561,8 +632,9 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
             ) : (
               <button
                 type="button"
+                disabled={selected === null}
                 onClick={handleNextQuestion}
-                className="primary-btn flex h-12 flex-1 items-center justify-center gap-1 rounded-full text-sm font-semibold"
+                className="primary-btn flex h-12 flex-1 items-center justify-center gap-1 rounded-full text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ArrowRight className="size-4 shrink-0" strokeWidth={2.25} />
@@ -574,7 +646,7 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
         <div className="hidden  items-center justify-center h-[120px] border-t border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md md:flex">
           <div className="custom-container flex items-center justify-between gap-4">
             <span className="w-10 text-right text-3xl font-semibold tabular-nums text-lightgray">
-              12:20
+              {formatTime(elapsed)}
             </span>
             <div className="flex gap-3">
               <button
@@ -588,7 +660,7 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
                 type="button"
                 disabled={idx === 0}
                 onClick={handlePreviousQuestion}
-                className="border border-lightgray/10 w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-3 text-lg font-medium text-lightgray/80 leading-[120%] inline-flex"
+                className="border border-lightgray/10 w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-3 text-lg font-medium text-lightgray/80 leading-[120%] inline-flex disabled:border-lightgray/5 disabled:text-lightgray/25 disabled:bg-[rgba(8,22,39,0.05)] disabled:cursor-not-allowed"
               >
                 <ArrowLeft size={24} />
                 Previous
@@ -604,8 +676,9 @@ export function QuizPlayScreen({ session }: { session: QuizSession }) {
               ) : (
                 <button
                   type="button"
+                  disabled={selected === null}
                   onClick={handleNextQuestion}
-                  className="primary-btn w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-3 text-lg font-medium leading-[120%] inline-flex"
+                  className="primary-btn w-fit items-center justify-center gap-3 rounded-[38px] px-6 py-3 text-lg font-medium leading-[120%] inline-flex disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                   <ArrowRight size={24} />

@@ -18,6 +18,26 @@ import {
 } from './Icons';
 import { Link } from '@remix-run/react';
 
+type TabId = 'mock' | 'formula' | 'notes' | 'papers' | 'quizzes' | 'videos';
+
+const TAB_PATH_BY_ID: Record<TabId, string> = {
+  mock: '/free-resources/mock-tests',
+  formula: '/free-resources/formula-cards',
+  notes: '/free-resources/study-notes',
+  papers: '/free-resources/past-papers',
+  quizzes: '/free-resources/quizzes',
+  videos: '/free-resources/free-videos',
+};
+
+const RESOURCE_TAB_MAP: Record<string, TabId> = {
+  'Study Notes': 'notes',
+  'Mock Tests': 'mock',
+  'Past Papers': 'papers',
+  'Formula Cards': 'formula',
+  Quizzes: 'quizzes',
+  'Free Videos': 'videos',
+};
+
 const FreeResources = () => {
   const resources = [
     {
@@ -58,6 +78,11 @@ const FreeResources = () => {
     },
   ];
 
+  const getResourceLink = (title: string) => {
+    const tabId = RESOURCE_TAB_MAP[title];
+    return tabId ? TAB_PATH_BY_ID[tabId] : '/free-resources/mock-tests';
+  };
+
   return (
     <section className="custom-container">
       {/* Mobile view */}
@@ -78,8 +103,9 @@ const FreeResources = () => {
       <div className="lg:hidden">
         <div className="grid grid-cols-2 gap-4 mb-6">
           {resources.map((item, idx) => (
-            <div
+            <Link
               key={idx}
+              to={getResourceLink(item.title)}
               className="flex flex-col items-center text-center group cursor-pointer"
             >
               <div
@@ -93,14 +119,14 @@ const FreeResources = () => {
               <p className="text-gray-900 text-xs font-medium mt-1">
                 {item.desc}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
 
         {/* Mobile link */}
         <div className="flex justify-center">
           <Link
-            to={''}
+            to={'/free-resources/mock-tests'}
             className="flex items-center gap-4 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"
           >
             Explore All Resources
@@ -127,7 +153,7 @@ const FreeResources = () => {
           </p>
           <div className="flex gap-3 sm:gap- shrink-0 mt-16">
             <Link
-              to={''}
+              to={'/free-resources/mock-tests'}
               className="flex items-center gap-4 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"
             >
               Explore All Resources
@@ -143,8 +169,9 @@ const FreeResources = () => {
             {resources
               .filter((_, index) => index % 2 === 0)
               .map((item, idx) => (
-                <div
+                <Link
                   key={idx}
+                  to={getResourceLink(item.title)}
                   className="flex items-center gap-2 sm:gap-5 group cursor-pointer"
                 >
                   <div
@@ -161,7 +188,7 @@ const FreeResources = () => {
                       {item.desc}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
           </div>
 
@@ -169,8 +196,9 @@ const FreeResources = () => {
             {resources
               .filter((_, index) => index % 2 === 1)
               .map((item, idx) => (
-                <div
+                <Link
                   key={idx}
+                  to={getResourceLink(item.title)}
                   className="flex items-center gap-2 sm:gap-5 group cursor-pointer"
                 >
                   <div
@@ -187,7 +215,7 @@ const FreeResources = () => {
                       {item.desc}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
           </div>
         </div>

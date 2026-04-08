@@ -189,6 +189,10 @@ export default function App() {
     }
   }, []);
 
+  const isQuizPlayPage = location.pathname.startsWith(
+    '/free-resources/quizzes/',
+  );
+
   return (
     <html lang={locale} dir={i18n.dir()} id="app">
       <head>
@@ -199,7 +203,11 @@ export default function App() {
         <link rel="icon" href="/favicon.ico" type="image/png"></link>
         <title>{title}</title>
       </head>
-      <body className="flex flex-col min-h-screen">
+      <body
+        className={`flex flex-col min-h-screen ${
+          isQuizPlayPage ? 'bg-[#F5F7FF]' : ''
+        }`}
+      >
         <main className="flex-1">
           <Outlet
             context={{

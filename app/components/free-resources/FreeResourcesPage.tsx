@@ -1169,6 +1169,7 @@ export default function FreeResourcesPage({
 }) {
   const [tab, setTab] = useState<TabId>(initialTab);
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState('All Subjects');
   const [chapter, setChapter] = useState('All Chapters');
   const [year, setYear] = useState('All Years');
   const [board, setBoard] = useState('All Boards');
@@ -1184,10 +1185,24 @@ export default function FreeResourcesPage({
     title: string;
   } | null>(null);
   const relatedCarouselRef = useRef<HTMLDivElement | null>(null);
+  const filterScrollRef = useRef<HTMLDivElement>(null);
+  const filtersContainerRef = useRef<HTMLDivElement>(null);
+  const [closeAllPillSelectsSignal, setCloseAllPillSelectsSignal] = useState(0);
 
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
+
+  // Reset all filters when tab changes
+  useEffect(() => {
+    setSubjects([]);
+    setSelectedSubject('All Subjects');
+    setChapter('All Chapters');
+    setYear('All Years');
+    setBoard('All Boards');
+    setQuizDifficulty('All Difficulties');
+    setVideoDuration('All Duration');
+  }, [tab]);
 
   useEffect(() => {
     const modalOpen = expandedFormula != null || videoPlayer != null;
@@ -1208,6 +1223,52 @@ export default function FreeResourcesPage({
     return () => window.removeEventListener('keydown', onKey);
   }, [videoPlayer]);
 
+  // Close dropdown when clicking outside filter area
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (closeAllPillSelectsSignal && filtersContainerRef.current) {
+        const target = event.target as Node;
+        if (!filtersContainerRef.current.contains(target)) {
+          setCloseAllPillSelectsSignal(0);
+        }
+      }
+    }
+
+    if (closeAllPillSelectsSignal) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [closeAllPillSelectsSignal]);
+
+  // Close dropdown on vertical scroll
+  useEffect(() => {
+    function handleScroll() {
+      if (closeAllPillSelectsSignal) {
+        setCloseAllPillSelectsSignal(0);
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [closeAllPillSelectsSignal]);
+
+  // Close dropdown on horizontal filter scroll
+  useEffect(() => {
+    const filterContainer = filterScrollRef.current;
+    if (!filterContainer) return;
+
+    function handleHorizontalScroll() {
+      if (closeAllPillSelectsSignal) {
+        setCloseAllPillSelectsSignal(0);
+      }
+    }
+
+    filterContainer.addEventListener('scroll', handleHorizontalScroll, {
+      passive: true,
+    });
+    return () =>
+      filterContainer.removeEventListener('scroll', handleHorizontalScroll);
+  }, [closeAllPillSelectsSignal]);
+
   const scrollRelated = (dir: 'prev' | 'next') => {
     const el = relatedCarouselRef.current;
     if (!el) return;
@@ -1216,6 +1277,10 @@ export default function FreeResourcesPage({
     const gap = 16; // gap-4
     const delta = (cardWidth + gap) * (window.innerWidth < 640 ? 1 : 2);
     el.scrollBy({ left: dir === 'next' ? delta : -delta, behavior: 'smooth' });
+  };
+
+  const handleCloseAllPillSelects = () => {
+    setCloseAllPillSelectsSignal((prev) => prev + 1);
   };
 
   const active = useMemo(() => TABS.find((t) => t.id === tab)!, [tab]);
@@ -1277,11 +1342,13 @@ export default function FreeResourcesPage({
     if (board !== 'All Boards') {
       list = list.filter((c) => c.board === board);
     }
-    if (year !== 'All Years') {
-      list = list.filter((c) => c.year === year);
+    if (chapter !== 'All Chapters') {
+      list = list.filter(
+        (c) => c.chapter === parseInt(chapter.replace('Chapter ', '')),
+      );
     }
     return list;
-  }, [subjects, board, year]);
+  }, [subjects, board, chapter]);
 
   const filteredPastPaperCards = useMemo(() => {
     let list = PAST_PAPER_CARDS;
@@ -1305,6 +1372,11 @@ export default function FreeResourcesPage({
     if (board !== 'All Boards') {
       list = list.filter((c) => c.board === board);
     }
+    if (chapter !== 'All Chapters') {
+      list = list.filter(
+        (c) => c.chapter === parseInt(chapter.replace('Chapter ', '')),
+      );
+    }
     if (quizDifficulty !== 'All Difficulties') {
       const map: Record<string, QuizDifficulty> = {
         Easy: 'easy',
@@ -1315,7 +1387,7 @@ export default function FreeResourcesPage({
       if (d) list = list.filter((c) => c.difficulty === d);
     }
     return list;
-  }, [subjects, board, quizDifficulty]);
+  }, [subjects, board, chapter, quizDifficulty]);
 
   const filteredFreeVideos = useMemo(() => {
     let list = FREE_VIDEO_CARDS;
@@ -1325,14 +1397,17 @@ export default function FreeResourcesPage({
     if (board !== 'All Boards') {
       list = list.filter((c) => c.board === board);
     }
-    if (year !== 'All Years') {
-      list = list.filter((c) => c.year === year);
+    if (chapter !== 'All Chapters') {
+      list = list.filter(
+        (c) => c.chapter === parseInt(chapter.replace('Chapter ', '')),
+      );
     }
+
     list = list.filter((c) =>
       durationMatchesFilter(c.durationMinutes, videoDuration),
     );
     return list;
-  }, [subjects, board, year, videoDuration]);
+  }, [subjects, board, chapter, videoDuration]);
 
   return (
     <div className="bg-[#f7f8ff] md:pb-4 lg:pb-8 4xl:pb-16!">
@@ -1382,7 +1457,7 @@ export default function FreeResourcesPage({
                     {t.icon}
                   </div>
                   <span
-                    className={`inline text-center text-sm font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
+                    className={`inline text-center text-sm font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
                       t.id === 'mock' && isActive
                         ? 'sm:font-semibold text-black'
                         : 'font-medium text-lightgray'
@@ -1458,12 +1533,20 @@ export default function FreeResourcesPage({
       </div>
 
       {/* Filter bar */}
-      <div className="sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl">
+      <div
+        ref={filtersContainerRef}
+        className="sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl"
+      >
         <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="hidden md:inline text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px]">
             {active.label} ({active.count})
           </p>
-          <div className="scrollbar-hide overflow-x-auto sm:overflow-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
+          <div
+            ref={filterScrollRef}
+            data-pill-wrapper
+            className="relative scrollbar-hide overflow-x-auto flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+          >
+            {' '}
             <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">
               Filter by:
             </span>
@@ -1471,40 +1554,62 @@ export default function FreeResourcesPage({
               value={board}
               options={BOARD_OPTIONS}
               onChange={setBoard}
+              closeAllPillSelects={handleCloseAllPillSelects}
             />
-            {tab === 'notes' || tab === 'papers' ? (
+            <div className="md:block hidden">
               <PillSelect
-                value={year}
-                options={YEAR_OPTIONS}
-                onChange={setYear}
+                value={selectedSubject}
+                options={['All Subjects', ...availableSubjects]}
+                onChange={(subject) => {
+                  setSelectedSubject(subject);
+                  if (subject === 'All Subjects') {
+                    setSubjects([]);
+                  } else {
+                    setSubjects([subject]);
+                  }
+                }}
+                closeAllPillSelects={handleCloseAllPillSelects}
               />
-            ) : tab === 'quizzes' ? (
+            </div>
+            {tab != 'papers' && (
               <PillSelect
-                value={quizDifficulty}
-                options={[...DIFFICULTY_OPTIONS]}
-                onChange={setQuizDifficulty}
+                value={chapter}
+                options={CHAPTER_OPTIONS}
+                onChange={setChapter}
+                closeAllPillSelects={handleCloseAllPillSelects}
               />
-            ) : tab === 'videos' ? (
+            )}
+            {tab === 'papers' && (
               <>
                 <PillSelect
                   value={year}
                   options={YEAR_OPTIONS}
                   onChange={setYear}
+                  closeAllPillSelects={handleCloseAllPillSelects}
                 />
+              </>
+            )}
+            {tab === 'quizzes' && (
+              <>
+                <PillSelect
+                  value={quizDifficulty}
+                  options={[...DIFFICULTY_OPTIONS]}
+                  onChange={setQuizDifficulty}
+                  closeAllPillSelects={handleCloseAllPillSelects}
+                />
+              </>
+            )}{' '}
+            {tab === 'videos' && (
+              <>
                 <PillSelect
                   value={videoDuration}
                   options={[...DURATION_OPTIONS]}
                   onChange={(v) =>
                     setVideoDuration(v as (typeof DURATION_OPTIONS)[number])
                   }
+                  closeAllPillSelects={handleCloseAllPillSelects}
                 />
               </>
-            ) : (
-              <PillSelect
-                value={chapter}
-                options={CHAPTER_OPTIONS}
-                onChange={setChapter}
-              />
             )}
           </div>
         </div>
@@ -1630,7 +1735,7 @@ export default function FreeResourcesPage({
                       className={`flex items-center justify-center ${card.subject.bg} h-[62px]`}
                     >
                       <span className="text-xl font-medium text-center">
-                        2025
+                        {card.year}
                       </span>
                     </div>
                   ) : (

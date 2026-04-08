@@ -14,6 +14,12 @@ import {
   CheckCircle2,
   Loader2,
   Info,
+  CircleUserRound,
+  ListChecks,
+  MessageSquareMore,
+  NotepadText,
+  PencilLine,
+  Dot,
 } from 'lucide-react';
 import parse from 'html-react-parser';
 import { useFetcher, useNavigate } from '@remix-run/react';
@@ -180,7 +186,7 @@ function CustomDropdown({
 // ─── Spec Renderers ───────────────────────────────────────────────────────────
 function SpecTable({ table }: { table: Record<string, string> }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-[rgba(8,22,39,0.1)]">
+    <div className="overflow-x-auto rounded-2xl border my-2 border-[rgba(8,22,39,0.1)]">
       <table className="w-full text-base text-slate-800">
         <tbody>
           {Object.entries(table).map(([key, val]) => (
@@ -204,13 +210,11 @@ function SpecList({ list }: { list: string[] }) {
   return (
     <div className="flex flex-col w-full">
       {list.map((item, i) => (
-        <div key={i} className="flex items-center gap-3 py-0 w-full">
-          <div className="flex size-8 shrink-0 items-center justify-center text-[#3a6bfc] rounded-full">
-            <CirclePlay className="size-[22px] stroke-[1.5]" />
+        <div key={i} className="flex items-center gap-1 py-0 w-full">
+          <div className="flex size-8 shrink-0 items-center justify-center text-lightgray/50 rounded-full">
+            <Dot className="size-[22px] stroke-[1.5]" />
           </div>
-          <span className="text-sm sm:text-[15px] font-medium text-slate-600 text-left">
-            {item}
-          </span>
+          <span className="text-base text-lightgray/90 text-left">{item}</span>
         </div>
       ))}
     </div>
@@ -231,16 +235,16 @@ function SpecStats({
   stats: Array<{ label: string; value: string }>;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 my-2 sm:grid-cols-4">
       {stats.map((stat, i) => (
         <div
           key={i}
-          className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm text-center"
+          className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-lightgray/10 text-center"
         >
           <p className="text-2xl sm:text-3xl font-black text-[#3a6bfc]">
             {stat.value}
           </p>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+          <p className="text-xs font-bold text-lightgray/90 uppercase tracking-widest mt-1">
             {stat.label}
           </p>
         </div>
@@ -410,6 +414,24 @@ function FacultiesCarousel({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [clampedItems, setClampedItems] = useState<Set<number>>(new Set());
+  const textRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+
+  const checkIfClamped = useCallback(() => {
+    const newClampedItems = new Set<number>();
+    textRefs.current.forEach((ref, idx) => {
+      if (ref && ref.scrollHeight > ref.clientHeight) {
+        newClampedItems.add(idx);
+      }
+    });
+    setClampedItems(newClampedItems);
+  }, []);
+
+  useEffect(() => {
+    checkIfClamped();
+    window.addEventListener('resize', checkIfClamped);
+    return () => window.removeEventListener('resize', checkIfClamped);
+  }, [checkIfClamped]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -445,6 +467,7 @@ function FacultiesCarousel({
       >
         {items.map((faculty, i) => {
           const isExpanded = expandedIdx === i;
+          const isClamped = clampedItems.has(i);
           return (
             <div
               key={i}
@@ -483,14 +506,23 @@ function FacultiesCarousel({
                   </>
                 ) : (
                   <>
-                    <p className="line-clamp-3">{faculty.description}</p>
-                    <button
-                      onClick={() => setExpandedIdx(i)}
-                      className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
+                    <p
+                      ref={(el) => {
+                        textRefs.current[i] = el;
+                      }}
+                      className="line-clamp-3"
                     >
-                      Show More
-                      <ChevronDown className="size-4" />
-                    </button>
+                      {faculty.description}
+                    </p>
+                    {isClamped && (
+                      <button
+                        onClick={() => setExpandedIdx(i)}
+                        className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
+                      >
+                        Show More
+                        <ChevronDown className="size-4" />
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -631,16 +663,16 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
   const highlights = courseHighlights?.list || [];
 
   return (
-    <div className="rounded-[24px] bg-[#0f172a] p-4 sm:p-5 lg:p-6 text-white shadow-xl overflow-hidden relative w-full border border-slate-800/50">
-      <div className="relative z-10 flex flex-col lg:flex-row gap-3 lg:gap-10">
+    <div className="rounded-[24px] bg-[#081627] p-4 sm:p-5 lg:p-6 text-white shadow-xl overflow-hidden relative w-full border border-slate-800/50">
+      <div className="relative z-10 flex flex-col lg:flex-row gap-5">
         {/* Left Side: Stats Grid */}
         {includedEntries.length > 0 && (
-          <div className="w-full lg:w-[45%] grid grid-cols-2 gap-x-6 sm:gap-x-8 relative">
+          <div className="w-full lg:w-[45%] grid grid-cols-2 gap-6 relative">
             {/* Vertical Divider */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent -translate-x-1/2 hidden sm:block" />
+            <div className="absolute left-1/2 top-0 bottom-0 w-px  bg-gradient-to-b from-transparent via-white/30 to-transparent -translate-x-1/2 hidden sm:block" />
 
             {includedEntries.map(([label, value]) => (
-              <div key={label} className="flex flex-col gap-1">
+              <div key={label} className="flex flex-col gap-2 ml-3">
                 <div className="flex items-center gap-1.5 group relative">
                   <p className="text-[11px] sm:text-sm font-normal text-slate-400 truncate">
                     {label}
@@ -666,29 +698,50 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
 
         {/* Divider between left & right */}
         {includedEntries.length > 0 && highlights.length > 0 && (
-          <div className="hidden lg:block w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+          <div className="hidden lg:block w-px bg-gradient-to-b from-transparent via-white/30 to-transparent" />
         )}
 
         {/* Right Side: Highlights */}
         {highlights.length > 0 && (
-          <div className="flex-1 flex flex-col gap-3 sm:gap-3">
-            <ul className="flex flex-col gap-3 sm:gap-3">
+          <div className="flex-1 flex flex-col gap-3">
+            <ul className="flex flex-col gap-3">
               {highlights.map((line, i) => {
                 const t = line.toLowerCase();
                 let Icon = CheckCircle2;
+                let color = '#22C55E'; // Default green
 
-                if (t.includes('master teacher') || t.includes('live classes'))
-                  Icon = User;
-                else if (t.includes('quiz')) Icon = CircleHelp;
-                else if (t.includes('doubt')) Icon = MessageSquare;
-                else if (t.includes('recording')) Icon = CirclePlay;
-                else if (t.includes('assignment')) Icon = ClipboardList;
-                else if (t.includes('handwritten')) Icon = Pencil;
+                if (
+                  t.includes('master teacher') ||
+                  t.includes('live classes')
+                ) {
+                  Icon = CircleUserRound;
+                  color = '#E05A5A';
+                } else if (t.includes('quiz')) {
+                  Icon = ListChecks;
+                  color = '#22C55E';
+                } else if (t.includes('doubt')) {
+                  Icon = MessageSquareMore;
+                  color = '#EC4899';
+                } else if (t.includes('recording')) {
+                  Icon = CirclePlay;
+                  color = '#F97316';
+                } else if (t.includes('assignment')) {
+                  Icon = NotepadText;
+                  color = '#3B82F6';
+                } else if (t.includes('handwritten')) {
+                  Icon = PencilLine;
+                  color = '#EF4444';
+                }
 
                 return (
-                  <li key={i} className="flex items-start gap-3 sm:gap-4">
+                  <li key={i} className="flex items-start gap-3">
                     <Icon
-                      className="mt-1 size-4 sm:size-5 shrink-0 text-slate-400"
+                      className="mt-0.5 p-[3px] size-6 border shrink-0 rounded-full"
+                      style={{
+                        borderColor: `${color}33`,
+                        backgroundColor: `${color}33`,
+                        color: color,
+                      }}
                       strokeWidth={1.5}
                     />
                     <span className="text-sm sm:text-base text-slate-200 leading-relaxed">
@@ -792,7 +845,7 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                     </span>
                   </div>
                 </button>
-
+                {/* specification blocks */}
                 <div
                   className={`grid transition-[grid-template-rows] duration-300 ease-in-out mt-2 ${
                     open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -880,209 +933,6 @@ export default function CourseDetailPage({
   let specItems: SpecItem[] = (specifications?.product || []).sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0),
   );
-
-  // Add mock data if empty for visualization
-  // if (specItems.length === 0) {
-  //   specItems = [
-  //     {
-  //       order: 1,
-  //       identifier: 'features',
-  //       name: 'Features',
-  //       type: 'composite',
-  //       data: [
-  //         {
-  //           order: 0,
-  //           identifier: 'features-table',
-  //           name: 'Features Table',
-  //           type: 'table',
-  //           table: {
-  //             Language: 'English',
-  //             'No. of Lectures': '80-85',
-  //             Quizzes: '120+',
-  //             'Formula Cards': '100+',
-  //             'Mock Tests': '80+',
-  //             Notes: '32+',
-  //           },
-  //         },
-  //         {
-  //           order: 1,
-  //           identifier: 'features-list',
-  //           name: 'Course Highlights',
-  //           type: 'list',
-  //           list: [
-  //             'Live Classes by Master Teachers',
-  //             'Live in-class quizzes and leaderboard',
-  //             'Live in-class doubt solving',
-  //             'Recordings of previous classes',
-  //             'Assignments and class notes',
-  //             'Handwritten Teacher Notes after class',
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       order: 2,
-  //       identifier: 'about_course',
-  //       name: 'About',
-  //       type: 'composite',
-  //       data: [
-  //         {
-  //           order: 0,
-  //           identifier: 'about-desc',
-  //           name: 'Course Description',
-  //           type: 'html_text',
-  //           text: '<p>This comprehensive course is designed to help you master the fundamentals and advanced concepts. Our expert instructors bring years of industry experience to deliver high-quality content with practical applications.</p>',
-  //         },
-  //         {
-  //           order: 1,
-  //           identifier: 'about-benefits',
-  //           name: "What You'll Learn",
-  //           type: 'list',
-  //           list: [
-  //             'Master core concepts and theories',
-  //             'Practical implementation techniques',
-  //             'Real-world problem-solving strategies',
-  //             'Industry best practices',
-  //             'Hands-on project experience',
-  //             'Certification upon completion',
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       order: 3,
-  //       identifier: 'demo_lectures',
-  //       name: 'Demo Lectures',
-  //       type: 'video_carousel',
-  //       videoItems: [
-  //         {
-  //           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-  //           title: 'Introduction to Basics',
-  //           durationMinutes: 12,
-  //         },
-  //         {
-  //           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-  //           title: 'Fundamentals Deep Dive',
-  //           durationMinutes: 18,
-  //         },
-  //         {
-  //           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-  //           title: 'Advanced Concepts',
-  //           durationMinutes: 15,
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       order: 4,
-  //       identifier: 'syllabus',
-  //       name: 'Syllabus',
-  //       type: 'composite',
-  //       data: [
-  //         {
-  //           order: 0,
-  //           identifier: 'syllabus-main',
-  //           name: 'Full Course',
-  //           type: 'composite',
-  //           data: [
-  //             {
-  //               order: 0,
-  //               identifier: 'module-1',
-  //               name: 'Module 1: Foundations',
-  //               type: 'composite',
-  //               data: [
-  //                 {
-  //                   order: 0,
-  //                   identifier: 'module-1-topics',
-  //                   name: 'Topics',
-  //                   type: 'list',
-  //                   list: [
-  //                     'Introduction and Overview',
-  //                     'Core Concepts',
-  //                     'Basic Principles',
-  //                     'Setup and Configuration',
-  //                   ],
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               order: 1,
-  //               identifier: 'module-2',
-  //               name: 'Module 2: Intermediate Topics',
-  //               type: 'composite',
-  //               data: [
-  //                 {
-  //                   order: 0,
-  //                   identifier: 'module-2-topics',
-  //                   name: 'Topics',
-  //                   type: 'list',
-  //                   list: [
-  //                     'Advanced Techniques',
-  //                     'Best Practices',
-  //                     'Real-world Applications',
-  //                     'Troubleshooting Guide',
-  //                   ],
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               order: 2,
-  //               identifier: 'module-3',
-  //               name: 'Module 3: Advanced Concepts',
-  //               type: 'composite',
-  //               data: [
-  //                 {
-  //                   order: 0,
-  //                   identifier: 'module-3-topics',
-  //                   name: 'Topics',
-  //                   type: 'list',
-  //                   list: [
-  //                     'Complex Scenarios',
-  //                     'Optimization Techniques',
-  //                     'Industry Patterns',
-  //                     'Projects and Case Studies',
-  //                   ],
-  //                 },
-  //               ],
-  //             },
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       order: 5,
-  //       identifier: 'faqs',
-  //       name: 'FAQs',
-  //       type: 'faq',
-  //       faqItems: [
-  //         {
-  //           question: 'Who is this course suitable for?',
-  //           answer:
-  //             'This course is designed for beginners and intermediate learners who want to master the subject. No prior experience is required.',
-  //         },
-  //         {
-  //           question: 'What is the course duration?',
-  //           answer:
-  //             'The course typically takes 6-8 weeks to complete, depending on your pace. You can access all materials anytime.',
-  //         },
-  //         {
-  //           question: 'Is there a certificate upon completion?',
-  //           answer:
-  //             'Yes, you will receive a completion certificate that can be shared on professional networks.',
-  //         },
-  //         {
-  //           question: 'What if I have doubts during the course?',
-  //           answer:
-  //             'Our instructors are available to answer questions through live sessions and discussion forums.',
-  //         },
-  //         {
-  //           question: 'Can I access the course materials after completion?',
-  //           answer:
-  //             'Yes, you have lifetime access to all course materials and any future updates.',
-  //         },
-  //       ],
-  //     },
-  //   ];
-  // }
 
   const courseInfoSpec = specItems.find(
     (s) => s.identifier === 'course_info' || s.name === 'Course Info',
@@ -1229,11 +1079,11 @@ export default function CourseDetailPage({
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 text-lightgray/70">
-                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-lightgray">
+                    <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-[#081627CC]/90">
                       {courseLanguage}
                     </span>
                     {isLive && (
-                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-lightgray">
+                      <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-[#081627CC]/90">
                         <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                         {'Live'}
                       </span>
@@ -1332,19 +1182,23 @@ export default function CourseDetailPage({
 
           {/* Bottom Info Bar */}
           {heroStats.length > 0 && (
-            <div className="mt-14 rounded-2xl border border-[#DFD4EE] bg-[#f8fafc]/50 px-2 py-6 lg:bg-white">
-              <div className="flex flex-wrap sm:flex-nowrap divide-y sm:divide-y-0 sm:divide-x divide-[#0816271A]/80">
+            <div className="mt-14 rounded-2xl border border-[#DFD4EE] px-3 py-6 bg-white">
+              <div className="flex">
                 {heroStats.map(([label, val], i) => (
                   <div
                     key={label}
-                    className="w-1/2 sm:w-auto flex-1 px-3 gap-4 sm:px-6 py-3 sm:py-0 flex flex-col justify-center"
+                    className={`w-auto gap-4 py-0 pr-12 ml-4 flex flex-col justify-center ${
+                      i !== heroStats.length - 1
+                        ? 'border-r border-[#0816271A]/70'
+                        : ''
+                    }`}
                   >
                     <p className="text-sm font-semibold uppercase tracking-widest text-lightgray/50">
                       {label}
                     </p>
 
                     <p
-                      className={`text-[18px] sm:text-[22px] lg:text-[24px] font-semibold text-[#1e293b] leading-tight ${
+                      className={`text-[18px] lg:text-[20px] font-semibold text-[#1e293b] leading-tight ${
                         i === heroStats.length - 1 ? 'whitespace-nowrap' : ''
                       }`}
                     >
@@ -1506,11 +1360,11 @@ export default function CourseDetailPage({
               <div className="space-y-5 ">
                 {/* Tags */}
                 <div className="flex items-center gap-2 text-lightgray/70">
-                  <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
+                  <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-[#081627CC]/90">
                     {courseLanguage}
                   </span>
                   {isLive && (
-                    <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-lightgray">
+                    <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-[#081627CC]/90">
                       <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                       {'Live'}
                     </span>

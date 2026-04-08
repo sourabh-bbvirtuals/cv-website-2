@@ -1,6 +1,7 @@
 import { Link } from '@remix-run/react';
 import React from 'react';
 import { FeaturedCourse } from './FeaturedCourses';
+import { title } from 'process';
 
 export function CourseCard({ course }: { course: FeaturedCourse }) {
   const isPrimary = course.id === '1';
@@ -10,16 +11,16 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
       to={detailTo}
       className="block h-full rounded-[20px] text-inherit no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2962ff] focus-visible:ring-offset-2"
     >
-      <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] shadow-sm w-[294.5px] h-[354px] md:w-[390px] md:h-[456px]">
+      <article className="flex h-full flex-col bg-white border border-[rgba(8,22,39,0.1)] rounded-[12px] shadow-xs  md:shadow-md w-[294.5px] h-[354px] md:w-[390px] md:h-[456px]">
         {/* Top Header */}
         <div className="flex flex-col justify-between h-full">
           <div className="p-[15px] pb-0 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-lightgray/80">
-              <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+              <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
                 {course.language || 'Hindi'}
               </span>
               {course.type === 'Recorded' ? (
-                <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
                   <svg
                     width="16"
                     height="16"
@@ -36,7 +37,7 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
                   Recorded
                 </span>
               ) : (
-                <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-lightgray">
+                <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
                   <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
                   {course.type || 'Live'}
                 </span>
@@ -44,7 +45,9 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
             </div>
             <div className="flex flex-col gap-2 mb-2">
               <h3 className="font-medium text-base  md:text-xl text-lightgray leading-[150%]">
-                {course.title}
+                {course.title.length > 58
+                  ? `${course.title.substring(0, 58)}...`
+                  : course.title}
               </h3>
             </div>
           </div>

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
+    "@floating-ui/react-dom": "^2.1.8",
     "@graphql-codegen/typescript-generic-sdk": "^3.0.4",
     "@headlessui/react": "^1.7.4",
     "@heroicons/react": "^2.0.13",
