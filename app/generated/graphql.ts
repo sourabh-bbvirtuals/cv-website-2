@@ -7958,9 +7958,6 @@ export const GetBlogCollectionsDocument = gql`
         name
         slug
         description
-        customFields {
-          customData
-        }
         featuredAsset {
           id
           preview
@@ -7974,9 +7971,6 @@ export const GetBlogCollectionsDocument = gql`
           name
           slug
           description
-          customFields {
-            customData
-          }
           featuredAsset {
             id
             preview
@@ -8320,9 +8314,8 @@ export const GetCollectionBySlugDocument = gql`
       slug
       description
       customFields {
-        customData
-        productDisplayOrder
-        pageRules
+        videoUrl
+        videoDuration
       }
       featuredAsset {
         id
@@ -8341,9 +8334,7 @@ export const GetCollectionBySlugDocument = gql`
         id
         name
         slug
-        customFields {
-          customData
-        }
+        description
       }
       parent {
         id
@@ -8372,9 +8363,8 @@ export const GetCollectionWithChildrenDocument = gql`
       slug
       description
       customFields {
-        customData
-        productDisplayOrder
-        pageRules
+        videoUrl
+        videoDuration
       }
       featuredAsset {
         id
@@ -8393,9 +8383,7 @@ export const GetCollectionWithChildrenDocument = gql`
         id
         name
         slug
-        customFields {
-          customData
-        }
+        description
       }
       parent {
         id
@@ -8405,9 +8393,7 @@ export const GetCollectionWithChildrenDocument = gql`
           id
           name
           slug
-          customFields {
-            customData
-          }
+          description
         }
       }
       createdAt

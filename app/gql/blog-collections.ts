@@ -8,9 +8,6 @@ export const GET_BLOG_COLLECTIONS = gql`
         name
         slug
         description
-        customFields {
-          customData
-        }
         featuredAsset {
           id
           preview
@@ -24,9 +21,6 @@ export const GET_BLOG_COLLECTIONS = gql`
           name
           slug
           description
-          customFields {
-            customData
-          }
           featuredAsset {
             id
             preview

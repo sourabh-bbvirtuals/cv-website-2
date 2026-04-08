@@ -50,6 +50,25 @@ function truncate(str: string, len: number): string {
   return str.slice(0, len) + '...';
 }
 
+/**
+ * The HTML editor wraps each line in <div>…</div> and escapes actual
+ * HTML tags as &lt; / &gt;.  Undo that so the raw HTML renders properly.
+ */
+function decodeEditorHtml(raw: string): string {
+  if (!raw) return raw;
+  let html = raw
+    .replace(/<div>/gi, '')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+  return html;
+}
+
 function ShareButtons({ title, slug }: { title: string; slug: string }) {
   const url = typeof window !== 'undefined' ? window.location.href : `/blogs/${slug}`;
   const encoded = encodeURIComponent(url);
@@ -128,7 +147,7 @@ export default function BlogDetailPage() {
 
   return (
     <Layout>
-      <div className="pt-28 lg:pt-36 pb-16 min-h-screen bg-white">
+      <div className="pt-36 lg:pt-48 pb-16 min-h-screen bg-white">
         <div className="w-full max-w-[900px] mx-auto px-4 sm:px-6 flex flex-col items-center gap-12">
           {/* Header section */}
           <div className="self-stretch pb-12 border-b border-slate-900/20 flex flex-col justify-start items-start gap-12">
@@ -201,7 +220,7 @@ export default function BlogDetailPage() {
                   prose-strong:text-slate-900 prose-strong:font-semibold
                   prose-img:rounded-lg prose-img:w-full
                   prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline"
-                dangerouslySetInnerHTML={{ __html: b.htmlContent }}
+                dangerouslySetInnerHTML={{ __html: decodeEditorHtml(b.htmlContent) }}
               />
             ) : (
               <div className="flex flex-col gap-12">
