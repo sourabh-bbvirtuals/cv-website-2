@@ -14,6 +14,7 @@ export default function Layout({ children, bare }: LayoutProps) {
   const location = useLocation();
 
   const isOurCoursesPage = location.pathname === '/our-courses';
+  const isOurCoursesDetailPage = location.pathname.startsWith('/our-courses/');
 
   if (bare) {
     return <div className="min-h-full ">{children}</div>;
@@ -27,7 +28,7 @@ export default function Layout({ children, bare }: LayoutProps) {
         <TopHeader />
 
         {/* Navbar */}
-        <Navbar />
+        <Navbar isOurCoursesDetailPage={isOurCoursesDetailPage} />
 
         {/* Mobile Overlay */}
         {mobileOpen && (
@@ -42,7 +43,7 @@ export default function Layout({ children, bare }: LayoutProps) {
               <button className="mb-4" onClick={() => setMobileOpen(false)}>
                 Close
               </button>
-              <Navbar />
+              <Navbar isOurCoursesDetailPage={isOurCoursesDetailPage} />
             </div>
           </div>
         )}

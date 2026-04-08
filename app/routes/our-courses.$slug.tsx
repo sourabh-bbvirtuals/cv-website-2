@@ -1,10 +1,10 @@
 import { json, type DataFunctionArgs } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
-import CourseDetailPage from '~/components/our-courses/CourseDetailPage';
 import { getProductBySlug } from '~/providers/course2';
 import { getCollectionBySlug } from '~/providers/collections/collections';
 import sanitizeHtml from 'sanitize-html';
 import { API_URL } from '~/constants';
+import CourseDetailPage from '~/components/our-courses/CourseDetailPage';
 
 /**
  * Course detail (Figma: 3_Course Details, node 1:1387)

@@ -12,7 +12,11 @@ import {
 import BoardDropdown from './BoardDropdown';
 import { useRootLoader } from '~/utils/use-root-loader';
 
-const Navbar = () => {
+interface NavbarProps {
+  isOurCoursesDetailPage?: boolean;
+}
+
+const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,7 +28,7 @@ const Navbar = () => {
     <nav
       className={`w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
         isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
-      }`}
+      } , ${isOurCoursesDetailPage ? 'hidden md:block' : ''} `}
     >
       <div className="absolute h-px w-full left-0 bg-[#0816271A] top-1/2 -translate-y-1/2"></div>
       <div className="custom-container backdrop-blur-[50px] rounded-full border border-[#E2E4E9] py-1 md:py-3.25 flex items-center justify-between bg-white/50">

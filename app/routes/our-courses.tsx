@@ -1,4 +1,4 @@
-import { Outlet, type LinksFunction } from '@remix-run/react';
+import { Outlet, useLocation, type LinksFunction } from '@remix-run/react';
 import Layout from '~/components/Layout';
 
 export const links: LinksFunction = () => [
@@ -13,9 +13,17 @@ export const links: LinksFunction = () => [
  * Child routes render in `<Outlet />` — without this, slug URLs still showed listings.
  */
 export default function OurCoursesLayoutRoute() {
+  const location = useLocation();
+
+  const isOurCoursesDetailPage = location.pathname.startsWith('/our-courses/');
+
   return (
     <Layout>
-      <div className="pt-24 lg:pt-32 min-h-screen">
+      <div
+        className={`${
+          isOurCoursesDetailPage ? 'pt-0 md:pt-24' : 'pt-24 lg:pt-32'
+        } min-h-screen`}
+      >
         <Outlet />
       </div>
     </Layout>
