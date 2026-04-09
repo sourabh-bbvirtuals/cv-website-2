@@ -1,15 +1,6 @@
 import React from 'react';
+import { ArrowRight } from 'lucide-react';
 import {
-  BookOpen,
-  FileText,
-  ClipboardList,
-  PenTool,
-  Hash,
-  PlayCircle,
-  ArrowRight,
-} from 'lucide-react';
-import {
-  FormulaCardsIcon,
   FreeVideosIcon,
   MockTestsIcon,
   PastPapersIcon,
@@ -18,24 +9,12 @@ import {
 } from './Icons';
 import { Link } from '@remix-run/react';
 
-type TabId = 'mock' | 'formula' | 'notes' | 'papers' | 'quizzes' | 'videos';
-
-const TAB_PATH_BY_ID: Record<TabId, string> = {
-  mock: '/free-resources/mock-tests',
-  formula: '/free-resources/formula-cards',
-  notes: '/free-resources/study-notes',
-  papers: '/free-resources/past-papers',
-  quizzes: '/free-resources/quizzes',
-  videos: '/free-resources/free-videos',
-};
-
-const RESOURCE_TAB_MAP: Record<string, TabId> = {
-  'Study Notes': 'notes',
-  'Mock Tests': 'mock',
-  'Past Papers': 'papers',
-  'Formula Cards': 'formula',
-  Quizzes: 'quizzes',
-  'Free Videos': 'videos',
+const RESOURCE_LINK_MAP: Record<string, string> = {
+  'Study Notes': '/free-resources/study-notes',
+  'Mock Tests': '/free-resources/mock-tests',
+  'Past Papers': '/free-resources/past-papers',
+  Quizzes: '/free-resources/quizzes',
+  'Free Videos': '/free-resources/free-videos',
 };
 
 const FreeResources = () => {
@@ -59,12 +38,6 @@ const FreeResources = () => {
       bgColor: 'bg-[#EDF9FF]',
     },
     {
-      title: 'Formula Cards',
-      desc: '400+ Formulas',
-      icon: <FormulaCardsIcon />,
-      bgColor: 'bg-[#FAEEFF]',
-    },
-    {
       title: 'Quizzes',
       desc: '180+ PDFs',
       icon: <QuizzesIcon />,
@@ -79,8 +52,7 @@ const FreeResources = () => {
   ];
 
   const getResourceLink = (title: string) => {
-    const tabId = RESOURCE_TAB_MAP[title];
-    return tabId ? TAB_PATH_BY_ID[tabId] : '/free-resources/mock-tests';
+    return RESOURCE_LINK_MAP[title] ?? '/free-resources/mock-tests';
   };
 
   return (

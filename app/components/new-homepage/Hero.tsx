@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, RefObject } from 'react';
+import { Link, useNavigate } from '@remix-run/react';
 
 // Hook to handle clicking outside of the custom dropdown
 type AnyEvent = MouseEvent | TouchEvent;
@@ -107,20 +108,42 @@ interface FormDataState {
 }
 
 const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormDataState>({
     class: '12th',
     board: 'CBSE',
     name: '',
     phone: '',
   });
+  const [submitting, setSubmitting] = useState(false);
 
   const classOptions: string[] = ['11th', '12th', 'CA Foundation', 'CUET'];
   const boardOptions: string[] = ['CBSE', 'ICSE', 'State Board'];
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Add your form submission logic here
-    console.log(formData);
+    if (!formData.name.trim() || !formData.phone.trim()) return;
+
+    setSubmitting(true);
+    try {
+      await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          board: formData.board,
+          courseInterest: `${formData.board} - ${formData.class}`,
+        }),
+      });
+    } catch {
+      // silently continue — lead capture failure shouldn't block navigation
+    }
+
+    const params = new URLSearchParams();
+    if (formData.board) params.set('board', formData.board);
+    if (formData.class) params.set('class', formData.class);
+    navigate(`/our-courses?${params.toString()}`);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +200,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
 
                 {/* CTA Button */}
                 <div className="flex justify-center w-full sm:justify-start">
-                  <button className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-3  md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-base lg:text-lg 4xl:text-xl!">
+                  <Link to="/free-resources" className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-3  md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-base lg:text-lg 4xl:text-xl!">
                     <svg
                       className="max-sm:max-w-4 h-auto"
                       width="24"
@@ -192,7 +215,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                       />
                     </svg>
                     <span>Watch Free Demo</span>
-                  </button>
+                  </Link>
                 </div>
               </div>
 
@@ -307,9 +330,10 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 <div className="grow flex items-end">
                   <button
                     type="submit"
-                    className="primary-btn text-sm sm:tex-lg md:text-xl font-medium leading-[120%] py-2 sm:py-4 w-full"
+                    disabled={submitting}
+                    className="primary-btn text-sm sm:tex-lg md:text-xl font-medium leading-[120%] py-2 sm:py-4 w-full disabled:opacity-60"
                   >
-                    Start Learning
+                    {submitting ? 'Please wait...' : 'Start Learning'}
                   </button>
                 </div>
               </form>

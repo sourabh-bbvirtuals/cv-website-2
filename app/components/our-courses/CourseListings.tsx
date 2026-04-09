@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Link } from '@remix-run/react';
+import { Link, useSearchParams } from '@remix-run/react';
 import { Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { CourseCard } from '../new-homepage/CourseCard';
-import { set } from 'zod';
 
 // --- Types ---
 export type FeaturedCourse = {
@@ -22,6 +21,8 @@ export type FeaturedCourse = {
   wasPrice: string;
   language: string;
   type: 'Live' | 'Recorded';
+  faculty: string;
+  subject: string;
 };
 
 const IMG_PLACEHOLDER_FACULTY =
@@ -60,104 +61,56 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
   // Calculate a fake "original" price (1.5x)
   const wasPriceVal = priceVal * 1.5;
 
-  // 3. Facets mapping
-  const facetNames = (product.facetValues || [])
-    .map((fv: any) => fv?.name)
-    .filter(Boolean);
-  const language =
-    facetNames.find((f: string) =>
-      ['English', 'Hindi', 'Hinglish'].includes(f),
-    ) || 'Hindi';
+  // 3. Facets mapping — group-aware
+  const facetValues = (product.facetValues || []) as Array<{
+    name: string;
+    facet?: { name: string };
+  }>;
+  const facetNames = facetValues.map((fv) => fv?.name).filter(Boolean);
+
+  const byGroup = (group: string) =>
+    facetValues
+      .filter((fv) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
+      .map((fv) => fv.name);
+
+  const languageFacets = byGroup('language');
+  const language = languageFacets[0] || 'Hindi';
   const type = facetNames.includes('Recorded') ? 'Recorded' : 'Live';
 
-  // 4. Meta (Faculty + Subject)
-  const meta: string[] = [];
-  // Add Faculty if available in facets or customFields (placeholder for now)
-  const faculty =
-    facetNames.find((f: string) => f.includes('CA ') || f.includes('Pratik')) ||
-    'Expert Faculty';
-  const subject =
-    facetNames.find((f: string) =>
-      ['Accounts', 'Economics', 'Business Studies', 'Maths'].includes(f),
-    ) || 'Commerce';
-  meta.push(subject, language, faculty);
+  const facultyFacets = byGroup('faculty');
+  const faculty = facultyFacets[0] || '';
+
+  const subjectFacets = byGroup('subject');
+  const subject = subjectFacets[0] || '';
+
+  const meta: string[] = [...facetNames];
 
   return {
     id: String(product.id || Math.random()),
     title: product.name || 'Untitled Course',
     slug: product.slug || '',
     meta,
-    enrolled: '1240+ Students Enrolled', // Hardcoded placeholder
+    enrolled: '1240+ Students Enrolled',
     image:
       product.featuredAsset?.preview ||
       variant?.featuredAsset?.preview ||
       IMG_PLACEHOLDER_FACULTY,
-    imageBg: '#f0f4ff', // Default soft blue
+    imageBg: '#f0f4ff',
     starts: table['Start Date'] || 'TBA',
     ends: table['End Date'] || 'TBA',
     price: `₹${priceVal.toLocaleString('en-IN')}`,
     wasPrice: `₹${Math.round(wasPriceVal).toLocaleString('en-IN')}`,
     language,
     type,
+    faculty,
+    subject,
   };
 }
 
-const facultiesList = [
-  'All',
-  'CA Ankita Sanghvi',
-  'CA Ashish Medicala',
-  'CA Bhushal Gosar',
-  'CA Mayur Sanghvi',
-  'CA Payal Sanghvi',
-  'Pratik Mahajan',
-  'CA Roshni Manral',
-  'CA Shubham Sanghvi',
-  'Sanjay Apam',
+const AVATAR_BG_PALETTE = [
+  '#6e93ff', '#e8967f', '#a6a0f5', '#8aadd4', '#a4ffca',
+  '#f5a0ad', '#ffc78e', '#b5e6a3', '#d4a6f5', '#8ed4c8',
 ];
-const facultyOptions = facultiesList.filter((f) => f !== 'All');
-
-const FACULTY_AVATAR_BY_NAME: Record<string, string> = {
-  'CA Ankita Sanghvi':
-    'https://www.figma.com/api/mcp/asset/8d2b07c5-7624-4e4b-aba3-e784bed8aa52',
-  'CA Ashish Medicala':
-    'https://www.figma.com/api/mcp/asset/68df7d69-37b9-488a-816a-1b302fed1ac6',
-  'CA Bhushal Gosar':
-    'https://www.figma.com/api/mcp/asset/629f57fd-1e6b-4bde-b9fe-647891af8505',
-  'CA Mayur Sanghvi':
-    'https://www.figma.com/api/mcp/asset/aa6f2938-93e2-4316-af10-03f60e176d12',
-  'CA Payal Sanghvi':
-    'https://www.figma.com/api/mcp/asset/2e264fd8-1587-4900-8e2f-bbe553403dde',
-  'Pratik Mahajan':
-    'https://www.figma.com/api/mcp/asset/c51ee749-b11f-47ae-84c9-3e122e6b9053',
-  'CA Roshni Manral':
-    'https://www.figma.com/api/mcp/asset/e59a499b-a99e-4dc5-9695-4fe0a3c1aa4e',
-  'CA Shubham Sanghvi':
-    'https://www.figma.com/api/mcp/asset/89bfdff4-b89e-482f-b72c-1c2eea87b2c0',
-  'Sanjay Apam':
-    'https://www.figma.com/api/mcp/asset/32f66e99-34b2-4f49-8f2d-c5a73362b3ec',
-};
-
-const FACULTY_AVATAR_BG_BY_NAME: Record<string, string> = {
-  'CA Ankita Sanghvi': '#6e93ff',
-  'CA Ashish Medicala': '#e8967f',
-  'CA Bhushal Gosar': '#a6a0f5',
-  'CA Mayur Sanghvi': '#8aadd4',
-  'CA Payal Sanghvi': '#a4ffca',
-  'Pratik Mahajan': '#f5a0ad',
-  'CA Roshni Manral': '#8aadd4',
-  'CA Shubham Sanghvi': '#a6a0f5',
-  'Sanjay Apam': '#a4ffca',
-};
-
-const subjectsList = [
-  'All Subjects',
-  'Accounts',
-  'Business Studies',
-  'Economics',
-  'English',
-  'Maths',
-];
-const subjectOptions = subjectsList.filter((s) => s !== 'All Subjects');
 
 // --- Sub-components ---
 
@@ -297,6 +250,33 @@ export default function CourseListings({
 }: {
   products?: any[];
 }) {
+  const [searchParams] = useSearchParams();
+  const urlBoard = searchParams.get('board') || '';
+  const urlClass = searchParams.get('class') || '';
+
+  const allCourses = useMemo(
+    () => products.map(mapVendureToFeaturedCourse),
+    [products],
+  );
+
+  const subjectOptions = useMemo(() => {
+    const set = new Set<string>();
+    allCourses.forEach((c) => { if (c.subject) set.add(c.subject); });
+    return Array.from(set).sort();
+  }, [allCourses]);
+
+  const facultyOptions = useMemo(() => {
+    const set = new Set<string>();
+    allCourses.forEach((c) => { if (c.faculty) set.add(c.faculty); });
+    return Array.from(set).sort();
+  }, [allCourses]);
+
+  const languageOptions = useMemo(() => {
+    const set = new Set<string>();
+    allCourses.forEach((c) => { if (c.language) set.add(c.language); });
+    return Array.from(set).sort();
+  }, [allCourses]);
+
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   // Detect window size for mobile/desktop view
@@ -377,75 +357,76 @@ export default function CourseListings({
     setActiveModal(null);
   };
 
-  // Filter and sort courses
   const mappedCourses = useMemo(() => {
-    let filtered = products.map(mapVendureToFeaturedCourse);
+    let filtered = [...allCourses];
 
-    // Filter by language
+    if (urlBoard || urlClass) {
+      const boardFiltered = filtered.filter((course) => {
+        const facets = course.meta;
+        const matchBoard = !urlBoard || facets.some(
+          (f) => f.toLowerCase() === urlBoard.toLowerCase(),
+        );
+        const matchClass = !urlClass || facets.some(
+          (f) => f.toLowerCase() === urlClass.toLowerCase(),
+        );
+        return matchBoard && matchClass;
+      });
+      if (boardFiltered.length > 0) {
+        filtered = boardFiltered;
+      }
+    }
+
     if (selectedLanguage.length > 0) {
       filtered = filtered.filter((course) =>
         selectedLanguage.includes(course.language),
       );
     }
 
-    // Filter by subject
     if (selectedSubjects) {
+      filtered = filtered.filter((course) => course.subject === selectedSubjects);
+    }
+
+    if (selectedFaculties.length > 0) {
       filtered = filtered.filter((course) =>
-        course.meta.includes(selectedSubjects),
+        selectedFaculties.includes(course.faculty),
       );
     }
 
-    // Filter by faculty
-    if (selectedFaculties.length > 0) {
-      filtered = filtered.filter((course) => {
-        // Check if any faculty in the course meta matches selected faculties
-        return course.meta.some((meta) => selectedFaculties.includes(meta));
-      });
-    }
-
-    // Filter by pricing
     if (selectedPricing && selectedPricing !== 'All') {
       filtered = filtered.filter((course) => {
         const priceStr = course.price.replace(/[₹,]/g, '');
         const price = parseFloat(priceStr);
-        if (selectedPricing === 'Free') {
-          return price === 0;
-        } else if (selectedPricing === 'Paid') {
-          return price > 0;
-        }
+        if (selectedPricing === 'Free') return price === 0;
+        if (selectedPricing === 'Paid') return price > 0;
         return true;
       });
     }
 
-    // Apply sorting
-    if (selectedSort) {
-      if (selectedSort === 'Most Popular') {
-        // Sort by enrolled count (assuming higher enrolled = more popular)
-        // For now, we'll just return in current order
-        filtered.sort((a, b) => {
-          const aCount = parseInt(a.enrolled.replace(/\D/g, '')) || 0;
-          const bCount = parseInt(b.enrolled.replace(/\D/g, '')) || 0;
-          return bCount - aCount;
-        });
-      } else if (selectedSort === 'Price (High-Low)') {
-        filtered.sort((a, b) => {
-          const aPrice = parseFloat(a.price.replace(/[₹,]/g, ''));
-          const bPrice = parseFloat(b.price.replace(/[₹,]/g, ''));
-          return bPrice - aPrice;
-        });
-      } else if (selectedSort === 'Price (Low-High)') {
-        filtered.sort((a, b) => {
-          const aPrice = parseFloat(a.price.replace(/[₹,]/g, ''));
-          const bPrice = parseFloat(b.price.replace(/[₹,]/g, ''));
-          return aPrice - bPrice;
-        });
-      }
-      // 'Relevant' is default, no sorting needed
+    if (selectedSort === 'Most Popular') {
+      filtered.sort((a, b) => {
+        const aCount = parseInt(a.enrolled.replace(/\D/g, '')) || 0;
+        const bCount = parseInt(b.enrolled.replace(/\D/g, '')) || 0;
+        return bCount - aCount;
+      });
+    } else if (selectedSort === 'Price (High-Low)') {
+      filtered.sort((a, b) => {
+        const aPrice = parseFloat(a.price.replace(/[₹,]/g, ''));
+        const bPrice = parseFloat(b.price.replace(/[₹,]/g, ''));
+        return bPrice - aPrice;
+      });
+    } else if (selectedSort === 'Price (Low-High)') {
+      filtered.sort((a, b) => {
+        const aPrice = parseFloat(a.price.replace(/[₹,]/g, ''));
+        const bPrice = parseFloat(b.price.replace(/[₹,]/g, ''));
+        return aPrice - bPrice;
+      });
     }
 
     return filtered;
   }, [
-    products,
+    allCourses,
+    urlBoard,
+    urlClass,
     selectedLanguage,
     selectedSubjects,
     selectedFaculties,
@@ -582,6 +563,21 @@ export default function CourseListings({
                     className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    <button
+                      onClick={() => {
+                        setSelectedSubjects('');
+                        setActiveModal(null);
+                      }}
+                      className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium  transition-colors flex items-center justify-between ${
+                        !selectedSubjects
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
+                    >
+                      All Subjects
+                      {!selectedSubjects && <CheckIcon />}
+                    </button>
+                    <div className="border-t border-lightgray/10" />
                     {subjectOptions.map((subject) => (
                       <button
                         key={subject}
@@ -653,8 +649,7 @@ export default function CourseListings({
                     {/* Divider */}
                     <div className="border-t border-lightgray/10" />
 
-                    {/* Faculty Options */}
-                    {facultyOptions.map((faculty) => (
+                    {facultyOptions.map((faculty, idx) => (
                       <button
                         key={faculty}
                         onClick={() => {
@@ -679,11 +674,12 @@ export default function CourseListings({
                         >
                           {selectedFaculties.includes(faculty) && <CheckIcon />}
                         </div>
-                        <img
-                          src={FACULTY_AVATAR_BY_NAME[faculty]}
-                          alt={faculty}
-                          className="md:w-7 md:h-7 w-5 h-5 rounded-full border bg-blue-500 border-transparent object-cover flex-shrink-0"
-                        />
+                        <div
+                          className="md:w-7 md:h-7 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+                          style={{ backgroundColor: AVATAR_BG_PALETTE[idx % AVATAR_BG_PALETTE.length] }}
+                        >
+                          {faculty.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+                        </div>
                         <span>{faculty}</span>
                       </button>
                     ))}
@@ -758,8 +754,7 @@ export default function CourseListings({
                     {/* Divider */}
                     <div className="border-t border-lightgray/10" />
 
-                    {/* Language Options */}
-                    {['English', 'Hindi', 'Hinglish'].map((lang) => (
+                    {languageOptions.map((lang) => (
                       <button
                         key={lang}
                         onClick={() => {

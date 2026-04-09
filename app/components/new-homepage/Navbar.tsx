@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from '@remix-run/react';
+import { useNavigate, useLocation, Link } from '@remix-run/react';
 import {
   Search,
   ChevronDown,
@@ -99,9 +99,9 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
           )}
 
           {/* CTA Button */}
-          <button className="primary-btn text-sm sm:text-base font-medium leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75">
+          <Link to="/free-resources" className="primary-btn text-sm sm:text-base font-medium leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75">
             Start For Free
-          </button>
+          </Link>
 
           {/* Mobile Menu Toggle */}
           <button
