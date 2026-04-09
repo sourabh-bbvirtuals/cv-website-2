@@ -1,6 +1,6 @@
 const Hero = ({
-  title = 'Commerce Courses for Class 11 & 12 — CBSE, Maharashtra HSC & CUET',
-  subtitle = 'The only platform that goes deep on Maharashtra Board HSC and CBSE — with structured test series, live mentorship, and a commerce-first curriculum. Not just videos. A complete learning system.',
+  title = 'Commerce Courses for Class 11 & 12',
+  subtitle = "Join India's only commerce-exclusive platform covering CBSE, Maharashtra HSC and CUET-UG. Structured courses, organised test series & live mentorship for Class 11 & 12 students.",
 }: {
   title?: string;
   subtitle?: string;

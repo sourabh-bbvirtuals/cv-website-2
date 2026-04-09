@@ -160,7 +160,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
         <div className="flex flex-col lg:flex-row gap-8 sm:gap-4">
           {/* Left Column: Content & Stats */}
           <div
-            className={`w-full sm:p-4 xl:p-12 rounded-3xl max-sm:bg-none! text-center flex flex-col items-center sm:text-left sm:items-start ${
+            className={`w-full sm:p-4 lg:py-9 lg:pr-12  rounded-3xl max-sm:bg-none! text-center flex flex-col items-center sm:text-left sm:items-start ${
               isLoggedIn
                 ? 'lg:max-w-none text-center flex flex-col items-center'
                 : ''
@@ -177,7 +177,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
           >
             {/* card content */}
             <div className="flex flex-col h-full gap-6 md:gap-16">
-              <div className="flex-1 gap-5 md:gap-12 flex flex-col items-center justify-center sm:items-start sm:justify-start">
+              <div className="flex-1 gap-5 flex flex-col items-center justify-center sm:items-start sm:justify-start">
                 {/* Pill Tag */}
                 <div className="inline-flex items-center gap-2 px-2 py-1 leading-[120%] rounded-full bg-[#0816270D] text-xs  sm:text-base font-medium text-gray-700 border border-[#0816270D]">
                   <span>MH Board</span>
@@ -188,19 +188,24 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 </div>
 
                 {/* Headline */}
-                <h1 className="text-3xl xl:text-[64px] font-semibold tracking-[-0.03em]">
-                  Commerce made <br className="max-sm:hidden" /> clear.
+                <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em]">
+                  Commerce Virtuals |<br className="max-sm:hidden" /> Courses
+                  for Class 11 & 12
                 </h1>
 
                 {/* Subheadline */}
-                <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-[523px] leading-[150%]">
-                  Free videos, notes, formula cards, and past papers for Class
-                  11-12, CA Foundation, and CUET - all in one place.
+                <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-full  leading-[150%]">
+                  India's only commerce-exclusive EdTech platform. Structured
+                  courses, test series & mentorship for CBSE, Maharashtra Board
+                  HSC and CUET-UG. Built for Class 11 & 12 commerce students.
                 </p>
 
                 {/* CTA Button */}
-                <div className="flex justify-center w-full sm:justify-start">
-                  <Link to="/free-resources" className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-3  md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-base lg:text-lg 4xl:text-xl!">
+                <div className="flex justify-center w-full sm:justify-start mt-4">
+                  <Link
+                    to="/free-resources"
+                    className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-3  md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-base lg:text-lg 4xl:text-xl!"
+                  >
                     <svg
                       className="max-sm:max-w-4 h-auto"
                       width="24"

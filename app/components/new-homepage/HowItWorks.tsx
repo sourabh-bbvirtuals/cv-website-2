@@ -3,6 +3,27 @@ import lottie from 'lottie-web';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import StepCard from './StepCard';
 
+const steps = {
+  1: {
+    title: 'Choose Your Exam',
+    descrption:
+      'Choose Class 11, 12, CA Foundation, or CUET. Select your board and subjects.',
+    video: '/assets/vid/Scene-1.mp4',
+  },
+  2: {
+    title: 'Select Course & Make Purchase',
+    descrption:
+      'Choose from a wide range of courses and make a secure purchase.',
+    video: '/assets/vid/Scene-2.mp4',
+  },
+  3: {
+    title: 'Start Learning & Succeed',
+    descrption:
+      'Access your personalized learning path with adaptive courses and get real-time progress tracking.',
+    video: '/assets/vid/Scene-3.mp4',
+  },
+};
+
 export default function HowItWorks() {
   const { scrollY } = useScroll();
 
@@ -178,23 +199,6 @@ export default function HowItWorks() {
   const step2Transforms = createStepTransforms('step2');
   const step3Transforms = createStepTransforms('step3');
 
-  const steps = {
-    1: {
-      title: 'Choose Your Exam',
-      descrption:
-        'Choose Class 11, 12, CA Foundation, or CUET. Select your board and subjects.',
-    },
-    2: {
-      title: 'Select Course & Make Purchase',
-      descrption:
-        'Choose from a wide range of courses and make a secure purchase.',
-    },
-    3: {
-      title: 'Start Learning & Succeed',
-      descrption:
-        'Access your personalized learning path with adaptive courses and get real-time progress tracking.',
-    },
-  };
   return (
     <section className="custom-container home-section-y">
       <div className="flex flex-col items-center text-center">
@@ -211,7 +215,7 @@ export default function HowItWorks() {
           stepNumber={1}
           title={steps[1].title}
           description={steps[1].descrption}
-          containerRef={container1Ref}
+          videoSrc={steps[1].video}
           isMobile={false}
           wrapperRef={desktopStep1Ref}
           scale={step1Transforms.scale}
@@ -221,7 +225,7 @@ export default function HowItWorks() {
           stepNumber={2}
           title={steps[2].title}
           description={steps[2].descrption}
-          containerRef={container2Ref}
+          videoSrc={steps[2].video}
           isMobile={false}
           wrapperRef={desktopStep2Ref}
           scale={step2Transforms.scale}
@@ -231,7 +235,7 @@ export default function HowItWorks() {
           stepNumber={3}
           title={steps[3].title}
           description={steps[3].descrption}
-          containerRef={container3Ref}
+          videoSrc={steps[3].video}
           isMobile={false}
           wrapperRef={desktopStep3Ref}
           scale={step3Transforms.scale}
@@ -244,21 +248,21 @@ export default function HowItWorks() {
           stepNumber={1}
           title={steps[1].title}
           description={steps[1].descrption}
-          containerRef={mobileContainer1Ref}
+          videoSrc={steps[1].video}
           isMobile={true}
         />
         <StepCard
           stepNumber={2}
           title={steps[2].title}
           description={steps[2].descrption}
-          containerRef={mobileContainer2Ref}
+          videoSrc={steps[2].video}
           isMobile={true}
         />
         <StepCard
           stepNumber={3}
           title={steps[3].title}
           description={steps[3].descrption}
-          containerRef={mobileContainer3Ref}
+          videoSrc={steps[3].video}
           isMobile={true}
         />
       </div>

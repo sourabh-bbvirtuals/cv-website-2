@@ -28,7 +28,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
   const faculties = FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
   const swiperRef = useRef<SwiperType | null>(null);
 
-  if (!members || members.length === 0) return null;
+  // if (!members || members.length === 0) return null;
 
   return (
     <section className="overflow-hidden">

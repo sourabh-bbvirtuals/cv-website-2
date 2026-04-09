@@ -5,7 +5,7 @@ interface StepCardProps {
   stepNumber: 1 | 2 | 3;
   title: string;
   description: string;
-  containerRef: RefObject<HTMLDivElement>;
+  videoSrc: string;
   isMobile: boolean;
   wrapperRef?: RefObject<HTMLDivElement>;
   scale?: MotionValue<number>;
@@ -16,7 +16,7 @@ export default function StepCard({
   stepNumber,
   title,
   description,
-  containerRef,
+  videoSrc,
   isMobile,
   wrapperRef,
   scale,
@@ -33,10 +33,16 @@ export default function StepCard({
         </div>
 
         {/* Card */}
-        <div
-          ref={containerRef}
-          className="h-[251.25px] w-[335px] overflow-hidden rounded-2xl"
-        />
+        <div className="h-[251.25px] w-[335px] overflow-hidden rounded-2xl">
+          <video
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         {/* Content */}
         <div className="flex flex-col items-center justify-center mb-8">
@@ -70,11 +76,16 @@ export default function StepCard({
         </p>
       </div>
 
-      {/* Card - always centered */}
-      <div
-        ref={containerRef}
-        className="h-[550px] w-[700px] overflow-hidden rounded-2xl bg-[#F5F7FF]"
-      />
+      <div className="h-[550px] w-[700px] overflow-hidden rounded-2xl bg-[#F5F7FF]">
+        <video
+          src={videoSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      </div>
 
       {/* Content */}
       <div

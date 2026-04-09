@@ -1,6 +1,6 @@
-import { Outlet, useLocation, type LinksFunction } from '@remix-run/react';
+import { Outlet, useLocation } from '@remix-run/react';
 import Layout from '~/components/Layout';
-
+import type { LinksFunction } from '@remix-run/node';
 export const links: LinksFunction = () => [
   {
     rel: 'stylesheet',

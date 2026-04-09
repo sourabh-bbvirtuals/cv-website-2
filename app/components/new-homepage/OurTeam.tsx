@@ -3,78 +3,17 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { SliderArrow } from './Icons';
-
-interface TeamMember {
-  id: number;
-  name: string;
-  qualification: string;
-  experience: string;
-  imageUrl: string;
-}
-
-/** Public assets — order matches Figma-style carousel (1→4 left to right) */
-const teamData: TeamMember[] = [
-  {
-    id: 1,
-    name: 'CA Ankita Sanghvi',
-    qualification: 'CA, AIR 27',
-    experience: '5+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-1.png',
-  },
-  {
-    id: 2,
-    name: 'CA Ashish Medicala',
-    qualification: 'CA',
-    experience: '10+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-2.png',
-  },
-  {
-    id: 3,
-    name: 'CA Bhushal Gosar',
-    qualification: 'CA, MCom',
-    experience: '15+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-1.png',
-  },
-  {
-    id: 4,
-    name: 'CA Mayur Sanghvi',
-    qualification: 'FCA, CFA, FRM, Rank 1 CA Finals',
-    experience: '10+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-4.png',
-  },
-  {
-    id: 5,
-    name: 'CA Payal Sanghvi',
-    qualification: 'CA, CFA III',
-    experience: '5+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-1.png',
-  },
-  {
-    id: 6,
-    name: 'Pratik Mahajan',
-    qualification: 'Maths Specialist',
-    experience: '4+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-2.png',
-  },
-  {
-    id: 7,
-    name: 'CA Roshni Manral',
-    qualification: 'CA',
-    experience: '5+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-4.png',
-  },
-  {
-    id: 8,
-    name: 'CA Shubham Sanghvi',
-    qualification: 'CA, CFA, State Topper SSC&HSC',
-    experience: '14+ Years Experience',
-    imageUrl: '/assets/images/homepage/card-4.png',
-  },
-];
+import { useBoardSelection } from '~/context/BoardSelectionContext';
+import { FACULTIES_BY_BOARD } from './FacultySection';
 
 const OurTeam: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
+  const { selectedSlug, boardOptions } = useBoardSelection();
+  // Find the board name from slug
+  const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
+  const boardKey = selectedBoard?.board.toLowerCase() || 'mh';
 
+  const faculties = FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
   return (
     <section className="overflow-hidden">
       <div className="custom-container">
@@ -132,7 +71,7 @@ const OurTeam: React.FC = () => {
             }}
             className="w-full"
           >
-            {teamData.map((member, index) => (
+            {faculties.map((member, index) => (
               <SwiperSlide key={index}>
                 <article
                   className={`group flex flex-col items-center px-0.5 text-center ${
@@ -141,7 +80,7 @@ const OurTeam: React.FC = () => {
                 >
                   <div className="relative mb-3 sm:mb-5 flex w-36 h-36 md:w-70 md:h-77">
                     <img
-                      src={member.imageUrl}
+                      src={member.image}
                       alt={member.name}
                       loading="lazy"
                       className="w-full h-full object-contain object-bottom"
@@ -155,7 +94,7 @@ const OurTeam: React.FC = () => {
                       {member.name}
                     </h3>
                     <p className="text-sm md:text-base font-normal leading-[120%] text-lightgray/60 sm:text-base">
-                      {member.qualification}
+                      {member.designation}
                     </p>
                     <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
                       {member.experience}

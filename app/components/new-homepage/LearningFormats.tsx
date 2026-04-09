@@ -39,7 +39,7 @@ const LearningFormats: React.FC = () => {
     {
       id: 'notes',
       title: 'Board-Specific Notes',
-      desc: 'Get structured notes for each board and exam target with quick revision support.',
+      desc: 'Earn coins watching videos, solving quizzes, attending live classes.',
       wrapperClass: 'bg-[#eefaff]',
       borderClass: 'border-[#cfedfa]',
       img: '/assets/images/LearningFormats/board-notes.png',
@@ -47,15 +47,15 @@ const LearningFormats: React.FC = () => {
     {
       id: 'doubt',
       title: 'Live Doubt Sessions',
-      desc: 'Weekly live classes with teachers. Ask doubts in real time and replay recordings anytime.',
+      desc: 'Weekly live classes with teachers. Ask doubts in real time. All sessions recorded and available for replay.',
       wrapperClass: 'bg-[#fff1ee]',
       borderClass: 'border-[#f5dbd6]',
       img: '/assets/images/LearningFormats/mock-tests.png',
     },
     {
       id: 'mock',
-      title: 'Mock Tests',
-      desc: 'Take practice tests to assess your preparation and identify areas for improvement.',
+      title: 'DPPs & mock tests',
+      desc: 'Daily practice problems matching exam patterns. Full-length mocks with detailed guide.',
       wrapperClass: 'bg-[#f0f9ff]',
       borderClass: 'border-[#d0e8ff]',
       img: '/assets/images/LearningFormats/doubt-session.png',

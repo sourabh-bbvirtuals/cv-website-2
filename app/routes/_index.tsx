@@ -357,7 +357,7 @@ export default function Index() {
 
           <div className="my-16 md:my-24 lg:my-20" />
 
-          <FacultySection />
+          {/* <FacultySection /> */}
 
           {teamSection?.members?.length > 0 ? (
             <TeamSection
