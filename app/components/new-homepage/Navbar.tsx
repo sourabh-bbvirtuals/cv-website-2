@@ -61,6 +61,12 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
             >
               Free Resources
             </a>
+            <a
+              href="/blogs"
+              className="hover:text-blue-600 transition-colors"
+            >
+              Blogs
+            </a>
           </div>
         </div>
 
@@ -148,6 +154,12 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
               className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
             >
               Free Resources
+            </a>
+            <a
+              href="/blogs"
+              className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
+            >
+              Blogs
             </a>
             <div className="border-t my-1"></div>
             {!isLoggedIn ? (
