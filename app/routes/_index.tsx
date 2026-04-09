@@ -4,8 +4,15 @@ import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
 export const meta: MetaFunction = () => [
-  { title: 'Commerce Virtuals | CBSE, Maharashtra HSC & CUET Courses for Class 11 & 12' },
-  { name: 'description', content: "India's only commerce-exclusive EdTech platform. Structured courses, test series & mentorship for CBSE, Maharashtra Board HSC and CUET-UG. Built for Class 11 & 12 commerce students." },
+  {
+    title:
+      'Commerce Virtuals | CBSE, Maharashtra HSC & CUET Courses for Class 11 & 12',
+  },
+  {
+    name: 'description',
+    content:
+      "India's only commerce-exclusive EdTech platform. Structured courses, test series & mentorship for CBSE, Maharashtra Board HSC and CUET-UG. Built for Class 11 & 12 commerce students.",
+  },
 ];
 import Layout from '~/components/Layout';
 import FAQSection from '~/components/new-homepage/FAQSection';
@@ -26,6 +33,7 @@ import {
 
 import { API_URL } from '~/constants';
 import HowItWorks from '~/components/new-homepage/HowItWorks';
+import FacultySection from '~/components/new-homepage/FacultySection';
 
 function gqlFetch(query: string) {
   return fetch(API_URL, {
@@ -349,6 +357,8 @@ export default function Index() {
 
           <div className="my-16 md:my-24 lg:my-20" />
 
+          <FacultySection />
+
           {teamSection?.members?.length > 0 ? (
             <TeamSection
               title={teamSection.title}
@@ -384,10 +394,7 @@ export default function Index() {
           <div className="my-16 md:my-24 lg:my-20" />
 
           {faqSection?.faqs?.length > 0 ? (
-            <FAQSection
-              title={faqSection.title}
-              faqs={faqSection.faqs}
-            />
+            <FAQSection title={faqSection.title} faqs={faqSection.faqs} />
           ) : (
             <Faq />
           )}

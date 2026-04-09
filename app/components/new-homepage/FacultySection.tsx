@@ -4,31 +4,154 @@ import { Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { SliderArrow } from './Icons';
 import { useBoardSelection } from '~/context/BoardSelectionContext';
-import { FACULTIES_BY_BOARD } from './FacultySection';
 
-export interface TeamMember {
+export interface Faculty {
+  id: string;
   name: string;
   designation: string;
   experience: string;
   image: string;
 }
 
-export interface TeamSectionProps {
-  title: string;
-  members: TeamMember[];
+interface FacultySectionProps {
+  title?: string;
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
+// data mapped to boards
+export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
+  mh: [
+    {
+      id: '1',
+      name: 'CA Ankita Sanghvi',
+      designation: 'CA, AIR 27',
+      experience: '5+ Years Experience',
+      image: '/assets/images/faculties/MH/CA Ankita Sanghvi.png',
+    },
+    {
+      id: '2',
+      name: 'CA Ashish Medicala',
+      designation: 'CA',
+      experience: '10+ Years Experience',
+      image: '/assets/images/faculties/MH/CA Ashish Medicala.png',
+    },
+    {
+      id: '3',
+      name: 'CA Bhushal Gosar',
+      designation: 'CA, MCom',
+      experience: '15+ Years Experience',
+      image: '/assets/images/faculties/MH/CA Bhushal Gosar.png',
+    },
+    {
+      id: '4',
+      name: 'CA Mayur Sanghvi',
+      designation: 'FCA, CFA, FRM, Rank 1 CA Finals',
+      experience: '10+ Years Experience',
+      image: '/assets/images/faculties/MH/CA Mayur Sanghvi.png',
+    },
+    {
+      id: '5',
+      name: 'CA Payal Sanghvi',
+      designation: 'CA, CFA III',
+      experience: '5+ Years Experience',
+      image: '/assets/images/faculties/MH/CA Payal Sanghvi.png',
+    },
+    {
+      id: '6',
+      name: 'Faculty Member 6',
+      designation: 'Chemistry Mentor',
+      experience: '5+ Years Experience',
+      image: '/assets/images/faculties/MH/Frame 1511138088.png',
+    },
+    {
+      id: '7',
+      name: 'Faculty Member 7',
+      designation: 'Physics Expert',
+      experience: '4+ Years Experience',
+      image: '/assets/images/faculties/MH/Frame 1511138088-1.png',
+    },
+    {
+      id: '8',
+      name: 'Faculty Member 8',
+
+      designation: 'Biology Specialist',
+      experience: '3+ Years Experience',
+      image: '/assets/images/faculties/MH/Frame 1511138088-2.png',
+    },
+    {
+      id: '9',
+      name: 'Faculty Member 9',
+      designation: 'Economics Mentor',
+      experience: '6+ Years Experience',
+      image: '/assets/images/faculties/MH/Frame 1511138088.png',
+    },
+  ],
+  cbse: [
+    {
+      id: '1',
+      name: 'Faculty Member 1',
+      designation: 'Mathematics Expert',
+      experience: '5+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138087.png',
+    },
+    {
+      id: '2',
+      name: 'Faculty Member 2',
+      designation: 'Science Specialist',
+      experience: '4+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138087-1.png',
+    },
+    {
+      id: '3',
+      name: 'Faculty Member 3',
+      designation: 'English Mentor',
+      experience: '3+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138087-2.png',
+    },
+    {
+      id: '4',
+      name: 'Faculty Member 4',
+      designation: 'History Expert',
+      experience: '6+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138087-3.png',
+    },
+    {
+      id: '5',
+      name: 'Faculty Member 5',
+      designation: 'Geography Specialist',
+      experience: '2+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138087-4.png',
+    },
+    {
+      id: '6',
+      name: 'Faculty Member 6',
+      designation: 'Chemistry Mentor',
+      experience: '5+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138088-1.png',
+    },
+    {
+      id: '7',
+      name: 'Faculty Member 7',
+      designation: 'Physics Expert',
+      experience: '4+ Years Experience',
+      image: '/assets/images/faculties/CBSE/Frame 1511138088.png',
+    },
+  ],
+};
+
+const FacultySection: React.FC<FacultySectionProps> = ({
+  title = 'Expert Faculty',
+}) => {
   const { selectedSlug, boardOptions } = useBoardSelection();
+  const swiperRef = useRef<SwiperType | null>(null);
+
   // Find the board name from slug
   const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
   const boardKey = selectedBoard?.board.toLowerCase() || 'mh';
   console.log('Selected Board:', selectedBoard?.board, 'Board Key:', boardKey);
 
   const faculties = FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
-  const swiperRef = useRef<SwiperType | null>(null);
 
-  if (!members || members.length === 0) return null;
+  if (!faculties || faculties.length === 0) return null;
 
   return (
     <section className="overflow-hidden">
@@ -36,11 +159,9 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
         <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-2 sm:mb-12 md:mb-16">
           <div className="text-left max-sm:text-center">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
-              Our Team
+              Our Faculty
             </p>
-            <h2 className="section-heading text-lightgray">
-              {'They are best at what they do'}
-            </h2>
+            <h2 className="section-heading text-lightgray">{title}</h2>
           </div>
 
           <div className="hidden sm:flex gap-2 shrink-0">
@@ -87,8 +208,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
             }}
             className="w-full"
           >
-            {faculties.map((member, index) => (
-              <SwiperSlide key={index}>
+            {faculties.map((faculty, index) => (
+              <SwiperSlide key={faculty.id}>
                 <article
                   className={`group flex flex-col items-center px-0.5 text-center ${
                     index % 2 !== 0 ? 'mt-0 md:mt-17.75' : 'mt-0'
@@ -96,8 +217,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
                 >
                   <div className="relative mb-3 sm:mb-5 flex w-36 h-36 md:w-70 md:h-77">
                     <img
-                      src={member.image}
-                      alt={member.name}
+                      src={faculty.image}
+                      alt={faculty.name}
                       loading="lazy"
                       className="w-full h-full object-contain object-bottom"
                     />
@@ -107,14 +228,11 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
                       className="text-sm sm:text-2xl font-medium leading-snug tracking-tight text-lightgray"
                       style={{ letterSpacing: '-0.01em' }}
                     >
-                      {member.name}
+                      {faculty.name}
                     </h3>
                     <p className="text-sm md:text-base font-normal leading-[120%] text-lightgray/60 sm:text-base">
-                      {member.designation}
+                      {faculty.designation}
                     </p>
-                    {/* <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
-                      {member.experience}
-                    </span> */}
                   </div>
                 </article>
               </SwiperSlide>
@@ -145,4 +263,4 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
   );
 };
 
-export default TeamSection;
+export default FacultySection;
