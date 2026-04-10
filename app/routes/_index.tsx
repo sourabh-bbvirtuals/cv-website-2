@@ -389,10 +389,15 @@ export default function Index() {
 
           {/* <FacultySection /> */}
 
-          {teamSection?.members?.length > 0 ? (
+          {teamSection ? (
             <TeamSection
-              title={teamSection.title}
-              members={teamSection.members}
+              title={teamSection.title || 'They are best at what they do'}
+              members={teamSection.members || []}
+              boardFaculties={{
+                mh: teamSection.mh || [],
+                cbse: teamSection.cbse || [],
+                cuet: teamSection.cuet || [],
+              }}
             />
           ) : (
             <OurTeam />
