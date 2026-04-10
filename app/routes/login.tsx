@@ -3,7 +3,6 @@ import axios from 'axios';
 import {
   useFetcher,
   useNavigate,
-  Link,
   useSearchParams,
 } from '@remix-run/react';
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node';
@@ -266,15 +265,6 @@ const Login: React.FC = () => {
               {isLoading ? 'Sending...' : 'Sign In'}
             </button>
 
-            <Link
-              to="/sign-up"
-              className="font-geist font-medium text-base sm:text-lg lg:text-xl leading-[120%] text-[#808591] group mt-4 block"
-            >
-              New User?{' '}
-              <span className="text-[#3A6BFC] group-hover:underline transition-all">
-                Create an Account
-              </span>
-            </Link>
           </div>
         )}
 

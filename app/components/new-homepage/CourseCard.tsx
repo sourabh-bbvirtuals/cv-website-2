@@ -111,9 +111,11 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
             <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
               {course.price}
             </span>
-            <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
-              {course.wasPrice}
-            </span>
+            {course.wasPrice && (
+              <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
+                {course.wasPrice}
+              </span>
+            )}
           </div>
         </div>
       </article>

@@ -4,7 +4,6 @@ import {
   useFetcher,
   useNavigate,
   useSearchParams,
-  Link,
 } from '@remix-run/react';
 
 export const meta: MetaFunction = () => {
@@ -312,15 +311,6 @@ export default function SignInPage() {
               </button>
             </form>
 
-            <Link
-              to="/sign-up"
-              className="font-geist font-medium text-base sm:text-lg lg:text-xl leading-[120%] text-[#808591] group mt-2 block"
-            >
-              New User?{' '}
-              <span className="text-[#3A6BFC] group-hover:underline transition-all">
-                Create an Account
-              </span>
-            </Link>
           </div>
         )}
 

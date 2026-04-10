@@ -150,7 +150,6 @@ function mapProductsToCourses(products: any[]) {
     }
 
     const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
-    const wasPriceVal = priceVal * 1.5;
 
     const language =
       facetNames.find((f: string) =>
@@ -170,7 +169,7 @@ function mapProductsToCourses(products: any[]) {
       starts: table['Start Date'] || 'TBA',
       ends: table['End Date'] || 'TBA',
       price: `₹${Math.round(priceVal).toLocaleString('en-IN')}`,
-      wasPrice: `₹${Math.round(wasPriceVal).toLocaleString('en-IN')}`,
+      wasPrice: '',
       language,
       type,
     };
@@ -226,7 +225,6 @@ function mapVariantsToCourses(items: any[]) {
     }
 
     const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
-    const wasPriceVal = priceVal * 1.5;
 
     const language =
       facetNames.find((f: string) =>
@@ -246,7 +244,7 @@ function mapVariantsToCourses(items: any[]) {
       starts: table['Start Date'] || 'TBA',
       ends: table['End Date'] || 'TBA',
       price: `₹${Math.round(priceVal).toLocaleString('en-IN')}`,
-      wasPrice: `₹${Math.round(wasPriceVal).toLocaleString('en-IN')}`,
+      wasPrice: '',
       language,
       type,
     };
