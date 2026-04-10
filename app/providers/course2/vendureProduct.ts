@@ -25,7 +25,7 @@ export interface VendureCourse2Product {
     priceWithTax: number;
     sku: string;
     stockLevel: number;
-    options: Array<{ id: string; name: string; value: string }>;
+    options: Array<{ id: string; name: string; value?: string; group?: { id: string; name: string } }>;
     variantDetails?: Array<{
       subject: string;
       testSeries?: string;
@@ -361,7 +361,10 @@ async function convertVendureProductToCourse2Product(
           : customDataRaw;
       const specs = parsed?.specifications?.product ?? (Array.isArray(parsed) ? parsed : []);
       const facultySpec = specs.find(
-        (s: any) => s.identifier === 'our_faculty',
+        (s: any) =>
+          s.identifier === 'our_faculty' ||
+          s.identifier === 'faculty_info' ||
+          s.identifier === 'faculties',
       );
       const facultyInfos: Array<{ name?: string; imageUrl?: string; description?: string }> =
         facultySpec?.facultyInfos ?? [];

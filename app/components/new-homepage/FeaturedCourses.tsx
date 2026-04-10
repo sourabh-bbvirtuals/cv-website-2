@@ -17,6 +17,7 @@ export type FeaturedCourse = {
   price: string;
   wasPrice: string;
   language?: string;
+  lectureMode?: string;
   type?: string;
 };
 

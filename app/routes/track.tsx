@@ -7,7 +7,7 @@ import Layout from '~/components/Layout';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Track Your Order - VSmart Academy' },
+    { title: 'Track Your Order - Commerce Virtuals' },
     { name: 'description', content: 'Track the status of your order and shipment details' },
   ];
 };

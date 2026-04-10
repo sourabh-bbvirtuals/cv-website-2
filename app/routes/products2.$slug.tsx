@@ -34,7 +34,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     },
     {
       name: 'description',
-      content: `Discover our ${name.toLowerCase()} collection at Shubham Agrawal Classes`,
+      content: `Discover our ${name.toLowerCase()} collection at Commerce Virtuals`,
     },
   ];
 };

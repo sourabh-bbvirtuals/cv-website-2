@@ -65,7 +65,7 @@ export interface SiteSettingsData {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
-  "logo": "https://c3storage.grepvideos.com/preview/39/shubhamagarwal_logo__preview.png?preset=medium",
+  "logo": "/assets/logo.png",
   "policyLinks": [
     {
       "id": "1",
@@ -123,16 +123,16 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
     "link": "#"
   },
   "companyInfo": {
-    "name": "Shubham Agarwal Classes Pvt. Ltd.",
-    "logo": "https://c3storage.grepvideos.com/preview/39/shubhamagarwal_logo__preview.png?preset=medium",
-    "description": "Best CA Classes",
-    "copyright": "Copyright © 2026 Shubham Agarwal Classes Pvt.Ltd. All rights Reserved.",
+    "name": "Commerce Virtuals",
+    "logo": "/assets/logo.png",
+    "description": "Best Online Commerce Classes",
+    "copyright": "Copyright © 2026 Commerce Virtuals. All rights Reserved.",
     "paymentLogo": "https://www.shift4shop.com/images/credit-card-logos/cc-sm-5.png"
   },
   "whatsappQuickConnect": {
-    "name": "Shubham Agarwal Classes",
+    "name": "Commerce Virtuals",
     "phone": "919999999999",
-    "link": "https://wa.me/919999999999?text=Hi+Shubham+Agarwal%2CCLasses%2C+I%27d+like+to+know+more+about+courses."
+    "link": "https://wa.me/919999999999?text=Hi+Commerce+Virtuals%2C+I%27d+like+to+know+more+about+courses."
   }
 };
 

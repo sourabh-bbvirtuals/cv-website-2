@@ -159,7 +159,7 @@ const Footer = () => {
         {/* Copyright Footer */}
         <div className="text-center py-4 md:py-6 border-t border-blue-200/20">
           <p className="leading-[120%] text-white/60 font-medium">
-            © 2026 BB Virtuals, Inc.
+            © 2026 Commerce Virtuals
           </p>
         </div>
       </div>

@@ -69,7 +69,7 @@ function childQuery(slug: string) {
             id
             name
             featuredAsset { preview }
-            facetValues { name }
+            facetValues { name facet { name } }
             priceWithTax
             product {
               id
@@ -116,7 +116,7 @@ const ALL_PRODUCTS_QUERY = `
           name
           priceWithTax
           featuredAsset { preview }
-          facetValues { name }
+          facetValues { name facet { name } }
         }
       }
     }
@@ -126,7 +126,13 @@ const ALL_PRODUCTS_QUERY = `
 function mapProductsToCourses(products: any[]) {
   return (products || []).map((product: any) => {
     const variant = product.variants?.[0] || {};
-    const facetNames = variant.facetValues?.map((fv: any) => fv.name) || [];
+    const facetValues = variant.facetValues || [];
+    const facetNames = facetValues.map((fv: any) => fv.name) || [];
+
+    const byGroup = (group: string) =>
+      facetValues
+        .filter((fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
+        .map((fv: any) => fv.name);
 
     let table: any = {};
     try {
@@ -151,11 +157,8 @@ function mapProductsToCourses(products: any[]) {
 
     const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
 
-    const language =
-      facetNames.find((f: string) =>
-        ['English', 'Hindi', 'Hinglish'].includes(f),
-      ) || 'Hinglish';
-    const type = facetNames.includes('Recorded') ? 'Recorded' : 'Live';
+    const language = byGroup('language')[0] || '';
+    const lectureMode = byGroup('lecture mode')[0] || '';
 
     return {
       id: variant.id || product.id,
@@ -164,14 +167,14 @@ function mapProductsToCourses(products: any[]) {
       meta: facetNames,
       enrolled: '1240+ Students Enrolled',
       image:
-        variant.featuredAsset?.preview || product.featuredAsset?.preview || '',
+        product.featuredAsset?.preview || variant.featuredAsset?.preview || '',
       badge: table['Badge'] || null,
       starts: table['Start Date'] || 'TBA',
       ends: table['End Date'] || 'TBA',
       price: `₹${Math.round(priceVal).toLocaleString('en-IN')}`,
       wasPrice: '',
       language,
-      type,
+      lectureMode,
     };
   });
 }
@@ -201,7 +204,13 @@ function parseChildCustomData(
 function mapVariantsToCourses(items: any[]) {
   return (items || []).map((variant: any) => {
     const product = variant.product || {};
-    const facetNames = variant.facetValues?.map((fv: any) => fv.name) || [];
+    const facetValues = variant.facetValues || [];
+    const facetNames = facetValues.map((fv: any) => fv.name) || [];
+
+    const byGroup = (group: string) =>
+      facetValues
+        .filter((fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
+        .map((fv: any) => fv.name);
 
     let table: any = {};
     try {
@@ -226,11 +235,8 @@ function mapVariantsToCourses(items: any[]) {
 
     const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
 
-    const language =
-      facetNames.find((f: string) =>
-        ['English', 'Hindi', 'Hinglish'].includes(f),
-      ) || 'Hindi';
-    const type = facetNames.includes('Recorded') ? 'Recorded' : 'Live';
+    const language = byGroup('language')[0] || '';
+    const lectureMode = byGroup('lecture mode')[0] || '';
 
     return {
       id: variant.id,
@@ -239,14 +245,14 @@ function mapVariantsToCourses(items: any[]) {
       meta: facetNames,
       enrolled: '1240+ Students Enrolled',
       image:
-        variant.featuredAsset?.preview || product.featuredAsset?.preview || '',
+        product.featuredAsset?.preview || variant.featuredAsset?.preview || '',
       badge: table['Badge'] || null,
       starts: table['Start Date'] || 'TBA',
       ends: table['End Date'] || 'TBA',
       price: `₹${Math.round(priceVal).toLocaleString('en-IN')}`,
       wasPrice: '',
       language,
-      type,
+      lectureMode,
     };
   });
 }

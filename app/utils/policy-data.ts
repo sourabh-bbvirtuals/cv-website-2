@@ -17,7 +17,7 @@ const FALLBACK_POLICIES: Record<string, PolicyData> = {
     blocks: [
       {
         title: 'Introduction',
-        text: 'Shubham Agrawal Classes ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or purchase our courses. By using our services, you agree to the terms outlined in this policy.',
+        text: 'Commerce Virtuals ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or purchase our courses. By using our services, you agree to the terms outlined in this policy.',
       },
       {
         title: 'Information We Collect',
@@ -45,7 +45,7 @@ const FALLBACK_POLICIES: Record<string, PolicyData> = {
       },
       {
         title: 'Terms of Use',
-        text: 'All content on this platform, including video lectures, study materials, books, and test series, is the intellectual property of Shubham Agrawal Classes. Unauthorized copying, redistribution, screen recording, or sharing of any course content is strictly prohibited and may result in legal action. Your access to purchased courses is for personal use only and is non-transferable.',
+        text: 'All content on this platform, including video lectures, study materials, books, and test series, is the intellectual property of Commerce Virtuals. Unauthorized copying, redistribution, screen recording, or sharing of any course content is strictly prohibited and may result in legal action. Your access to purchased courses is for personal use only and is non-transferable.',
       },
       {
         title: 'Changes to This Policy',
@@ -62,7 +62,7 @@ const FALLBACK_POLICIES: Record<string, PolicyData> = {
     blocks: [
       {
         title: 'No Refund / No Return Policy',
-        text: 'All sales made on Shubham Agrawal Classes are final. We do not offer refunds, returns, or exchanges on any purchases, including but not limited to video lectures, books, study materials, test series, and mentorship programs.',
+        text: 'All sales made on Commerce Virtuals are final. We do not offer refunds, returns, or exchanges on any purchases, including but not limited to video lectures, books, study materials, test series, and mentorship programs.',
       },
       {
         title: 'Why No Refunds?',

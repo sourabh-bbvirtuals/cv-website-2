@@ -106,9 +106,9 @@ export const DEFAULT_SITE_SETTINGS: FooterData = {
         "link": "#"
     },
     "whatsappQuickConnect": {
-        "name": "Shubham Agarwal Classes",
+        "name": "Commerce Virtuals",
         "phone": "919999999999",
-        "link": "https://wa.me/919999999999?text=Hi+Shubham+Agarwal%2CCLasses%2C+I%27d+like+to+know+more+about+courses."
+        "link": "https://wa.me/919999999999?text=Hi+Commerce+Virtuals%2C+I%27d+like+to+know+more+about+courses."
     }
 };
 

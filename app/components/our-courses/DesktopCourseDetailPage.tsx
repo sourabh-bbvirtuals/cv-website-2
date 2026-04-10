@@ -929,6 +929,48 @@ function IncludedProductTabs({
   );
 }
 
+// ─── Variant Option Selector ──────────────────────────────────────────────────
+function VariantOptionSelector({
+  optionGroups,
+  selectedOptions,
+  onSelect,
+}: {
+  optionGroups: NonNullable<NonNullable<CourseDetailPageProps['product']>['optionGroups']>;
+  selectedOptions: Record<string, string>;
+  onSelect: (groupId: string, optionId: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      {optionGroups.map((group) => (
+        <div key={group.id} className="flex flex-col gap-2">
+          <label className="text-sm font-semibold uppercase tracking-wider text-lightgray/60">
+            {group.name}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {group.options.map((option) => {
+              const isSelected = selectedOptions[group.id] === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => onSelect(group.id, option.id)}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                    isSelected
+                      ? 'border-[#3A6BFC] bg-[#3A6BFC]/10 text-[#3A6BFC] shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {option.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CourseDetailPage({
   slug,
@@ -941,14 +983,48 @@ export default function CourseDetailPage({
   const addToCartFetcher = useFetcher();
   const isAdding = addToCartFetcher.state !== 'idle';
 
+  const optionGroups = product?.optionGroups ?? [];
+  const variants = product?.variants ?? [];
+  const hasOptions = optionGroups.length > 0 && variants.length > 1;
+
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
+    if (!hasOptions) return {};
+    const initial: Record<string, string> = {};
+    const firstVariant = variants[0];
+    if (firstVariant) {
+      for (const opt of firstVariant.options) {
+        if (opt.group) initial[opt.group.id] = opt.id;
+      }
+    }
+    return initial;
+  });
+
+  const selectedVariant = hasOptions
+    ? variants.find((v) =>
+        optionGroups.every((g) =>
+          v.options.some((o) => o.id === selectedOptions[g.id]),
+        ),
+      ) ?? variants[0]
+    : variants[0] ?? null;
+
+  const activeVariantId = selectedVariant?.id ?? product?.variantId ?? null;
+
+  const displayPrice = selectedVariant
+    ? `₹${(selectedVariant.priceWithTax / 100).toLocaleString('en-IN')}`
+    : product?.price || '';
+  const displayPriceRaw = selectedVariant?.priceWithTax ?? product?.priceWithTax ?? 0;
+
+  const handleOptionSelect = useCallback((groupId: string, optionId: string) => {
+    setSelectedOptions((prev) => ({ ...prev, [groupId]: optionId }));
+  }, []);
+
   const handleEnroll = useCallback(() => {
-    const variantId = product?.variantId;
-    if (!variantId) return;
+    if (!activeVariantId) return;
     addToCartFetcher.submit(
-      { variantId, quantity: '1' },
+      { variantId: activeVariantId, quantity: '1' },
       { method: 'post', action: '/api/enroll' },
     );
-  }, [product?.variantId, addToCartFetcher]);
+  }, [activeVariantId, addToCartFetcher]);
 
   useEffect(() => {
     if (addToCartFetcher.state === 'idle' && addToCartFetcher.data) {
@@ -1008,12 +1084,15 @@ export default function CourseDetailPage({
     }
   });
 
-  const courseLanguage = (
-    courseInfoSpec?.table?.['Language'] || 'Hindi'
-  ).trim();
-  const isLive =
-    (courseInfoSpec?.table?.['Mode'] || '').toLowerCase().includes('live') ||
-    true;
+  const facetByGroup = (group: string) =>
+    (product?.facetValues ?? [])
+      .filter((fv) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
+      .map((fv) => fv.name);
+
+  const courseLanguage = facetByGroup('language')[0] ||
+    (courseInfoSpec?.table?.['Language'] || '').trim();
+  const courseMode = facetByGroup('lecture mode')[0] ||
+    (courseInfoSpec?.table?.['Mode'] || '').trim();
 
   const navItems = specItems
     .filter((s) => NAV_MAP[s.identifier])
@@ -1051,7 +1130,6 @@ export default function CourseDetailPage({
 
   const title = product?.title || 'Course Details';
   const description = product?.description || '';
-  const price = product?.price || '';
   const facultyImage =
     product?.faculties?.[0]?.image || product?.featuredAsset?.preview;
   const displayFaculties =
@@ -1072,17 +1150,23 @@ export default function CourseDetailPage({
             <div className="flex flex-col gap-[30px]">
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-4">
+                  {(courseLanguage || courseMode) && (
                   <div className="flex items-center gap-2 text-lightgray/70">
+                    {courseLanguage && (
                     <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-[#081627CC]/90">
                       {courseLanguage}
                     </span>
-                    {isLive && (
+                    )}
+                    {courseMode && (
                       <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-base leading-none font-medium text-[#081627CC]/90">
-                        <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
-                        {'Live'}
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                          <path d="M15.7356 4.5625C15.6559 4.51976 15.5661 4.49946 15.4757 4.50375C15.3853 4.50804 15.2978 4.53677 15.2225 4.58687L13 6.06563V4.5C13 4.23478 12.8946 3.98043 12.7071 3.79289C12.5196 3.60536 12.2652 3.5 12 3.5H2C1.73478 3.5 1.48043 3.60536 1.29289 3.79289C1.10536 3.98043 1 4.23478 1 4.5V11.5C1 11.7652 1.10536 12.0196 1.29289 12.2071C1.48043 12.3946 1.73478 12.5 2 12.5H12C12.2652 12.5 12.5196 12.3946 12.7071 12.2071C12.8946 12.0196 13 11.7652 13 11.5V9.9375L15.2225 11.4194C15.305 11.473 15.4016 11.501 15.5 11.5C15.6326 11.5 15.7598 11.4473 15.8536 11.3536C15.9473 11.2598 16 11.1326 16 11V5C15.9994 4.91004 15.9745 4.82191 15.9279 4.74491C15.8814 4.66791 15.815 4.60489 15.7356 4.5625ZM12 11.5H2V4.5H12V11.5ZM15 10.0656L13 8.7325V7.2675L15 5.9375V10.0656Z" fill="#081627" />
+                        </svg>
+                        {courseMode}
                       </span>
                     )}
                   </div>
+                  )}
                   <h1 className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl lg:leading-[1.15]">
                     {title}
                   </h1>
@@ -1096,27 +1180,28 @@ export default function CourseDetailPage({
                 )} */}
               </div>
 
-              {/* price */}
+              {/* variant options */}
+              {hasOptions && (
+                <VariantOptionSelector
+                  optionGroups={optionGroups}
+                  selectedOptions={selectedOptions}
+                  onSelect={handleOptionSelect}
+                />
+              )}
 
+              {/* price */}
               <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                {price && (
+                {displayPrice && (
                   <div className="flex items-baseline gap-3">
                     <span className="text-3xl font-bold text-[#0f172a] sm:text-4xl">
-                      {price}
-                    </span>
-                    <span className="text-lg font-medium text-lightgray/40 line-through sm:text-xl">
-                      ₹
-                      {(product?.priceWithTax
-                        ? (product.priceWithTax * 1.5) / 100
-                        : 0
-                      ).toLocaleString('en-IN')}
+                      {displayPrice}
                     </span>
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={handleEnroll}
-                  disabled={isAdding || !product?.variantId}
+                  disabled={isAdding || !activeVariantId}
                   className="primary-btn flex w-[449px] items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%]"
                 >
                   {isAdding ? (
@@ -1141,11 +1226,6 @@ export default function CourseDetailPage({
                   className="absolute inset-0 w-full h-full object-cover object-top"
                 />
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
-                  <span className="text-base md:text-xl font-medium text-white leading-[1.2]">
-                    {product?.faculties?.[0]?.name || 'Faculty Name'}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -1316,6 +1396,7 @@ export default function CourseDetailPage({
                   const facultySpec = activeIncludedSpecs.find(
                     (s) =>
                       s.identifier === 'our_faculty' ||
+                      s.identifier === 'faculty_info' ||
                       s.identifier === 'faculties',
                   );
                   const infos = facultySpec?.facultyInfos ?? [];
@@ -1370,27 +1451,28 @@ export default function CourseDetailPage({
                   alt="Course preview"
                   className="w-full h-full object-cover object-top opacity-95 transition-transform hover:scale-105"
                 />
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
-                  <span className="text-base md:text-lg font-medium text-white leading-[1.2]">
-                    {product?.faculties?.[0]?.name || 'Faculty Name'}
-                  </span>
-                </div>
               </div>
 
               {/* Content Section */}
               <div className="space-y-5 ">
                 {/* Tags */}
+                {(courseLanguage || courseMode) && (
                 <div className="flex items-center gap-2 text-lightgray/70">
+                  {courseLanguage && (
                   <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-[#081627CC]/90">
                     {courseLanguage}
                   </span>
-                  {isLive && (
+                  )}
+                  {courseMode && (
                     <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1.5 text-sm leading-none font-medium text-[#081627CC]/90">
-                      <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
-                      {'Live'}
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                        <path d="M15.7356 4.5625C15.6559 4.51976 15.5661 4.49946 15.4757 4.50375C15.3853 4.50804 15.2978 4.53677 15.2225 4.58687L13 6.06563V4.5C13 4.23478 12.8946 3.98043 12.7071 3.79289C12.5196 3.60536 12.2652 3.5 12 3.5H2C1.73478 3.5 1.48043 3.60536 1.29289 3.79289C1.10536 3.98043 1 4.23478 1 4.5V11.5C1 11.7652 1.10536 12.0196 1.29289 12.2071C1.48043 12.3946 1.73478 12.5 2 12.5H12C12.2652 12.5 12.5196 12.3946 12.7071 12.2071C12.8946 12.0196 13 11.7652 13 11.5V9.9375L15.2225 11.4194C15.305 11.473 15.4016 11.501 15.5 11.5C15.6326 11.5 15.7598 11.4473 15.8536 11.3536C15.9473 11.2598 16 11.1326 16 11V5C15.9994 4.91004 15.9745 4.82191 15.9279 4.74491C15.8814 4.66791 15.815 4.60489 15.7356 4.5625ZM12 11.5H2V4.5H12V11.5ZM15 10.0656L13 8.7325V7.2675L15 5.9375V10.0656Z" fill="#081627" />
+                      </svg>
+                      {courseMode}
                     </span>
                   )}
                 </div>
+                )}
 
                 {/* Title & Price */}
                 <div className="space-y-8">
@@ -1398,17 +1480,18 @@ export default function CourseDetailPage({
                     {title}
                   </h3>
 
-                  {price && (
+                  {hasOptions && (
+                    <VariantOptionSelector
+                      optionGroups={optionGroups}
+                      selectedOptions={selectedOptions}
+                      onSelect={handleOptionSelect}
+                    />
+                  )}
+
+                  {displayPrice && (
                     <div className="flex items-baseline gap-2">
                       <p className="text-3xl font-bold text-slate-900 leading-none">
-                        {price}
-                      </p>
-                      <p className="text-2xl font-medium text-slate-400 line-through opacity-60">
-                        ₹
-                        {(product?.priceWithTax
-                          ? (product.priceWithTax * 1.5) / 100
-                          : 0
-                        ).toLocaleString('en-IN')}
+                        {displayPrice}
                       </p>
                     </div>
                   )}
@@ -1419,7 +1502,7 @@ export default function CourseDetailPage({
               <button
                 type="button"
                 onClick={handleEnroll}
-                disabled={isAdding || !product?.variantId}
+                disabled={isAdding || !activeVariantId}
                 className="primary-btn flex w-full mt-8 items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%]"
               >
                 {isAdding ? (
