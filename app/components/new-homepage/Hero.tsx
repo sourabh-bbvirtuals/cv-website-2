@@ -191,7 +191,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 className={`flex-1 gap-5 flex flex-col justify-center ${
                   isLoggedIn
                     ? 'items-center text-center md:w-[770px] max-w-full'
-                    : 'sm:items-start sm:text-left sm:justify-start'
+                    : 'items-center md:items-start md:text-left md:justify-start'
                 }`}
               >
                 {/* Pill Tag */}
@@ -216,7 +216,9 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 {/* CTA Button */}
                 <div
                   className={`flex w-full mt-4 ${
-                    isLoggedIn ? 'justify-center' : 'sm:justify-start'
+                    isLoggedIn
+                      ? 'justify-center'
+                      : 'justify-center sm:justify-start'
                   }`}
                 >
                   <Link
