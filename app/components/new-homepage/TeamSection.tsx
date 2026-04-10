@@ -16,19 +16,21 @@ export interface TeamMember {
 export interface TeamSectionProps {
   title: string;
   members: TeamMember[];
+  boardFaculties?: Record<string, TeamMember[]>;
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
+const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFaculties }) => {
   const { selectedSlug, boardOptions } = useBoardSelection();
-  // Find the board name from slug
   const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
   const boardKey = selectedBoard?.board.toLowerCase() || 'mh';
-  console.log('Selected Board:', selectedBoard?.board, 'Board Key:', boardKey);
 
+  const vendureBoardMembers = boardFaculties?.[boardKey];
   const faculties =
-    members.length > 0
-      ? members
-      : FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
+    vendureBoardMembers && vendureBoardMembers.length > 0
+      ? vendureBoardMembers
+      : members.length > 0
+        ? members
+        : FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
   const swiperRef = useRef<SwiperType | null>(null);
 
   // if (!members || members.length === 0) return null;
