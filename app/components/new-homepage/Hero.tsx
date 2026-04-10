@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, RefObject } from 'react';
 import { Link, useNavigate } from '@remix-run/react';
+import { Gift } from 'lucide-react';
 
 // Hook to handle clicking outside of the custom dropdown
 type AnyEvent = MouseEvent | TouchEvent;
@@ -145,9 +146,16 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
     if (formData.class) params.set('class', formData.class);
     navigate(`/our-courses?${params.toString()}`);
   };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, phone: e.target.value });
+    let value = e.target.value;
+
+    // Remove non-numeric characters
+    value = value.replace(/\D/g, '');
+
+    // Limit to 10 digits
+    value = value.slice(0, 10);
+
+    setFormData({ ...formData, phone: value });
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,53 +168,62 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
         <div className="flex flex-col lg:flex-row gap-8 sm:gap-4">
           {/* Left Column: Content & Stats */}
           <div
-            className={`w-full sm:p-4 lg:py-9 lg:pr-12  rounded-3xl max-sm:bg-none! text-center flex flex-col items-center sm:text-left sm:items-start ${
+            className={`w-full sm:p-4 lg:py-9 lg:pr-12 rounded-3xl max-sm:bg-none! flex flex-col ${
               isLoggedIn
-                ? 'lg:max-w-none text-center flex flex-col items-center'
-                : ''
+                ? 'items-center text-center'
+                : 'text-center sm:text-left sm:items-start'
             }`}
             style={{
               background: isLoggedIn
-                ? 'rgba(255, 255, 255, 0.85)'
+                ? ''
                 : 'linear-gradient(to left, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%)',
               backdropFilter: isLoggedIn ? 'blur(10px)' : 'none',
-              border: isLoggedIn
-                ? '1px solid rgba(255, 255, 255, 0.3)'
-                : 'none',
+              border: isLoggedIn ? '' : 'none',
             }}
           >
             {/* card content */}
-            <div className="flex flex-col h-full gap-6 md:gap-16">
-              <div className="flex-1 gap-5 flex flex-col items-center justify-center sm:items-start sm:justify-start">
+            <div
+              className={`flex flex-col h-full gap-6 md:gap-16 ${
+                isLoggedIn ? 'items-center text-center' : ''
+              }`}
+            >
+              <div
+                className={`flex-1 gap-5 flex flex-col justify-center ${
+                  isLoggedIn
+                    ? 'items-center text-center md:w-[770px] max-w-full'
+                    : 'sm:items-start sm:text-left sm:justify-start'
+                }`}
+              >
                 {/* Pill Tag */}
-                <div className="inline-flex items-center gap-2 px-2 py-1 leading-[120%] rounded-full bg-[#0816270D] text-xs  sm:text-base font-medium text-gray-700 border border-[#0816270D]">
+                <div className="inline-flex items-center gap-2 px-4 py-1 leading-[120%] rounded-full bg-[#0816270D] text-xs  sm:text-base font-medium text-gray-700 border border-[#0816270D]">
                   <span>MH Board</span>
                   <span className="w-1 h-1 rounded-full bg-slate-400"></span>
                   <span>CBSE</span>
                   <span className="w-1 h-1 rounded-full bg-slate-400"></span>
                   <span>CUET</span>
                 </div>
-
                 {/* Headline */}
                 <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em]">
-                  Commerce Virtuals |<br className="max-sm:hidden" /> Courses
-                  for Class 11 & 12
+                  Commerce Virtuals |<br className="" /> Courses for Class 11 &
+                  12
                 </h1>
-
                 {/* Subheadline */}
                 <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-full  leading-[150%]">
                   India's only commerce-exclusive EdTech platform. Structured
                   courses, test series & mentorship for CBSE, Maharashtra Board
                   HSC and CUET-UG. Built for Class 11 & 12 commerce students.
                 </p>
-
                 {/* CTA Button */}
-                <div className="flex justify-center w-full sm:justify-start mt-4">
+                <div
+                  className={`flex w-full mt-4 ${
+                    isLoggedIn ? 'justify-center' : 'sm:justify-start'
+                  }`}
+                >
                   <Link
                     to="/free-resources"
                     className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-gray-700 font-medium px-4 py-3  md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-base lg:text-lg 4xl:text-xl!"
                   >
-                    <svg
+                    {/* <svg
                       className="max-sm:max-w-4 h-auto"
                       width="24"
                       height="24"
@@ -218,12 +235,12 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                         d="M22.5 12.0005C22.5006 12.2551 22.4353 12.5056 22.3105 12.7275C22.1856 12.9495 22.0055 13.1353 21.7875 13.267L8.28 21.5302C8.05227 21.6696 7.79144 21.7457 7.52445 21.7507C7.25746 21.7556 6.99399 21.6892 6.76125 21.5583C6.53073 21.4294 6.3387 21.2414 6.2049 21.0137C6.07111 20.786 6.00039 20.5268 6 20.2627V3.73828C6.00039 3.47417 6.07111 3.21493 6.2049 2.98722C6.3387 2.75951 6.53073 2.57155 6.76125 2.44266C6.99399 2.31173 7.25746 2.24531 7.52445 2.25026C7.79144 2.2552 8.05227 2.33133 8.28 2.47078L21.7875 10.7339C22.0055 10.8656 22.1856 11.0515 22.3105 11.2734C22.4353 11.4953 22.5006 11.7458 22.5 12.0005Z"
                         fill="#374151"
                       />
-                    </svg>
-                    <span>Watch Free Demo</span>
+                    </svg> */}
+                    <Gift />
+                    <span className="">Explore Free Resources</span>
                   </Link>
                 </div>
               </div>
-
               {/* Stats Row */}
               <div
                 className={`grid grid-cols-2 xl:grid-cols-4 gap-6 whitespace-nowrap justify-center sm:justify-start ${
@@ -243,7 +260,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     Free Resources
                   </p>
                   <p className="score-text text-lg sm:text-xl md:text-2xl font-semibold text-black">
-                    2400+
+                    1000+
                   </p>
                 </div>
                 <div>
@@ -259,7 +276,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     Available Courses
                   </p>
                   <p className="score-text text-lg sm:text-xl md:text-2xl font-semibold text-black">
-                    30+
+                    20+
                   </p>
                 </div>
               </div>
@@ -320,13 +337,14 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     Phone Number
                   </label>
                   <div className="flex items-center w-full border border-slate-200 rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors">
-                    <span className="text-sm sm:text-base xl:text-xl font-medium text-lightgray leading-[120%]">
+                    <span className="text-sm mr-2 sm:text-base xl:text-xl font-medium text-lightgray leading-[120%]">
                       +91
                     </span>
                     <input
                       type="tel"
-                      className="w-full text-sm xl:text-xl text-slate-800 font-medium focus-within:outline-0! focus:outline-0! focus:shadow-white! focus-within:shadow-white! bg-transparent placeholder-slate-300 outline-0! border-0! py-0! leading-[120%]"
-                      placeholder=""
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="w-full text-sm xl:text-xl text-slate-800 font-medium bg-transparent outline-none border-0 py-0 leading-[120%]"
                       value={formData.phone}
                       onChange={handlePhoneChange}
                     />

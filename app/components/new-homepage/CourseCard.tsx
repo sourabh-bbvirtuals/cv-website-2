@@ -88,7 +88,7 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
 
         {/* Pricing & Info Table Style */}
         <div className="border-t border-[rgba(8,22,39,0.1)] flex flex-row items-center gap-0">
-          <div className="flex-1 space-y-2 text-sm leading-[1.2] text-lightgray min-w-0 px-2 sm:px-4 sm:py-3">
+          <div className="flex-1 space-y-2 text-sm leading-[1.2] text-lightgray min-w-0 px-3 sm:px-4 py-1 sm:py-3">
             <div className="flex gap-0.5 justify-between">
               <span className="font-normal text-xs md:text-sm opacity-50 shrink-0">
                 Starts on
@@ -106,16 +106,14 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
               </span>
             </div>
           </div>
-          <div className="block w-px h-full bg-[rgba(8,22,39,0.1)] shrink-0 mx-3" />
+          <div className="w-px self-stretch bg-[rgba(8,22,39,0.1)] mx-1" />{' '}
           <div className="flex flex-col md:flex-row items-center gap-1 justify-end min-w-[120px] p-1 sm:p-2 pl-0 pb-2 sm:pb-4">
             <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
               {course.price}
             </span>
-            {course.wasPrice && (
-              <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
-                {course.wasPrice}
-              </span>
-            )}
+            <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
+              {course.wasPrice}
+            </span>
           </div>
         </div>
       </article>

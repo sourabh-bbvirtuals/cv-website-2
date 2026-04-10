@@ -148,7 +148,7 @@ export async function loader({ request, context }: DataFunctionArgs) {
 export default function App() {
   const loaderData = useLoaderData<RootLoaderData>();
   const location = useLocation();
-  const hideFooterRoutes = ['/login', '/sign-up', '/sign-in'];
+  const hideFooterRoutes = ['/login', '/sign-up', '/sign-in', '/account'];
   const shouldHideFooter =
     hideFooterRoutes.includes(location.pathname) ||
     location.pathname.startsWith('/free-resources/quizzes/');

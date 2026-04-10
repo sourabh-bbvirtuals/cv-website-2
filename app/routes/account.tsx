@@ -157,14 +157,14 @@ function OnboardingForm({
           <h1 className="font-geist font-semibold leading-[120%] text-2xl md:text-3xl lg:text-[32px] tracking-[-1%] text-lightgray">
             Create an Account
           </h1>
-          <p className="text-lightgray opacity-50 font-geist leading-[120%] text-xs sm:text-sm lg:text-base mt-2 sm:mt-3">
+          <p className="text-lightgray opacity-50 font-geist leading-[120%] text-sm sm:text-base lg:text-xl mt-2 sm:mt-3">
             We'd like to know about your current status
           </p>
         </div>
 
         <div className="bg-[#FFFFFF33] border border-[#FFFFFF] w-full max-w-120 lg:max-w-150 rounded-[30px] p-5 sm:p-8 text-left z-10 flex flex-col gap-4 sm:gap-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Full Name
             </label>
             <input
@@ -174,17 +174,21 @@ function OnboardingForm({
                 setFullName(e.target.value);
                 setErrors((p) => ({ ...p, fullName: '' }));
               }}
-              className={`${inputClass} ${errors.fullName ? 'border-red-500' : ''}`}
+              className={`${inputClass} ${
+                errors.fullName ? 'border-red-500' : ''
+              }`}
               placeholder="Write Name here"
             />
             {errors.fullName && (
-              <span className="text-red-500 text-xs px-2">{errors.fullName}</span>
+              <span className="text-red-500 text-sm px-2">
+                {errors.fullName}
+              </span>
             )}
           </div>
 
           {!knownEmail && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+              <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
                 Email
               </label>
               <input
@@ -198,7 +202,7 @@ function OnboardingForm({
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Date of Birth
             </label>
             <input
@@ -210,7 +214,7 @@ function OnboardingForm({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Gender
             </label>
             <div className="flex gap-3">
@@ -229,12 +233,12 @@ function OnboardingForm({
               ))}
             </div>
             {errors.gender && (
-              <span className="text-red-500 text-xs px-2">{errors.gender}</span>
+              <span className="text-red-500 text-sm px-2">{errors.gender}</span>
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Which Board?
             </label>
             <div className="flex gap-2 sm:gap-3">
@@ -248,17 +252,18 @@ function OnboardingForm({
                   }}
                   className={getSegmentClass(board === b)}
                 >
-                  {b === 'CBSE' ? '🏵️ ' : b === 'MH' ? '🏫 ' : '🎓 '}{b}
+                  {b === 'CBSE' ? '🏵️ ' : b === 'MH' ? '🏫 ' : '🎓 '}
+                  {b}
                 </button>
               ))}
             </div>
             {errors.board && (
-              <span className="text-red-500 text-xs px-2">{errors.board}</span>
+              <span className="text-red-500 text-sm px-2">{errors.board}</span>
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Which Class Are You In?
             </label>
             <div className="flex gap-3">
@@ -277,12 +282,14 @@ function OnboardingForm({
               ))}
             </div>
             {errors.classLevel && (
-              <span className="text-red-500 text-xs px-2">{errors.classLevel}</span>
+              <span className="text-red-500 text-sm px-2">
+                {errors.classLevel}
+              </span>
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Phone Number
             </label>
             <div
@@ -301,12 +308,12 @@ function OnboardingForm({
                   setPhone(v);
                   setErrors((p) => ({ ...p, phone: '' }));
                 }}
-                className="bg-transparent w-full text-lightgray text-sm sm:text-base font-medium border-none outline-none focus:ring-0"
+                className="bg-transparent w-full text-lightgray/60 text-sm sm:text-base font-medium border-none outline-none focus:ring-0"
                 placeholder="00000-00000"
               />
             </div>
             {errors.phone && (
-              <span className="text-red-500 text-xs px-2">{errors.phone}</span>
+              <span className="text-red-500 text-sm px-2">{errors.phone}</span>
             )}
           </div>
 
@@ -331,15 +338,21 @@ function OnboardingForm({
       </div>
 
       <div className="w-full text-center mt-auto pt-4">
-        <p className="font-geist font-medium text-xs sm:text-sm leading-[120%] text-lightgray opacity-50">
+        <p className="font-geist font-medium text-sm sm:text-xl leading-[120%] text-lightgray opacity-50">
           You Acknowledge that you read, and agree to our
         </p>
-        <p className="font-geist font-medium text-xs sm:text-sm leading-[120%] text-lightgray opacity-50 mt-1">
-          <a href="#" className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline">
+        <p className="font-geist font-medium text-sm sm:text-xl leading-[120%] text-lightgray opacity-50 mt-1">
+          <a
+            href="#"
+            className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline"
+          >
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="#" className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline">
+          <a
+            href="#"
+            className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline"
+          >
             Privacy Policy
           </a>
         </p>

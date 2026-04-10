@@ -50,7 +50,7 @@ const LearningFormats: React.FC = () => {
       desc: 'Weekly live classes with teachers. Ask doubts in real time. All sessions recorded and available for replay.',
       wrapperClass: 'bg-[#fff1ee]',
       borderClass: 'border-[#f5dbd6]',
-      img: '/assets/images/LearningFormats/mock-tests.png',
+      img: '/assets/images/LearningFormats/doubt-session.png',
     },
     {
       id: 'mock',
@@ -58,7 +58,7 @@ const LearningFormats: React.FC = () => {
       desc: 'Daily practice problems matching exam patterns. Full-length mocks with detailed guide.',
       wrapperClass: 'bg-[#f0f9ff]',
       borderClass: 'border-[#d0e8ff]',
-      img: '/assets/images/LearningFormats/doubt-session.png',
+      img: '/assets/images/LearningFormats/mock-tests.png',
     },
   ];
 

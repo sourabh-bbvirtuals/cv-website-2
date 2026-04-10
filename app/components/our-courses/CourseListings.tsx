@@ -108,8 +108,16 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
 }
 
 const AVATAR_BG_PALETTE = [
-  '#6e93ff', '#e8967f', '#a6a0f5', '#8aadd4', '#a4ffca',
-  '#f5a0ad', '#ffc78e', '#b5e6a3', '#d4a6f5', '#8ed4c8',
+  '#6e93ff',
+  '#e8967f',
+  '#a6a0f5',
+  '#8aadd4',
+  '#a4ffca',
+  '#f5a0ad',
+  '#ffc78e',
+  '#b5e6a3',
+  '#d4a6f5',
+  '#8ed4c8',
 ];
 
 // --- Sub-components ---
@@ -261,19 +269,25 @@ export default function CourseListings({
 
   const subjectOptions = useMemo(() => {
     const set = new Set<string>();
-    allCourses.forEach((c) => { if (c.subject) set.add(c.subject); });
+    allCourses.forEach((c) => {
+      if (c.subject) set.add(c.subject);
+    });
     return Array.from(set).sort();
   }, [allCourses]);
 
   const facultyOptions = useMemo(() => {
     const set = new Set<string>();
-    allCourses.forEach((c) => { if (c.faculty) set.add(c.faculty); });
+    allCourses.forEach((c) => {
+      if (c.faculty) set.add(c.faculty);
+    });
     return Array.from(set).sort();
   }, [allCourses]);
 
   const languageOptions = useMemo(() => {
     const set = new Set<string>();
-    allCourses.forEach((c) => { if (c.language) set.add(c.language); });
+    allCourses.forEach((c) => {
+      if (c.language) set.add(c.language);
+    });
     return Array.from(set).sort();
   }, [allCourses]);
 
@@ -363,12 +377,12 @@ export default function CourseListings({
     if (urlBoard || urlClass) {
       const boardFiltered = filtered.filter((course) => {
         const facets = course.meta;
-        const matchBoard = !urlBoard || facets.some(
-          (f) => f.toLowerCase() === urlBoard.toLowerCase(),
-        );
-        const matchClass = !urlClass || facets.some(
-          (f) => f.toLowerCase() === urlClass.toLowerCase(),
-        );
+        const matchBoard =
+          !urlBoard ||
+          facets.some((f) => f.toLowerCase() === urlBoard.toLowerCase());
+        const matchClass =
+          !urlClass ||
+          facets.some((f) => f.toLowerCase() === urlClass.toLowerCase());
         return matchBoard && matchClass;
       });
       if (boardFiltered.length > 0) {
@@ -383,7 +397,9 @@ export default function CourseListings({
     }
 
     if (selectedSubjects) {
-      filtered = filtered.filter((course) => course.subject === selectedSubjects);
+      filtered = filtered.filter(
+        (course) => course.subject === selectedSubjects,
+      );
     }
 
     if (selectedFaculties.length > 0) {
@@ -676,9 +692,16 @@ export default function CourseListings({
                         </div>
                         <div
                           className="md:w-7 md:h-7 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
-                          style={{ backgroundColor: AVATAR_BG_PALETTE[idx % AVATAR_BG_PALETTE.length] }}
+                          style={{
+                            backgroundColor:
+                              AVATAR_BG_PALETTE[idx % AVATAR_BG_PALETTE.length],
+                          }}
                         >
-                          {faculty.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+                          {faculty
+                            .split(' ')
+                            .map((w) => w[0])
+                            .join('')
+                            .slice(0, 2)}
                         </div>
                         <span>{faculty}</span>
                       </button>
@@ -929,7 +952,7 @@ export default function CourseListings({
 
                   {/* Pricing & Info Table Style */}
                   <div className="border-t border-[rgba(8,22,39,0.1)] flex flex-row items-center gap-0">
-                    <div className="flex-1 space-y-2 text-sm leading-[1.2] text-lightgray min-w-0 px-2 sm:px-4 sm:py-3">
+                    <div className="flex-1 space-y-2 text-sm leading-[1.2] text-lightgray min-w-0 px-3 sm:px-4 py-1 sm:py-3">
                       <div className="flex gap-0.5 justify-between">
                         <span className="font-normal text-xs md:text-sm opacity-50 shrink-0">
                           Starts on
@@ -947,7 +970,7 @@ export default function CourseListings({
                         </span>
                       </div>
                     </div>
-                    <div className="w-px self-stretch bg-[rgba(8,22,39,0.1)] mx-3" />{' '}
+                    <div className="w-px self-stretch bg-[rgba(8,22,39,0.1)] mx-1" />{' '}
                     <div className="flex flex-col md:flex-row items-center gap-1 justify-end min-w-[120px] p-1 sm:p-2 pl-0 pb-2 sm:pb-4">
                       <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
                         {course.price}

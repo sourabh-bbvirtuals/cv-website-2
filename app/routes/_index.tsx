@@ -353,7 +353,7 @@ export default function Index() {
         <div className="flex flex-col">
           <Hero isLoggedIn={isLoggedIn} />
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           {/* <FacultySection /> */}
 
@@ -366,37 +366,37 @@ export default function Index() {
             <OurTeam />
           )}
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           <LearningFormats />
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           <HowItWorks />
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           <FeaturedCourses courses={featuredCourses} />
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           <FreeResources />
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           <Testimonials
             title={testimonialSection?.title}
             testimonials={testimonialSection?.testimonials}
           />
 
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
 
           {faqSection?.faqs?.length > 0 ? (
             <FAQSection title={faqSection.title} faqs={faqSection.faqs} />
           ) : (
             <Faq />
           )}
-          <div className="my-16 md:my-24 lg:my-20" />
+          <div className="my-10  lg:my-20" />
         </div>
       </Layout>
     </BoardSelectionProvider>

@@ -209,16 +209,29 @@ function FaqSection({
         return (
           <div
             key={i}
-            className="flex gap-4 rounded-2xl border border-[rgba(8,22,39,0.1)] bg-white px-4 py-4 sm:px-6"
+            className="flex rounded-2xl border border-[rgba(8,22,39,0.1)] bg-white px-4 py-4 sm:px-6"
           >
             <button
               type="button"
-              className="min-w-0 flex-1 text-left"
+              className="w-full text-left"
               onClick={() => setOpenIdx(open ? null : i)}
             >
-              <p className="text-base sm:text-lg font-medium text-slate-800">
-                {item.question}
-              </p>
+              {/* TOP ROW */}
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-base sm:text-lg font-medium text-slate-800">
+                  {item.question}
+                </p>
+
+                <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                  {open ? (
+                    <ChevronDown className="size-4 text-lightgray/50" />
+                  ) : (
+                    <ChevronRight className="size-4 text-lightgray/50" />
+                  )}
+                </div>
+              </div>
+
+              {/* ANSWER */}
               <div
                 className={`grid transition-[grid-template-rows] duration-200 ${
                   open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -230,17 +243,6 @@ function FaqSection({
                   </p>
                 </div>
               </div>
-            </button>
-            <button
-              type="button"
-              className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lightgray/50 self-start mt-0.5"
-              onClick={() => setOpenIdx(open ? null : i)}
-            >
-              <ChevronDown
-                className={`size-4 transition-transform ${
-                  open ? 'rotate-180' : ''
-                }`}
-              />
             </button>
           </div>
         );
@@ -758,7 +760,10 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             child.list?.length ||
             child.videoItems?.length ||
             0;
-          const durationRaw = child.extraFields?.duration || child.extraFields?.duration_minutes || '';
+          const durationRaw =
+            child.extraFields?.duration ||
+            child.extraFields?.duration_minutes ||
+            '';
           const durationLabel = (() => {
             const hmsMatch = durationRaw.match(/^(\d+):(\d+)(?::(\d+))?$/);
             if (hmsMatch) {
@@ -772,7 +777,9 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             const mins = parseInt(durationRaw, 10);
             if (mins > 0) {
               return mins >= 60
-                ? `${Math.floor(mins / 60)}h ${mins % 60 ? `${mins % 60}m` : ''}`.trim()
+                ? `${Math.floor(mins / 60)}h ${
+                    mins % 60 ? `${mins % 60}m` : ''
+                  }`.trim()
                 : `${mins}m`;
             }
             return '';
@@ -807,39 +814,32 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                   className="w-full flex items-center justify-between gap-4 text-left transition-colors"
                   onClick={() => setOpenAccordion(open ? null : idx)}
                 >
-                  <div className="flex flex-col gap-2 flex-1 relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {lectureCount > 0 && (
-                          <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
-                            {lectureCount} Lectures
-                          </span>
-                        )}
-                        {durationLabel && (
-                          <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
-                            {durationLabel}
-                          </span>
-                        )}
-                      </div>
-                      <div className="shrink-0 flex items-center justify-center  bg-[#08162708]/10 rounded-full transition-colors">
-                        {open ? (
-                          <ChevronDown className="size-5 text-slate-400" />
-                        ) : (
-                          <ChevronRight className="size-5 text-slate-400" />
-                        )}
-                      </div>
+                  {/* LEFT CONTENT */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      {lectureCount > 0 && (
+                        <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
+                          {lectureCount} Lectures
+                        </span>
+                      )}
+                      {durationLabel && (
+                        <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
+                          {durationLabel}
+                        </span>
+                      )}
                     </div>
-
-                    {/* Mobile Number Indicator */}
-                    <div className="flex items-center gap-3 sm:hidden mb-1">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-[11px] font-bold text-white">
-                        {idx + 1}
-                      </span>
-                    </div>
-
                     <span className="font-medium text-base sm:text-lg text-lightgray leading-snug">
                       {child.name}
                     </span>
+                  </div>
+
+                  {/* RIGHT ICON */}
+                  <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                    {open ? (
+                      <ChevronDown className="size-4 text-lightgray/50" />
+                    ) : (
+                      <ChevronRight className="size-4 text-lightgray/50" />
+                    )}
                   </div>
                 </button>
                 {/* specification blocks */}
@@ -967,7 +967,7 @@ export default function CourseDetailPage({
   const isCombo = includedProducts.length > 0;
   const [activeIncludedIdx, setActiveIncludedIdx] = useState(0);
   const activeIncludedSpecs: SpecItem[] = isCombo
-    ? (includedProducts[activeIncludedIdx]?.specifications ?? [])
+    ? includedProducts[activeIncludedIdx]?.specifications ?? []
     : [];
 
   const courseInfoSpec = specItems.find(
@@ -1141,11 +1141,11 @@ export default function CourseDetailPage({
                   className="absolute inset-0 w-full h-full object-cover object-top"
                 />
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
+                {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
                   <span className="text-base md:text-xl font-medium text-white leading-[1.2]">
                     {product?.faculties?.[0]?.name || 'Faculty Name'}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -1370,11 +1370,11 @@ export default function CourseDetailPage({
                   alt="Course preview"
                   className="w-full h-full object-cover object-top opacity-95 transition-transform hover:scale-105"
                 />
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
+                {/* <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-gray-500 px-4 py-2">
                   <span className="text-base md:text-lg font-medium text-white leading-[1.2]">
                     {product?.faculties?.[0]?.name || 'Faculty Name'}
                   </span>
-                </div>
+                </div> */}
               </div>
 
               {/* Content Section */}

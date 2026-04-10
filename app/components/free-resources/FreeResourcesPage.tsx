@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from '@remix-run/react';
-import { ChevronDown, Play, X } from 'lucide-react';
+import { ChevronDown, Play, ServerOff, X } from 'lucide-react';
 import { PillSelect } from '../ui/PillSelect';
 import { ContentCardItem } from './ContentCard';
 import { LimitReachedOverlay } from './LimitReachedOverlay';
@@ -223,7 +223,9 @@ export default function FreeResourcesPage({
   // Class options for selector
   const classOptions = classes.map((c) => c.name);
   const selectedClassName =
-    classes.find((c) => c.id === currentClassId)?.name ?? classes[0]?.name ?? '';
+    classes.find((c) => c.id === currentClassId)?.name ??
+    classes[0]?.name ??
+    '';
 
   // Subject filter options from API
   const subjectOptions = [
@@ -235,10 +237,7 @@ export default function FreeResourcesPage({
     'All Subjects';
 
   // Chapter filter options from API
-  const chapterOptions = [
-    'All Chapters',
-    ...(content?.chapterNames ?? []),
-  ];
+  const chapterOptions = ['All Chapters', ...(content?.chapterNames ?? [])];
   const selectedChapter = currentChapterNames || 'All Chapters';
 
   // Flatten items from grouped subjects response
@@ -260,7 +259,9 @@ export default function FreeResourcesPage({
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
           <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
             <div className="space-y-3 md:space-y-4 text-lightgray">
-              <h1 className="section-heading">Free Commerce Study Resources for Class 11 &amp; 12</h1>
+              <h1 className="section-heading">
+                Free Commerce Study Resources for Class 11 &amp; 12
+              </h1>
               <p className="max-w-[1280px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
                 Hand-picked, exam-ready resources — built exclusively for CBSE
                 and Maharashtra Board (HSC) commerce students. No login
@@ -327,56 +328,56 @@ export default function FreeResourcesPage({
 
       {/* Subject pills bar (mobile) */}
       {content && content.availableSubjects.length > 0 && (
-      <div className="md:hidden sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl">
-        <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="scrollbar-hide overflow-x-auto sm:overflow-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
+        <div className="md:hidden sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl">
+          <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="scrollbar-hide overflow-x-auto sm:overflow-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
               {content.availableSubjects.map((subj) => {
                 const isActive = subj.id === currentSubjectId;
-              return (
-                <button
+                return (
+                  <button
                     key={subj.id}
                     onClick={() =>
                       navigateWithParams({
                         subjectId: isActive ? undefined : subj.id,
                       })
                     }
-                  type="button"
-                  className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap border flex items-center gap-1 ${
+                    type="button"
+                    className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap border flex items-center gap-1 ${
                       isActive
-                      ? 'bg-[#3a6bfc] border-[#3a6bfc] text-white'
-                      : 'bg-[rgba(8,22,39,0.06)] border-[rgba(8,22,39,0.1)] text-lightgray hover:bg-[rgba(8,22,39,0.1)]'
-                  }`}
-                >
+                        ? 'bg-[#3a6bfc] border-[#3a6bfc] text-white'
+                        : 'bg-[rgba(8,22,39,0.06)] border-[rgba(8,22,39,0.1)] text-lightgray hover:bg-[rgba(8,22,39,0.1)]'
+                    }`}
+                  >
                     <span>{subj.name}</span>
-                  {isActive && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                    {isActive && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           navigateWithParams({ subjectId: undefined });
-                      }}
-                      type="button"
-                      className="flex items-center justify-center hover:opacity-70 transition-opacity"
+                        }}
+                        type="button"
+                        className="flex items-center justify-center hover:opacity-70 transition-opacity"
                         aria-label={`Remove ${subj.name} filter`}
-                    >
-                      <svg
-                        className="size-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </button>
-              );
-            })}
+                        <svg
+                          className="size-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Filter bar */}
@@ -400,7 +401,7 @@ export default function FreeResourcesPage({
 
             {/* Board selector */}
             {boards.length > 1 && (
-            <PillSelect
+              <PillSelect
                 value={selectedBoardName}
                 options={boardOptions}
                 onChange={(val) => {
@@ -418,7 +419,7 @@ export default function FreeResourcesPage({
 
             {/* Class selector */}
             {classes.length > 1 && (
-                <PillSelect
+              <PillSelect
                 value={selectedClassName}
                 options={classOptions}
                 onChange={(val) => {
@@ -429,13 +430,13 @@ export default function FreeResourcesPage({
                       subjectId: undefined,
                     });
                 }}
-                  closeAllPillSelects={handleCloseAllPillSelects}
-                />
+                closeAllPillSelects={handleCloseAllPillSelects}
+              />
             )}
 
             {/* Subject selector (desktop) */}
             <div className="md:block hidden">
-                <PillSelect
+              <PillSelect
                 value={selectedSubjectName}
                 options={subjectOptions}
                 onChange={(val) => {
@@ -445,17 +446,16 @@ export default function FreeResourcesPage({
                     const subj = content?.availableSubjects?.find(
                       (s) => s.name === val,
                     );
-                    if (subj)
-                      navigateWithParams({ subjectId: subj.id });
+                    if (subj) navigateWithParams({ subjectId: subj.id });
                   }
                 }}
-                  closeAllPillSelects={handleCloseAllPillSelects}
-                />
+                closeAllPillSelects={handleCloseAllPillSelects}
+              />
             </div>
 
             {/* Chapter selector */}
             {chapterOptions.length > 1 && (
-                <PillSelect
+              <PillSelect
                 value={selectedChapter}
                 options={chapterOptions}
                 onChange={(val) => {
@@ -465,8 +465,8 @@ export default function FreeResourcesPage({
                     navigateWithParams({ chapterNames: val });
                   }
                 }}
-                  closeAllPillSelects={handleCloseAllPillSelects}
-                />
+                closeAllPillSelects={handleCloseAllPillSelects}
+              />
             )}
           </div>
         </div>
@@ -478,16 +478,19 @@ export default function FreeResourcesPage({
           <LimitReachedOverlay />
         ) : allItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-lg font-medium text-lightgray/50">
-              No resources found
+            <div className="bg-[#F0F2F7] rounded-full p-4 mb-1">
+              <ServerOff className="text-lightgray/50" />
+            </div>
+            <p className="text-lg font-medium text-lightgray">
+              No Resources Found
             </p>
-            <p className="mt-2 text-base text-lightgray/40">
+            <p className="mt-2 text-base text-lightgray/60">
               Try changing your filters or selecting a different tab.
-                      </p>
-                    </div>
+            </p>
+          </div>
         ) : (
           <>
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {allItems.map((item) => (
                 <ContentCardItem
                   key={item.id}
@@ -495,16 +498,16 @@ export default function FreeResourcesPage({
                   subjectName={item._subjectName}
                   onWatchVideo={(videoId, title) =>
                     setVideoPlayer({ videoId, title })
-                }
-              />
-            ))}
-          </div>
+                  }
+                />
+              ))}
+            </div>
 
             {/* Pagination */}
             {content?.hasNextPage && (
               <div className="mt-10 flex justify-center">
-                  <button
-                    type="button"
+                <button
+                  type="button"
                   onClick={() =>
                     navigateWithParams({
                       page: String(currentPage + 1),
@@ -513,8 +516,8 @@ export default function FreeResourcesPage({
                   className="flex h-11 items-center justify-center gap-2 rounded-full border border-[rgba(58,107,252,0.2)] bg-white px-8 text-base font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)]"
                 >
                   Load More
-                    </button>
-          </div>
+                </button>
+              </div>
             )}
           </>
         )}
@@ -528,7 +531,7 @@ export default function FreeResourcesPage({
           onClose={() => setVideoPlayer(null)}
         />
       )}
-                </div>
+    </div>
   );
 }
 
@@ -541,8 +544,8 @@ function FreeResourcesHeroSlantSvg() {
   return (
     <svg
       viewBox="0 0 1920 397"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       className="h-full w-full"
       preserveAspectRatio="xMidYMin slice"
       aria-hidden
@@ -569,7 +572,7 @@ function FreeResourcesHeroSlantSvg() {
           fill={`url(#${gid})`}
         />
       ))}
-                </svg>
+    </svg>
   );
 }
 
@@ -599,14 +602,14 @@ function FreeVideoPlayerModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-                <button
-                  type="button"
+        <button
+          type="button"
           aria-label="Close video"
           onClick={onClose}
           className="absolute right-3 top-3 z-20 flex size-7 items-center justify-center rounded-full border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.1)] text-white/90 transition-colors hover:bg-[rgba(255,255,255,0.18)]"
         >
           <X className="size-4" strokeWidth={2} />
-                </button>
+        </button>
         <div className="relative aspect-video w-full bg-black">
           <iframe
             className="absolute inset-0 size-full"
@@ -616,8 +619,8 @@ function FreeVideoPlayerModal({
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"
           />
-                    </div>
-                    </div>
+        </div>
+      </div>
     </div>
   );
 }

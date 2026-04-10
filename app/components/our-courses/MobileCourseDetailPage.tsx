@@ -313,11 +313,14 @@ function FaqSection({
                 <p className="text-base font-medium text-slate-800">
                   {item.question}
                 </p>
-                <ChevronDown
-                  className={`size-4 transition-transform text-gray-500 font-normal ${
-                    open ? 'rotate-180' : ''
-                  }`}
-                />
+                {/* CHEVRON */}
+                <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                  {open ? (
+                    <ChevronDown className="size-4 text-lightgray/50" />
+                  ) : (
+                    <ChevronRight className="size-4 text-lightgray/50" />
+                  )}
+                </div>
               </div>
 
               <div
@@ -961,7 +964,10 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             child.list?.length ||
             child.videoItems?.length ||
             0;
-          const durationRaw = child.extraFields?.duration || child.extraFields?.duration_minutes || '';
+          const durationRaw =
+            child.extraFields?.duration ||
+            child.extraFields?.duration_minutes ||
+            '';
           const durationLabel = (() => {
             const hmsMatch = durationRaw.match(/^(\d+):(\d+)(?::(\d+))?$/);
             if (hmsMatch) {
@@ -975,7 +981,9 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             const mins = parseInt(durationRaw, 10);
             if (mins > 0) {
               return mins >= 60
-                ? `${Math.floor(mins / 60)}h ${mins % 60 ? `${mins % 60}m` : ''}`.trim()
+                ? `${Math.floor(mins / 60)}h ${
+                    mins % 60 ? `${mins % 60}m` : ''
+                  }`.trim()
                 : `${mins}m`;
             }
             return '';
@@ -1007,35 +1015,38 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
               >
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-4 text-left transition-colors"
+                  className="w-full flex items-center justify-between gap-4 text-left"
                   onClick={() => setOpenAccordion(open ? null : idx)}
                 >
-                  <div className="flex flex-col gap-2 flex-1 relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        {lectureCount > 0 && (
-                          <span className="text-[11px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2 py-0.5 shadow-xs">
-                            {lectureCount} Lectures
-                          </span>
-                        )}
-                        {durationLabel && (
-                          <span className="text-[11px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2 py-0.5 shadow-xs">
-                            {durationLabel}
-                          </span>
-                        )}
-                      </div>
-                      <div className="shrink-0 flex items-center justify-center  bg-[#08162708]/10 rounded-full transition-colors">
-                        {open ? (
-                          <ChevronDown className="size-5 text-slate-400" />
-                        ) : (
-                          <ChevronRight className="size-5 text-slate-400" />
-                        )}
-                      </div>
+                  {/* LEFT CONTENT */}
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    {/* BADGES */}
+                    <div className="flex items-center gap-1.5">
+                      {lectureCount > 0 && (
+                        <span className="text-[11px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2 py-0.5 shadow-xs">
+                          {lectureCount} Lectures
+                        </span>
+                      )}
+                      {durationLabel && (
+                        <span className="text-[11px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2 py-0.5 shadow-xs">
+                          {durationLabel}
+                        </span>
+                      )}
                     </div>
 
+                    {/* TITLE */}
                     <span className="font-medium text-base sm:text-lg text-lightgray leading-snug">
                       {child.name}
                     </span>
+                  </div>
+
+                  {/* CHEVRON */}
+                  <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                    {open ? (
+                      <ChevronDown className="size-4 text-lightgray/50" />
+                    ) : (
+                      <ChevronRight className="size-4 text-lightgray/50" />
+                    )}
                   </div>
                 </button>
                 {/* specification blocks */}
@@ -1163,7 +1174,7 @@ export default function CourseDetailPage({
   const isCombo = includedProducts.length > 0;
   const [activeIncludedIdx, setActiveIncludedIdx] = useState(0);
   const activeIncludedSpecs: SpecItem[] = isCombo
-    ? (includedProducts[activeIncludedIdx]?.specifications ?? [])
+    ? includedProducts[activeIncludedIdx]?.specifications ?? []
     : [];
 
   const courseInfoSpec = specItems.find(
@@ -1316,9 +1327,9 @@ export default function CourseDetailPage({
 
         {/* return arrow */}
         <div className="px-6 z-20 relative mt-10">
-          <Link to={'/our-courses'}>
+          <button onClick={() => navigate(-1)}>
             <ArrowLeft className="text-gray-400" />
-          </Link>
+          </button>
         </div>
 
         {/* course title */}
