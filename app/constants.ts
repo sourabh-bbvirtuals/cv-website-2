@@ -1,7 +1,7 @@
 export const APP_META_DESCRIPTION =
-  'Best Online Classes for CA Final AFM and CA Inter FM by CA Shubham Agrawal';
+  'Commerce Virtuals – Best Online Commerce Classes for Class 11 & 12';
 // export const DEMO_API_URL =
-// 'https://sandbox-vnd.dotc3.com/shop-api?vendure-token=shubham-agarwal-classes';
+// 'https://sandbox-vnd.dotc3.com/shop-api?vendure-token=commerce-virtuals';
 export const DEMO_API_URL =
   'https://staging-vendure.bbvirtuals.tech/shop-api?vendure-token=bbv-bb-virtual-commerce-mn1ydkov';
 export let API_URL =
@@ -10,7 +10,7 @@ export let API_URL =
       process.env.VENDURE_LOCAL_API_URL ??
       DEMO_API_URL
     : DEMO_API_URL;
-export const APP_META_TITLE = 'Shubham Agrawal Classes - CA Shubham Agrawal';
+export const APP_META_TITLE = 'Commerce Virtuals';
 
 /**
  * This function is used when running in Cloudflare Pages in order to set the API URL

@@ -16,10 +16,12 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
         <div className="flex flex-col justify-between h-full">
           <div className="p-[15px] pb-0 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-lightgray/80">
-              <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
-                {course.language || 'Hindi'}
-              </span>
-              {course.type === 'Recorded' ? (
+              {(course.language || course.type) && (
+                <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
+                  {course.language || course.type}
+                </span>
+              )}
+              {(course.lectureMode || course.type) && (
                 <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
                   <svg
                     width="16"
@@ -34,12 +36,7 @@ export function CourseCard({ course }: { course: FeaturedCourse }) {
                       fill="#081627"
                     />
                   </svg>
-                  Recorded
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
-                  <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
-                  {course.type || 'Live'}
+                  {course.lectureMode || course.type}
                 </span>
               )}
             </div>

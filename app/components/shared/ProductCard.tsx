@@ -173,7 +173,7 @@ export function ProductCard({
     const productUrl = `${baseUrl}/courses2/product/${slug}`;
 
     // Create message with product details
-    const message = `Hi Shubham Agrawal Classes, I am interested in this course and I want to get connected with you for more details and offerings. plz get back to me asap.
+    const message = `Hi Commerce Virtuals, I am interested in this course and I want to get connected with you for more details and offerings. plz get back to me asap.
 
 PID: ${id}
 SKU: ${sellerSku || 'N/A'}
@@ -226,7 +226,8 @@ PRODUCT-URL: ${productUrl}`;
                 // Find matching facet in productFacets
                 const matchingFacet = productFacets.find(
                   (facet) =>
-                    facet.code.replace('-cma', '').toLowerCase() === gridFacet.toLowerCase() ||
+                    facet.code.replace('-cma', '').toLowerCase() ===
+                      gridFacet.toLowerCase() ||
                     facet.name.toLowerCase() === gridFacet.toLowerCase(),
                 );
                 return matchingFacet;
@@ -404,7 +405,7 @@ PRODUCT-URL: ${productUrl}`;
               onBuyNow?.(false);
             }
           }}
-          >
+        >
           <Icon name="shopping-bag" size={14} className="h-4 w-4" />
           Buy Now
         </button>

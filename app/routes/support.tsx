@@ -13,7 +13,7 @@ import {
 export const meta: MetaFunction = () => {
   return [
     {
-      title: 'Support - Shubham Agrawal Classes',
+      title: 'Support - Commerce Virtuals',
     },
   ];
 };

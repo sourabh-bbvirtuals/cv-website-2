@@ -19,10 +19,10 @@ import MobileBottomNavigation from '~/components/bottom-navigation/mobile-bottom
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Shubham Agrawal Classes — Forgot password' },
+    { title: 'Commerce Virtuals — Forgot password' },
     {
       name: 'description',
-      content: 'Reset your Shubham Agrawal Classes password',
+      content: 'Reset your Commerce Virtuals password',
     },
   ];
 };

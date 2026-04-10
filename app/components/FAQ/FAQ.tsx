@@ -20,34 +20,35 @@ interface FAQProps {
 // Fake FAQ data with new questions
 const fakeFAQItems = [
   {
-    question: 'What courses does Shubham Agrawal Classes offer?',
+    question: 'What courses does Commerce Virtuals offer?',
     answer:
-      'Shubham Agrawal Classes provides coaching for various professional courses, including: Chartered Accountancy (CA): Covering CA Foundation, CA Intermediate (Group 1 and Group 2), and CA Final (Group 1 and Group 2). Cost and Management Accountancy (CMA): Offering CMA Intermediate and CMA Final courses. Company Secretary (CS): Providing CS Executive and CS Professional coaching.',
+      'Commerce Virtuals provides comprehensive coaching for Class 11 and Class 12 Commerce students across CBSE, Maharashtra HSC, and CUET boards. We cover subjects like Accountancy, Economics, Business Studies, and more through structured batches.',
   },
   {
-    question: 'What modes of learning are available at Shubham Agrawal Classes?',
+    question: 'What modes of learning are available at Commerce Virtuals?',
     answer:
-      'Students can choose from multiple learning formats: Live Classes: Real-time interactive sessions with faculty. Online Download (OD) Classes: Pre-recorded lectures accessible online. Pen Drive (PD) Classes: Pre-recorded lectures provided on pen drives for offline acces',
+      'Students can choose from multiple learning formats: Live Classes with real-time interactive sessions, recorded video lectures accessible online, and downloadable study materials for offline access.',
   },
   {
-    question: 'Who are the faculty members at Shubham Agrawal Classes?',
+    question: 'Who are the faculty members at Commerce Virtuals?',
     answer:
-      "Shubham Agrawal Classes is led by CA Shubham Agrawal, along with a team of experienced educators specializing in various subjects of CA, CMA, and CS.",
+      'Commerce Virtuals has a team of experienced educators specializing in Commerce subjects for Class 11 & 12, with expertise across CBSE, Maharashtra HSC, and CUET preparation.',
   },
   {
-    question: 'Does Shubham Agrawal Classes offer mentorship and test series?',
+    question:
+      'Does Commerce Virtuals offer test series and practice resources?',
     answer:
-      'Yes, Shubham Agrawal Classes provides mentorship programs and test series to support students preparation and assess their progress.',
+      'Yes, Commerce Virtuals provides mock tests, MCQ quizzes, previous year question papers, and study notes to support students in their exam preparation.',
   },
   {
-    question: 'Are there any upcoming batches for CA Intermediate courses?',
+    question: 'Are there any upcoming batches?',
     answer:
-      'Yes, new CA Intermediate Regular In-Depth Batches for September 2025 and January 2026 will be starting soon. Students can register for Live, OD, or PD batches.',
+      'Yes, new batches are launched regularly. Check our courses page for the latest batch schedules and enrollment details.',
   },
   {
-    question: 'How can I contact Shubham Agrawal Classes for more information?',
+    question: 'How can I contact Commerce Virtuals for more information?',
     answer:
-      "For further inquiries, you can visit the official website of Shubham Agrawal Classes or contact the institute directly.",
+      'For further inquiries, you can visit our website or reach out to us via the support page or WhatsApp.',
   },
 ];
 

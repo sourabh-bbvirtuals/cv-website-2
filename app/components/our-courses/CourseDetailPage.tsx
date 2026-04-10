@@ -22,7 +22,35 @@ export type SpecItem = {
   };
   statItems?: Array<{ label: string; value: string }>;
   extraFields?: Record<string, string>;
-  facultyInfos?: Array<{ name: string; imageUrl?: string; description?: string }>;
+  facultyInfos?: Array<{
+    name: string;
+    imageUrl?: string;
+    description?: string;
+  }>;
+};
+
+export type VariantOption = {
+  id: string;
+  name: string;
+  value?: string;
+  group?: { id: string; name: string };
+};
+
+export type OptionGroup = {
+  id: string;
+  name: string;
+  code: string;
+  options: Array<{ id: string; name: string }>;
+};
+
+export type VariantProperty = {
+  id: string;
+  name: string;
+  priceWithTax: number;
+  currencyCode: string;
+  sku: string;
+  stockLevel: number;
+  options: VariantOption[];
 };
 
 export type ProductData = {
@@ -33,10 +61,13 @@ export type ProductData = {
   priceWithTax: number;
   featuredAsset?: { preview: string } | null;
   faculties?: Array<{ name: string; image: string; description: string }>;
+  facetValues?: Array<{ name: string; facet: { name: string } }>;
   customFields?: {
     customData?: string | null;
   };
   variantId?: string | null;
+  optionGroups?: OptionGroup[];
+  variants?: VariantProperty[];
 } | null;
 
 export type IncludedProduct = {

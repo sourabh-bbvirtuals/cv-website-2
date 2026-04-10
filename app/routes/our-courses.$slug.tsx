@@ -110,7 +110,59 @@ export async function loader({ params, request }: DataFunctionArgs) {
         })
       : '';
 
-    const firstVariantId = product?.variantProperties?.[0]?.id ?? null;
+    const variants = product?.variantProperties ?? [];
+    const allOptionGroups = product?.optionProperties ?? [];
+    const firstVariantId = variants[0]?.id ?? null;
+
+    // Collect only the option group IDs that variants actually reference
+    const usedGroupIds = new Set<string>();
+    for (const v of variants) {
+      for (const o of v.options || []) {
+        if (o.group?.id) usedGroupIds.add(o.group.id);
+      }
+    }
+
+    // Filter to only groups used by variants, deduplicate by ID
+    const optionGroups = allOptionGroups.filter((og) =>
+      usedGroupIds.has(og.id),
+    );
+    const hasOptions = optionGroups.length > 0 && variants.length > 1;
+
+    // Enrich faculty images from specifications when collection-based images are missing
+    let faculties = product?.faculties ?? [];
+    if (specifications?.product) {
+      const facultySpec = specifications.product.find(
+        (s: any) =>
+          s.identifier === 'our_faculty' ||
+          s.identifier === 'faculty_info' ||
+          s.identifier === 'faculties',
+      );
+      const facultyInfos: Array<{
+        name?: string;
+        imageUrl?: string;
+        description?: string;
+      }> = facultySpec?.facultyInfos ?? [];
+      if (facultyInfos.length > 0) {
+        if (faculties.length === 0) {
+          faculties = facultyInfos.map((f: any) => ({
+            name: f.name || 'Faculty',
+            image: f.imageUrl || '',
+            description: f.description || '',
+          }));
+        } else {
+          faculties = faculties.map((fd: any) => {
+            if (!fd.image) {
+              const match = facultyInfos.find(
+                (f: any) =>
+                  f.name && f.name.toLowerCase() === fd.name.toLowerCase(),
+              );
+              if (match?.imageUrl) return { ...fd, image: match.imageUrl };
+            }
+            return fd;
+          });
+        }
+      }
+    }
 
     const productData = product
       ? {
@@ -122,8 +174,32 @@ export async function loader({ params, request }: DataFunctionArgs) {
             : '',
           priceWithTax: product.priceWithTax,
           featuredAsset: product.featuredAsset ?? null,
-          faculties: product.faculties ?? [],
+          faculties,
+          facetValues: product.facetValues ?? [],
           variantId: firstVariantId,
+          ...(hasOptions && {
+            optionGroups: optionGroups.map((og) => ({
+              id: og.id,
+              name: og.name,
+              code: og.code,
+              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+            })),
+            variants: variants.map((v) => ({
+              id: v.id,
+              name: v.name,
+              priceWithTax: v.priceWithTax,
+              currencyCode: v.currencyCode,
+              sku: v.sku,
+              stockLevel: v.stockLevel,
+              options: (v.options || []).map((o: any) => ({
+                id: o.id,
+                name: o.name,
+                group: o.group
+                  ? { id: o.group.id, name: o.group.name }
+                  : undefined,
+              })),
+            })),
+          }),
         }
       : null;
 

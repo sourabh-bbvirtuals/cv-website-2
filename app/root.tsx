@@ -172,22 +172,15 @@ export default function App() {
     refresh();
   }, [loaderData]);
 
-  const faviconUrl = '/favicon.ico';
-  const title = 'BB Virtuals';
+  const title = 'Commerce Virtuals';
 
   useEffect(() => {
-    const favicon = document.querySelector(
-      "link[rel~='icon']",
-    ) as HTMLLinkElement;
-    if (favicon) {
-      favicon.href = faviconUrl;
-    } else {
-      const newFavicon = document.createElement('link');
-      newFavicon.rel = 'icon';
-      newFavicon.href = '/favicon.ico';
-      document.head.appendChild(newFavicon);
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('config', 'G-001NR9NF1Y', {
+        page_path: location.pathname + location.search,
+      });
     }
-  }, []);
+  }, [location]);
 
   const isQuizPlayPage = location.pathname.startsWith(
     '/free-resources/quizzes/',
@@ -200,8 +193,18 @@ export default function App() {
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
-        <link rel="icon" href="/favicon.ico" type="image/png"></link>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/favicon-192.png" />
         <title>{title}</title>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-001NR9NF1Y"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-001NR9NF1Y');`,
+          }}
+        />
       </head>
       <body
         className={`flex flex-col min-h-screen ${
@@ -260,24 +263,6 @@ function DefaultSparseErrorPage({
   headline,
   description,
 }: DefaultSparseErrorPageProps) {
-  const faviconUrl =
-    typeof process !== 'undefined'
-      ? process.env.FAVICON_URL || '/favicon.ico'
-      : '/favicon.ico';
-  useEffect(() => {
-    const favicon = document.querySelector(
-      "link[rel~='icon']",
-    ) as HTMLLinkElement;
-    if (favicon) {
-      favicon.href = faviconUrl;
-    } else {
-      const newFavicon = document.createElement('link');
-      newFavicon.rel = 'icon';
-      newFavicon.href = faviconUrl;
-      document.head.appendChild(newFavicon);
-    }
-  }, [faviconUrl]);
-
   return (
     <html lang="en" id="app">
       <head>
@@ -285,7 +270,8 @@ function DefaultSparseErrorPage({
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
-        <title>Error</title>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <title>Commerce Virtuals</title>
       </head>
       <body>
         <main className="flex flex-col items-center px-4 py-16 sm:py-32 text-center">

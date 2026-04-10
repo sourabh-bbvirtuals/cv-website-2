@@ -20,7 +20,7 @@ export type FeaturedCourse = {
   price: string;
   wasPrice: string;
   language: string;
-  type: 'Live' | 'Recorded';
+  lectureMode: string;
   faculty: string;
   subject: string;
 };
@@ -58,8 +58,6 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
   // 2. Extract price
   const variant = (product.variants || [])[0];
   const priceVal = variant?.priceWithTax ? variant.priceWithTax / 100 : 0;
-  // Calculate a fake "original" price (1.5x)
-  const wasPriceVal = priceVal * 1.5;
 
   // 3. Facets mapping — group-aware
   const facetValues = (product.facetValues || []) as Array<{
@@ -74,8 +72,10 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
       .map((fv) => fv.name);
 
   const languageFacets = byGroup('language');
-  const language = languageFacets[0] || 'Hindi';
-  const type = facetNames.includes('Recorded') ? 'Recorded' : 'Live';
+  const language = languageFacets[0] || '';
+
+  const lectureModeFacets = byGroup('lecture mode');
+  const lectureMode = lectureModeFacets[0] || '';
 
   const facultyFacets = byGroup('faculty');
   const faculty = facultyFacets[0] || '';
@@ -99,9 +99,9 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
     starts: table['Start Date'] || 'TBA',
     ends: table['End Date'] || 'TBA',
     price: `₹${priceVal.toLocaleString('en-IN')}`,
-    wasPrice: `₹${Math.round(wasPriceVal).toLocaleString('en-IN')}`,
+    wasPrice: '',
     language,
-    type,
+    lectureMode,
     faculty,
     subject,
   };
@@ -880,10 +880,12 @@ export default function CourseListings({
                   <div className="flex flex-col justify-between h-full">
                     <div className="p-[15px] pb-0 flex flex-col gap-2">
                       <div className="flex items-center gap-2 text-lightgray/80">
-                        <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
-                          {course.language || 'Hindi'}
-                        </span>
-                        {course.type === 'Recorded' ? (
+                        {course.language && (
+                          <span className="rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
+                            {course.language}
+                          </span>
+                        )}
+                        {course.lectureMode && (
                           <span className="flex items-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
                             <svg
                               width="16"
@@ -898,12 +900,7 @@ export default function CourseListings({
                                 fill="#081627"
                               />
                             </svg>
-                            Recorded
-                          </span>
-                        ) : (
-                          <span className="flex items-center justify-center gap-1 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-1 text-sm leading-none font-medium text-[#081627CC]/90">
-                            <span className="inline-block text-lightgray/80 size-[7px] rounded-full border bg-lightgray/20" />
-                            {course.type || 'Live'}
+                            {course.lectureMode}
                           </span>
                         )}
                       </div>
@@ -975,9 +972,11 @@ export default function CourseListings({
                       <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
                         {course.price}
                       </span>
-                      <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
-                        {course.wasPrice}
-                      </span>
+                      {course.wasPrice && (
+                        <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
+                          {course.wasPrice}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </article>

@@ -65,75 +65,76 @@ export interface SiteSettingsData {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
-  "logo": "https://c3storage.grepvideos.com/preview/39/shubhamagarwal_logo__preview.png?preset=medium",
-  "policyLinks": [
+  logo: '/assets/logo.png',
+  policyLinks: [
     {
-      "id": "1",
-      "title": "Privacy & Terms",
-      "link": "#",
-      "slug": "privacy-and-terms"
+      id: '1',
+      title: 'Privacy & Terms',
+      link: '#',
+      slug: 'privacy-and-terms',
     },
     {
-      "id": "2",
-      "title": "Refund and Return Policy",
-      "link": "#",
-      "slug": "refund-and-return"
-    }
+      id: '2',
+      title: 'Refund and Return Policy',
+      link: '#',
+      slug: 'refund-and-return',
+    },
   ],
-  "helpline": [
+  helpline: [
     {
-      "id": "1",
-      "icon": "mail",
-      "text": "techsupport@gmail.com"
+      id: '1',
+      icon: 'mail',
+      text: 'techsupport@gmail.com',
     },
     {
-      "id": "2",
-      "icon": "phone",
-      "text": "+91 9999999999"
-    }
+      id: '2',
+      icon: 'phone',
+      text: '+91 9999999999',
+    },
   ],
-  "address": {
-    "icon": "map-pin",
-    "text": "Address"
+  address: {
+    icon: 'map-pin',
+    text: 'Address',
   },
-  "socialLinks": [
+  socialLinks: [
     {
-      "id": "youtube",
-      "icon": "youtube",
-      "link": "#"
+      id: 'youtube',
+      icon: 'youtube',
+      link: '#',
     },
     {
-      "id": "instagram",
-      "icon": "instagram",
-      "link": "#"
+      id: 'instagram',
+      icon: 'instagram',
+      link: '#',
     },
     {
-      "id": "twitter",
-      "icon": "twitter",
-      "link": "#"
+      id: 'twitter',
+      icon: 'twitter',
+      link: '#',
     },
     {
-      "id": "facebook",
-      "icon": "facebook",
-      "link": "#"
-    }
+      id: 'facebook',
+      icon: 'facebook',
+      link: '#',
+    },
   ],
-  "subscribeYoutube": {
-    "text": "Subscribe Youtube channel",
-    "link": "#"
+  subscribeYoutube: {
+    text: 'Subscribe Youtube channel',
+    link: '#',
   },
-  "companyInfo": {
-    "name": "Shubham Agarwal Classes Pvt. Ltd.",
-    "logo": "https://c3storage.grepvideos.com/preview/39/shubhamagarwal_logo__preview.png?preset=medium",
-    "description": "Best CA Classes",
-    "copyright": "Copyright © 2026 Shubham Agarwal Classes Pvt.Ltd. All rights Reserved.",
-    "paymentLogo": "https://www.shift4shop.com/images/credit-card-logos/cc-sm-5.png"
+  companyInfo: {
+    name: 'Commerce Virtuals',
+    logo: '/assets/logo.png',
+    description: 'Best Online Commerce Classes',
+    copyright: 'Copyright © 2026 Commerce Virtuals. All rights Reserved.',
+    paymentLogo:
+      'https://www.shift4shop.com/images/credit-card-logos/cc-sm-5.png',
   },
-  "whatsappQuickConnect": {
-    "name": "Shubham Agarwal Classes",
-    "phone": "919999999999",
-    "link": "https://wa.me/919999999999?text=Hi+Shubham+Agarwal%2CCLasses%2C+I%27d+like+to+know+more+about+courses."
-  }
+  whatsappQuickConnect: {
+    name: 'Commerce Virtuals',
+    phone: '919999999999',
+    link: 'https://wa.me/919999999999?text=Hi+Commerce+Virtuals%2C+I%27d+like+to+know+more+about+courses.',
+  },
 };
 
 export async function getSiteSettingsData(
@@ -142,9 +143,11 @@ export async function getSiteSettingsData(
   try {
     // Try site-settings collection first
     const result = await getCollectionBySlug('site-settings', options);
-    
+
     if (result.collection?.customFields?.customData) {
-      const settingsData = JSON.parse(result.collection.customFields.customData);
+      const settingsData = JSON.parse(
+        result.collection.customFields.customData,
+      );
       return {
         logo: settingsData.logo,
         policyLinks: settingsData.policyLinks || [],
