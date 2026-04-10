@@ -159,11 +159,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     }
 
-    const activeOrder = orderRes.body?.data?.activeOrder || null;
+    let activeOrder = orderRes.body?.data?.activeOrder || null;
     const customer = customerRes.body?.data?.activeCustomer || null;
     const shippingMethods =
       shippingRes.body?.data?.eligibleShippingMethods || [];
     const addresses = addressRes.body?.data?.activeCustomer?.addresses || [];
+
+    if (activeOrder?.state && activeOrder.state !== 'AddingItems') {
+      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+      if (tr.newToken) { authToken = tr.newToken; session.set('authToken', tr.newToken); }
+      const refreshed = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+      if (refreshed.newToken) { authToken = refreshed.newToken; session.set('authToken', refreshed.newToken); }
+      activeOrder = refreshed.body?.data?.activeOrder || activeOrder;
+    }
 
     return json(
       { activeOrder, customer, shippingMethods, addresses, error: null },
@@ -207,6 +215,13 @@ export async function action({ request }: LoaderFunctionArgs) {
   if (formAction === 'removeItem') {
     const lineId = body.get('lineId')?.toString();
     if (!lineId) return json({ error: 'Missing lineId' });
+    const orderCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+    updateToken(orderCheck.newToken);
+    const state = orderCheck.body?.data?.activeOrder?.state;
+    if (state && state !== 'AddingItems') {
+      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+      updateToken(tr.newToken);
+    }
     const { body: res, newToken } = await gqlFetch(
       REMOVE_LINE_MUTATION,
       { orderLineId: lineId },
@@ -219,6 +234,12 @@ export async function action({ request }: LoaderFunctionArgs) {
   if (formAction === 'applyCoupon') {
     const couponCode = body.get('couponCode')?.toString() || '';
     if (!couponCode) return json({ error: 'Coupon code is required' }, await commit());
+    const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+    updateToken(oCheck.newToken);
+    if (oCheck.body?.data?.activeOrder?.state && oCheck.body.data.activeOrder.state !== 'AddingItems') {
+      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+      updateToken(tr.newToken);
+    }
     const res = await gqlFetch(APPLY_COUPON, { couponCode }, authToken);
     updateToken(res.newToken);
     const result = res.body?.data?.applyCouponCode;
@@ -231,6 +252,12 @@ export async function action({ request }: LoaderFunctionArgs) {
   if (formAction === 'removeCoupon') {
     const couponCode = body.get('couponCode')?.toString() || '';
     if (!couponCode) return json({ error: 'Missing coupon code' }, await commit());
+    const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+    updateToken(oCheck.newToken);
+    if (oCheck.body?.data?.activeOrder?.state && oCheck.body.data.activeOrder.state !== 'AddingItems') {
+      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+      updateToken(tr.newToken);
+    }
     const res = await gqlFetch(REMOVE_COUPON, { couponCode }, authToken);
     updateToken(res.newToken);
     return json({ couponRemoved: true, order: res.body?.data?.removeCouponCode }, await commit());

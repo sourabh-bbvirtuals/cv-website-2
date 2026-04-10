@@ -955,18 +955,38 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
         {data.map((child, idx) => {
           const open = openAccordion === idx;
           const lectureCount =
+            parseInt(child.extraFields?.no_of_lectures || '0', 10) ||
+            parseInt(child.extraFields?.num_lectures || '0', 10) ||
             child.data?.length ||
             child.list?.length ||
             child.videoItems?.length ||
-            parseInt(child.extraFields?.num_lectures || '0', 10) ||
             0;
+          const durationRaw = child.extraFields?.duration || child.extraFields?.duration_minutes || '';
+          const durationLabel = (() => {
+            const hmsMatch = durationRaw.match(/^(\d+):(\d+)(?::(\d+))?$/);
+            if (hmsMatch) {
+              const h = parseInt(hmsMatch[1], 10);
+              const m = parseInt(hmsMatch[2], 10);
+              const parts: string[] = [];
+              if (h > 0) parts.push(`${h}h`);
+              if (m > 0) parts.push(`${m}m`);
+              return parts.join(' ') || '';
+            }
+            const mins = parseInt(durationRaw, 10);
+            if (mins > 0) {
+              return mins >= 60
+                ? `${Math.floor(mins / 60)}h ${mins % 60 ? `${mins % 60}m` : ''}`.trim()
+                : `${mins}m`;
+            }
+            return '';
+          })();
 
           return (
             <div
               key={idx}
               className="flex flex-row gap-2 w-full items-start relative z-10"
             >
-              {/* Outer Number Circle (Desktop) */}
+              {/* Outer Number Circle */}
               <div className="flex shrink-0 pt-2">
                 <span
                   className={`flex size-7 items-center justify-center rounded-full text-[13px] font-medium  border  ${
@@ -992,11 +1012,18 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                 >
                   <div className="flex flex-col gap-2 flex-1 relative">
                     <div className="flex items-center justify-between">
-                      {lectureCount > 0 && (
-                        <span className="text-[12px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
-                          {lectureCount} Lectures
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {lectureCount > 0 && (
+                          <span className="text-[11px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2 py-0.5 shadow-xs">
+                            {lectureCount} Lectures
+                          </span>
+                        )}
+                        {durationLabel && (
+                          <span className="text-[11px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2 py-0.5 shadow-xs">
+                            {durationLabel}
+                          </span>
+                        )}
+                      </div>
                       <div className="shrink-0 flex items-center justify-center  bg-[#08162708]/10 rounded-full transition-colors">
                         {open ? (
                           <ChevronDown className="size-5 text-slate-400" />

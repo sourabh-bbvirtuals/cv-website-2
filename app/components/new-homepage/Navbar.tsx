@@ -82,7 +82,10 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
             <Search size={20} />
           </button>
 
-          <button className="hidden xl:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors">
+          <button
+            onClick={() => navigate('/cart')}
+            className="hidden xl:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors"
+          >
             <ShoppingCart size={20} />
           </button>
 
