@@ -350,8 +350,45 @@ async function convertVendureProductToCourse2Product(
     facultyData = [];
   }
 
-  // const relatedProducts = await getProductsByIds(vendureProduct.customFields?.relatedProductIds || [], options);
-  // console.log('Related Products:', JSON.stringify(vendureProduct.customFields?.relatedProductIds));
+  // Enrich faculty data from specifications' our_faculty section when
+  // collection-based images are missing
+  try {
+    const customDataRaw = vendureProduct.customFields?.customData;
+    if (customDataRaw) {
+      const parsed =
+        typeof customDataRaw === 'string'
+          ? JSON.parse(customDataRaw)
+          : customDataRaw;
+      const specs = parsed?.specifications?.product ?? (Array.isArray(parsed) ? parsed : []);
+      const facultySpec = specs.find(
+        (s: any) => s.identifier === 'our_faculty',
+      );
+      const facultyInfos: Array<{ name?: string; imageUrl?: string; description?: string }> =
+        facultySpec?.facultyInfos ?? [];
+
+      if (facultyInfos.length > 0) {
+        if (facultyData.length === 0) {
+          facultyData = facultyInfos.map((f) => ({
+            name: f.name || 'Faculty',
+            image: f.imageUrl || '',
+            description: f.description || '',
+          }));
+        } else {
+          // Fill in missing images from spec data
+          for (const fd of facultyData) {
+            if (!fd.image) {
+              const match = facultyInfos.find(
+                (f) => f.name && f.name.toLowerCase() === fd.name.toLowerCase(),
+              );
+              if (match?.imageUrl) fd.image = match.imageUrl;
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // non-fatal
+  }
 
   return {
     id: vendureProduct.id,

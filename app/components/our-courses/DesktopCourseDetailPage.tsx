@@ -750,11 +750,11 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
 
         {data.map((child, idx) => {
           const open = openAccordion === idx;
-          // Count only valid video items or sub-blocks for the lecture count.
           const lectureCount =
             child.data?.length ||
             child.list?.length ||
             child.videoItems?.length ||
+            parseInt(child.extraFields?.num_lectures || '0', 10) ||
             0;
 
           return (
@@ -788,10 +788,11 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                 >
                   <div className="flex flex-col gap-2 flex-1 relative">
                     <div className="flex items-center justify-between">
-                      {/* Lecture count */}
-                      <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
-                        {lectureCount} Lectures
-                      </span>
+                      {lectureCount > 0 && (
+                        <span className="text-[12px] font-medium text-lightgray/50 bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
+                          {lectureCount} Lectures
+                        </span>
+                      )}
                       <div className="shrink-0 flex items-center justify-center  bg-[#08162708]/10 rounded-full transition-colors">
                         {open ? (
                           <ChevronDown className="size-5 text-slate-400" />
@@ -988,9 +989,6 @@ export default function CourseDetailPage({
   const price = product?.price || '';
   const facultyImage =
     product?.faculties?.[0]?.image || product?.featuredAsset?.preview;
-  const [courseType, setCourseType] = useState<string>('');
-  const [mode, setMode] = useState<string>('');
-
   const displayFaculties =
     product?.faculties && product.faculties.length > 0 ? product.faculties : [];
 
@@ -1031,30 +1029,6 @@ export default function CourseDetailPage({
                     dangerouslySetInnerHTML={{ __html: description }}
                   />
                 )} */}
-              </div>
-
-              {/* selection */}
-              <div className="flex gap-4 w-full mt-10">
-                <CustomDropdown
-                  label="Select Course Type"
-                  value={courseType}
-                  onChange={setCourseType}
-                  options={[
-                    { value: 'recorded', label: 'Recorded' },
-                    { value: 'live', label: 'Live' },
-                  ]}
-                />
-
-                <CustomDropdown
-                  label="Mode"
-                  value={mode}
-                  onChange={setMode}
-                  options={[
-                    { value: 'google-drive', label: 'Google Drive' },
-                    { value: 'zoom', label: 'Zoom' },
-                    { value: 'recorded', label: 'Recorded' },
-                  ]}
-                />
               </div>
 
               {/* price */}
@@ -1307,29 +1281,6 @@ export default function CourseDetailPage({
                   <h3 className="text-[24px] text-slate-900 leading-[1.2] font-medium tracking-[-0.02em]">
                     {title}
                   </h3>
-
-                  <div className="flex flex-col gap-6 w-full">
-                    <CustomDropdown
-                      label="Select Course Type"
-                      value={courseType}
-                      onChange={setCourseType}
-                      options={[
-                        { value: 'recorded', label: 'Recorded' },
-                        { value: 'live', label: 'Live' },
-                      ]}
-                    />
-
-                    <CustomDropdown
-                      label="Mode"
-                      value={mode}
-                      onChange={setMode}
-                      options={[
-                        { value: 'google-drive', label: 'Google Drive' },
-                        { value: 'zoom', label: 'Zoom' },
-                        { value: 'recorded', label: 'Recorded' },
-                      ]}
-                    />
-                  </div>
 
                   {price && (
                     <div className="flex items-baseline gap-2">

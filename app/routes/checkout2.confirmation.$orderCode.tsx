@@ -642,29 +642,22 @@ export default function Checkout2Confirmation() {
             </>
           )}
 
-          {/* Quick Actions - Dynamic based on payment status */}
-          <div className="bg-white mt-6 rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <>
-                <button
-                  onClick={handleViewAccount}
-                  className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <FileTextIcon className="w-4 h-4" />
-                  View My Account
-                </button>
-                <button
-                  onClick={handleContinueShopping}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                  <ShoppingBagIcon className="w-4 h-4" />
-                  Continue Shopping
-                </button>
-              </>
-            </div>
+          {/* Quick Actions */}
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={handleViewAccount}
+              className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              <FileTextIcon className="w-4 h-4" />
+              View My Account
+            </button>
+            <button
+              onClick={handleContinueShopping}
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-[#3A6BFC] text-white font-medium rounded-xl hover:bg-[#2d5ae0] transition-colors"
+            >
+              <ShoppingBagIcon className="w-4 h-4" />
+              Continue Shopping
+            </button>
           </div>
         </div>
       </div>
@@ -814,7 +807,7 @@ export default function Checkout2Confirmation() {
 
             {/* Customer Info */}
             {order.customer && (
-              <div className="pt-6 border-t border-gray-200">
+              <div className="pt-4 border-t border-gray-200">
                 <h4 className="text-sm font-medium text-gray-900 mb-2">
                   Customer
                 </h4>
@@ -826,68 +819,33 @@ export default function Checkout2Confirmation() {
                 </p>
               </div>
             )}
+
+            {/* Shipping Address */}
+            {isSuccess && order.shippingAddress && (
+              <div className="pt-4 border-t border-gray-200">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Shipping Address
+                </h4>
+                <div className="text-sm text-gray-600">
+                  <p>{order.shippingAddress.fullName}</p>
+                  <p>{order.shippingAddress.streetLine1}</p>
+                  {order.shippingAddress.streetLine2 && (
+                    <p>{order.shippingAddress.streetLine2}</p>
+                  )}
+                  <p>
+                    {order.shippingAddress.city},{' '}
+                    {order.shippingAddress.province}{' '}
+                    {order.shippingAddress.postalCode}
+                  </p>
+                  {order.shippingAddress.phoneNumber && (
+                    <p className="mt-1">
+                      Phone: {order.shippingAddress.phoneNumber}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Customer & Shipping Info - Only show on success */}
-          {isSuccess && (
-            <>
-              {/* Customer Info */}
-              {order.customer && (
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Customer Information
-                  </h3>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Name
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {order.customer.firstName} {order.customer.lastName}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Email
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {order.customer.emailAddress}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Shipping Address */}
-              {order.shippingAddress && (
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Shipping Address
-                  </h3>
-                  <div className="text-sm text-gray-900">
-                    <p className="font-medium">
-                      {order.shippingAddress.fullName}
-                    </p>
-                    <p>{order.shippingAddress.streetLine1}</p>
-                    {order.shippingAddress.streetLine2 && (
-                      <p>{order.shippingAddress.streetLine2}</p>
-                    )}
-                    <p>
-                      {order.shippingAddress.city},{' '}
-                      {order.shippingAddress.province}{' '}
-                      {order.shippingAddress.postalCode}
-                    </p>
-                    <p>{order.shippingAddress.countryCode}</p>
-                    {order.shippingAddress.phoneNumber && (
-                      <p className="mt-2">
-                        Phone: {order.shippingAddress.phoneNumber}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
     </div>

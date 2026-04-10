@@ -21,6 +21,8 @@ export type SpecItem = {
     url: string;
   };
   statItems?: Array<{ label: string; value: string }>;
+  extraFields?: Record<string, string>;
+  facultyInfos?: Array<{ name: string; imageUrl?: string; description?: string }>;
 };
 
 export type ProductData = {

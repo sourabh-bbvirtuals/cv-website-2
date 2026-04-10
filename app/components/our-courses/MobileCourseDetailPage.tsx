@@ -953,11 +953,11 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
 
         {data.map((child, idx) => {
           const open = openAccordion === idx;
-          // Count only valid video items or sub-blocks for the lecture count.
           const lectureCount =
             child.data?.length ||
             child.list?.length ||
             child.videoItems?.length ||
+            parseInt(child.extraFields?.num_lectures || '0', 10) ||
             0;
 
           return (
@@ -991,10 +991,11 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                 >
                   <div className="flex flex-col gap-2 flex-1 relative">
                     <div className="flex items-center justify-between">
-                      {/* Lecture count */}
-                      <span className="text-[12px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
-                        {lectureCount} Lectures
-                      </span>
+                      {lectureCount > 0 && (
+                        <span className="text-[12px] font-medium text-lightgray bg-white border border-slate-200 rounded-full tracking-tight w-fit px-2.5 py-0.5 shadow-xs">
+                          {lectureCount} Lectures
+                        </span>
+                      )}
                       <div className="shrink-0 flex items-center justify-center  bg-[#08162708]/10 rounded-full transition-colors">
                         {open ? (
                           <ChevronDown className="size-5 text-slate-400" />
@@ -1185,8 +1186,6 @@ export default function CourseDetailPage({
   const facultyImage =
     product?.faculties?.[0]?.image || product?.featuredAsset?.preview;
 
-  const [courseType, setCourseType] = useState<string>('');
-  const [mode, setMode] = useState<string>('');
   const [isWhatsIncludedVisible, setIsWhatsIncludedVisible] = useState(false);
   const whatsIncludedRef = useRef<HTMLDivElement>(null);
 
@@ -1318,26 +1317,6 @@ export default function CourseDetailPage({
         )}
 
         <div className="flex flex-col gap-6 w-full mt-2 p-4 py-8 bg-white/5">
-          <CustomDropdown
-            label="Select Course Type"
-            value={courseType}
-            onChange={setCourseType}
-            options={[
-              { value: 'recorded', label: 'Recorded' },
-              { value: 'live', label: 'Live' },
-            ]}
-          />
-
-          <CustomDropdown
-            label="Mode"
-            value={mode}
-            onChange={setMode}
-            options={[
-              { value: 'google-drive', label: 'Google Drive' },
-              { value: 'zoom', label: 'Zoom' },
-              { value: 'recorded', label: 'Recorded' },
-            ]}
-          />
           {/* price section */}
           <div className="flex gap-3 flex-row sm:items-center mt-4">
             {price && (
@@ -1471,28 +1450,6 @@ export default function CourseDetailPage({
       {/* Sticky Price Section */}
       {isWhatsIncludedVisible && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg animate-in slide-in-from-bottom-5 duration-300 z-40">
-          <div className="flex max-w-full px-4 pt-4 items-center gap-4 w-full">
-            <CustomDropdown2
-              label="Select Course Type"
-              value={courseType}
-              onChange={setCourseType}
-              options={[
-                { value: 'recorded', label: 'Recorded' },
-                { value: 'live', label: 'Live' },
-              ]}
-            />
-
-            <CustomDropdown2
-              label="Mode"
-              value={mode}
-              onChange={setMode}
-              options={[
-                { value: 'google-drive', label: 'Google Drive' },
-                { value: 'zoom', label: 'Zoom' },
-                { value: 'recorded', label: 'Recorded' },
-              ]}
-            />
-          </div>
           <div className="max-w-full px-4 py-4">
             <div className="flex gap-3 flex-row sm:items-center">
               {price && (

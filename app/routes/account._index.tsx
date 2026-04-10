@@ -426,28 +426,6 @@ export default function ProfileTab() {
           )}
         </div>
 
-        <div className="bg-white rounded-lg sm:rounded-3xl border border-gray-100 shadow-sm p-3 sm:p-4 xl:p-9">
-          <h2 className="text-xl xl:text-2xl font-bold text-lightgray mb-4 sm:mb-5 xl:mb-7.5">
-            Enrolled Courses
-          </h2>
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-13 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-              <img
-                src="https://www.figma.com/api/mcp/asset/09145d98-0d6a-406a-9298-57af1c21cd4b"
-                alt="Course"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <h3 className="text-xl font-medium text-lightgray leading-[120%] line-clamp-1">
-                Class 11 Commerce Complete Batch...
-              </h3>
-              <p className="text-base text-lightgray mt-3 font-medium leading-[120%] opacity-50">
-                Accountancy
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

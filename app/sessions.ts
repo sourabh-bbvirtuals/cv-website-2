@@ -21,9 +21,9 @@ export async function getSessionStorage(env?: { SESSION_SECRET: string }) {
       cookie: {
         name: '__session',
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         secrets: [
           env?.SESSION_SECRET ||
             sessionSecret ||
