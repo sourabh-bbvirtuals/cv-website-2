@@ -25,7 +25,10 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members }) => {
   const boardKey = selectedBoard?.board.toLowerCase() || 'mh';
   console.log('Selected Board:', selectedBoard?.board, 'Board Key:', boardKey);
 
-  const faculties = FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
+  const faculties =
+    members.length > 0
+      ? members
+      : FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
   const swiperRef = useRef<SwiperType | null>(null);
 
   // if (!members || members.length === 0) return null;
