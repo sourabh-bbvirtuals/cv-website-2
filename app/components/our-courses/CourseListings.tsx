@@ -58,8 +58,6 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
   // 2. Extract price
   const variant = (product.variants || [])[0];
   const priceVal = variant?.priceWithTax ? variant.priceWithTax / 100 : 0;
-  // Calculate a fake "original" price (1.5x)
-  const wasPriceVal = priceVal * 1.5;
 
   // 3. Facets mapping — group-aware
   const facetValues = (product.facetValues || []) as Array<{
@@ -101,7 +99,7 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
     starts: table['Start Date'] || 'TBA',
     ends: table['End Date'] || 'TBA',
     price: `₹${priceVal.toLocaleString('en-IN')}`,
-    wasPrice: `₹${Math.round(wasPriceVal).toLocaleString('en-IN')}`,
+    wasPrice: '',
     language,
     lectureMode,
     faculty,
@@ -951,9 +949,11 @@ export default function CourseListings({
                       <span className="font-bold text-base md:text-xl text-lightgray leading-[1.2]">
                         {course.price}
                       </span>
-                      <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
-                        {course.wasPrice}
-                      </span>
+                      {course.wasPrice && (
+                        <span className="font-medium text-sm line-through text-lightgray/30 decoration-solid">
+                          {course.wasPrice}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </article>

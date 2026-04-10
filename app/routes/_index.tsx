@@ -77,6 +77,7 @@ function childQuery(slug: string) {
               slug
               customFields { customData }
               featuredAsset { preview }
+              facetValues { name facet { name } }
             }
           }
         }
@@ -111,6 +112,7 @@ const ALL_PRODUCTS_QUERY = `
         slug
         featuredAsset { preview }
         customFields { customData }
+        facetValues { name facet { name } }
         variants {
           id
           name
@@ -126,13 +128,19 @@ const ALL_PRODUCTS_QUERY = `
 function mapProductsToCourses(products: any[]) {
   return (products || []).map((product: any) => {
     const variant = product.variants?.[0] || {};
-    const facetValues = variant.facetValues || [];
-    const facetNames = facetValues.map((fv: any) => fv.name) || [];
+    const productFacets = product.facetValues || [];
+    const variantFacets = variant.facetValues || [];
+    const facetNames = [...productFacets, ...variantFacets].map((fv: any) => fv.name).filter(Boolean);
 
-    const byGroup = (group: string) =>
-      facetValues
+    const byGroup = (group: string) => {
+      const fromProduct = productFacets
         .filter((fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
         .map((fv: any) => fv.name);
+      if (fromProduct.length > 0) return fromProduct;
+      return variantFacets
+        .filter((fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
+        .map((fv: any) => fv.name);
+    };
 
     let table: any = {};
     try {
@@ -204,13 +212,19 @@ function parseChildCustomData(
 function mapVariantsToCourses(items: any[]) {
   return (items || []).map((variant: any) => {
     const product = variant.product || {};
-    const facetValues = variant.facetValues || [];
-    const facetNames = facetValues.map((fv: any) => fv.name) || [];
+    const productFacets = product.facetValues || [];
+    const variantFacets = variant.facetValues || [];
+    const facetNames = [...productFacets, ...variantFacets].map((fv: any) => fv.name).filter(Boolean);
 
-    const byGroup = (group: string) =>
-      facetValues
+    const byGroup = (group: string) => {
+      const fromProduct = productFacets
         .filter((fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
         .map((fv: any) => fv.name);
+      if (fromProduct.length > 0) return fromProduct;
+      return variantFacets
+        .filter((fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase())
+        .map((fv: any) => fv.name);
+    };
 
     let table: any = {};
     try {
