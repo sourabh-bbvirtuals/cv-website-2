@@ -28,6 +28,7 @@ import { Link, useFetcher, useNavigate } from '@remix-run/react';
 import {
   ProductData,
   SpecItem,
+  IncludedProduct,
   CourseDetailPageProps,
   CustomDropdownProps,
   MOCK_PRODUCT,
@@ -1067,6 +1068,36 @@ function SyllabusSection({ item }: { item: SpecItem }) {
   );
 }
 
+function IncludedProductTabs({
+  products,
+  activeIndex,
+  onChange,
+}: {
+  products: IncludedProduct[];
+  activeIndex: number;
+  onChange: (idx: number) => void;
+}) {
+  if (products.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2 px-4">
+      {products.map((p, i) => (
+        <button
+          key={p.bbvProductId}
+          type="button"
+          onClick={() => onChange(i)}
+          className={`rounded-full font-medium transition-all border px-3 py-1.5 text-xs leading-[150%] ${
+            i === activeIndex
+              ? 'text-[#3A6BFC] shadow-[0_2px_8px_rgba(58,107,252,0.08)] border-[#3A6BFC]/20 bg-[#3A6BFC1A]/30'
+              : 'bg-white text-lightgray/60 border-lightgray/5 hover:text-lightgray/60 hover:bg-lightgray/5'
+          }`}
+        >
+          {p.productName}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CourseDetailPage({
   slug,
@@ -1100,6 +1131,13 @@ export default function CourseDetailPage({
   let specItems: SpecItem[] = (specifications?.product || []).sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0),
   );
+
+  const includedProducts = specifications?.includedProducts ?? [];
+  const isCombo = includedProducts.length > 0;
+  const [activeIncludedIdx, setActiveIncludedIdx] = useState(0);
+  const activeIncludedSpecs: SpecItem[] = isCombo
+    ? (includedProducts[activeIncludedIdx]?.specifications ?? [])
+    : [];
 
   const courseInfoSpec = specItems.find(
     (s) => s.identifier === 'course_info' || s.name === 'Course Info',
@@ -1385,8 +1423,16 @@ export default function CourseDetailPage({
         </section>
         <section className="space-y-6">
           <SectionTitle title="Demo Lectures" />
+          {isCombo && (
+            <IncludedProductTabs
+              products={includedProducts}
+              activeIndex={activeIncludedIdx}
+              onChange={setActiveIncludedIdx}
+            />
+          )}
           {(() => {
-            const demoSpec = specItems.find(
+            const sourceSpecs = isCombo ? activeIncludedSpecs : specItems;
+            const demoSpec = sourceSpecs.find(
               (s) => s.identifier === 'demo_lectures',
             );
             return demoSpec ? (
@@ -1411,8 +1457,16 @@ export default function CourseDetailPage({
         {/* Syllabus Section */}
         <section className="space-y-8">
           <SectionTitle title="Curriculum" />
+          {isCombo && (
+            <IncludedProductTabs
+              products={includedProducts}
+              activeIndex={activeIncludedIdx}
+              onChange={setActiveIncludedIdx}
+            />
+          )}
           {(() => {
-            const syllabusSpec = specItems.find(
+            const sourceSpecs = isCombo ? activeIncludedSpecs : specItems;
+            const syllabusSpec = sourceSpecs.find(
               (s) => s.identifier === 'syllabus',
             );
             return syllabusSpec ? (
@@ -1427,11 +1481,46 @@ export default function CourseDetailPage({
         {/* Faculties Section */}
         <section className="space-y-8">
           <SectionTitle title="Faculty Info" />
-          {displayFaculties && displayFaculties.length > 0 ? (
-            <FacultiesCarousel items={displayFaculties} />
-          ) : (
-            <p className="text-slate-500 italic px-4">No faculties available</p>
+          {isCombo && (
+            <IncludedProductTabs
+              products={includedProducts}
+              activeIndex={activeIncludedIdx}
+              onChange={setActiveIncludedIdx}
+            />
           )}
+          {(() => {
+            if (isCombo) {
+              const facultySpec = activeIncludedSpecs.find(
+                (s) =>
+                  s.identifier === 'our_faculty' ||
+                  s.identifier === 'faculties',
+              );
+              const infos = facultySpec?.facultyInfos ?? [];
+              if (infos.length > 0) {
+                return (
+                  <FacultiesCarousel
+                    items={infos.map((f) => ({
+                      name: f.name,
+                      image: f.imageUrl ?? '',
+                      description: f.description ?? '',
+                    }))}
+                  />
+                );
+              }
+              return (
+                <p className="text-slate-500 italic px-4">
+                  No faculties available
+                </p>
+              );
+            }
+            return displayFaculties && displayFaculties.length > 0 ? (
+              <FacultiesCarousel items={displayFaculties} />
+            ) : (
+              <p className="text-slate-500 italic px-4">
+                No faculties available
+              </p>
+            );
+          })()}
         </section>
         {/* FAQs Section */}
         <section className="space-y-8">

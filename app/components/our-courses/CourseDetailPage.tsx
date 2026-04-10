@@ -39,10 +39,19 @@ export type ProductData = {
   variantId?: string | null;
 } | null;
 
+export type IncludedProduct = {
+  bbvProductId: string;
+  productName: string;
+  specifications: SpecItem[];
+};
+
 export type CourseDetailPageProps = {
   slug?: string;
   product?: ProductData;
-  specifications?: { product?: SpecItem[] } | null;
+  specifications?: {
+    product?: SpecItem[];
+    includedProducts?: IncludedProduct[];
+  } | null;
 };
 
 // ─── Custom Dropdown Component ────────────────────────────────────────────────
