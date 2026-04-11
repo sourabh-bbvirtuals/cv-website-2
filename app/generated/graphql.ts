@@ -7812,7 +7812,6 @@ export const OrderDetailFragmentDoc = gql`
       lastName
       emailAddress
       phoneNumber
-      customFields
     }
     shippingAddress {
       fullName
@@ -7824,7 +7823,6 @@ export const OrderDetailFragmentDoc = gql`
       postalCode
       countryCode
       phoneNumber
-      customFields
     }
     billingAddress {
       fullName
@@ -7836,7 +7834,6 @@ export const OrderDetailFragmentDoc = gql`
       postalCode
       countryCode
       phoneNumber
-      customFields
     }
     shippingLines {
       shippingMethod {
@@ -7873,7 +7870,9 @@ export const OrderDetailFragmentDoc = gql`
           }
         }
       }
-      customFields
+      customFields {
+        additionalInformation
+      }
     }
     payments {
       id
@@ -7882,7 +7881,10 @@ export const OrderDetailFragmentDoc = gql`
       amount
       metadata
       transactionId
-      customFields
+      customFields {
+        easebuzzToken
+        paymentPageUrl
+      }
     }
     couponCodes
   }

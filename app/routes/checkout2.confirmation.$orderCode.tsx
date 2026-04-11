@@ -72,12 +72,10 @@ export async function loader({ request, params }: DataFunctionArgs) {
       customerId: order?.customer?.id,
     });
   } catch (orderError) {
-    console.log(
-      'Could not get order data (order not found or access denied):',
+    console.error(
+      '[Confirmation] Could not get order data:',
       orderError,
     );
-    // Redirect to home if order cannot be found
-    return redirect('/');
   }
 
   // Try to get announcements, but don't fail if we can't
@@ -97,35 +95,44 @@ export async function loader({ request, params }: DataFunctionArgs) {
   let isFailure = false;
   let isCancelled = false;
 
-  // Use order state to determine status
-  switch (order?.state) {
-    case 'PaymentSettled':
-      paymentStatus = 'success';
-      isSuccess = true;
-      break;
-    case 'PaymentAuthorized':
-      paymentStatus = 'pending';
-      isPending = true;
-      break;
-    case 'Cancelled':
-      paymentStatus = 'cancelled';
-      isCancelled = true;
-      break;
-    case 'ArrangingPayment':
-      if (status === 'cancelled') {
+  if (!order) {
+    // Order couldn't be loaded — fall back to URL status param
+    paymentStatus = status || 'success';
+    isSuccess = paymentStatus === 'success';
+    isPending = paymentStatus === 'pending';
+    isFailure = paymentStatus === 'failure';
+    isCancelled = paymentStatus === 'cancelled';
+  } else {
+    // Use order state to determine status
+    switch (order.state) {
+      case 'PaymentSettled':
+        paymentStatus = 'success';
+        isSuccess = true;
+        break;
+      case 'PaymentAuthorized':
+        paymentStatus = 'pending';
+        isPending = true;
+        break;
+      case 'Cancelled':
         paymentStatus = 'cancelled';
         isCancelled = true;
-      } else {
-        paymentStatus = 'failure';
-        isFailure = true;
-      }
-      break;
-    default:
-      paymentStatus = status || 'failure';
-      isSuccess = status === 'success';
-      isPending = status === 'pending';
-      isFailure = status === 'failure';
-      isCancelled = status === 'cancelled';
+        break;
+      case 'ArrangingPayment':
+        if (status === 'cancelled') {
+          paymentStatus = 'cancelled';
+          isCancelled = true;
+        } else {
+          paymentStatus = 'failure';
+          isFailure = true;
+        }
+        break;
+      default:
+        paymentStatus = status || 'failure';
+        isSuccess = status === 'success';
+        isPending = status === 'pending';
+        isFailure = status === 'failure';
+        isCancelled = status === 'cancelled';
+    }
   }
 
   console.log('Payment status determination:', {
@@ -149,6 +156,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
 
   return json({
     order,
+    orderCode,
     status: paymentStatus,
     error,
     announcements: announcements || [],
@@ -156,68 +164,22 @@ export async function loader({ request, params }: DataFunctionArgs) {
 }
 
 export default function Checkout2Confirmation() {
-  const { order, status, error, announcements } =
+  const { order, orderCode, status, error, announcements } =
     useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  // Guard clause - if no order, redirect to home
-  if (!order) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-            Order Not Found
-          </h1>
-          <p className="text-gray-600 mb-6">
-            The order you're looking for could not be found.
-          </p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Debug logging for client-side
-  console.log('=== CONFIRMATION PAGE CLIENT ===');
-  console.log('Loader data received:', {
-    orderCode: order?.code,
-    status,
-    error,
-    orderState: order?.state,
-    orderActive: order?.active,
-    orderPayments: order?.payments,
-    announcementsCount: announcements?.length,
-  });
-  console.log(
-    'Current URL search params:',
-    Object.fromEntries(searchParams.entries()),
-  );
 
   const isSuccess = status === 'success';
   const isPending = status === 'pending';
   const isFailure = status === 'failure';
   const isCancelled = status === 'cancelled';
-  console.log('Payment status determination:', {
-    status,
-    isSuccess,
-    isPending,
-    isFailure,
-    isCancelled,
-    orderState: order?.state,
-    orderActive: order?.active,
-    hasPayments: (order?.payments?.length || 0) > 0,
-    paymentStates: order?.payments?.map((p) => p.state) || [],
-  });
+
+  const displayCode = order?.code || orderCode || '';
 
 
   // Calculate discount breakdown
   const offerAmountDetail: {totalDiscount: number; additionalOfferAmount: number; couponOfferAmount: number} = useMemo(() => {
+    if (!order) return {totalDiscount: 0, additionalOfferAmount: 0, couponOfferAmount: 0};
     const discounts = order?.discounts;
     const promotions = order?.promotions;
     if (!discounts || discounts.length === 0) {
@@ -295,9 +257,9 @@ export default function Checkout2Confirmation() {
   }, [order?.state, order?.code]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className={`grid grid-cols-1 ${order ? 'lg:grid-cols-3' : ''} gap-8`}>
       {/* Main Content */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className={`${order ? 'lg:col-span-2' : ''} space-y-6`}>
         {/* Header */}
         <div className="text-center mb-8">
           <div
@@ -355,9 +317,10 @@ export default function Checkout2Confirmation() {
                     Order Number
                   </label>
                   <p className="text-sm text-gray-900 font-mono">
-                    {order.code}
+                    {displayCode}
                   </p>
                 </div>
+                {order?.createdAt && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Order Date
@@ -372,6 +335,8 @@ export default function Checkout2Confirmation() {
                     })}
                   </p>
                 </div>
+                )}
+                {order?.totalWithTax != null && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Total Amount
@@ -380,9 +345,11 @@ export default function Checkout2Confirmation() {
                     {formatPrice(order.totalWithTax, order.currencyCode)}
                   </p>
                 </div>
+                )}
               </div>
 
               {/* Order Items */}
+              {order?.lines && order.lines.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-md font-medium text-gray-900 mb-4">
                   Items Ordered
@@ -393,16 +360,6 @@ export default function Checkout2Confirmation() {
                         key={line.id}
                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                       >
-                        {/* {line.featuredAsset?.preview && (
-                          <img
-                            src={line.featuredAsset.preview}
-                            alt={
-                              line.productVariant.product?.name ||
-                              line.productVariant.name
-                            }
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        )} */}
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">
                             {line.productVariant.product?.name ||
@@ -422,6 +379,7 @@ export default function Checkout2Confirmation() {
                     ))}
                 </div>
               </div>
+              )}
 
               {/* Next Steps */}
               <div className="bg-indigo-50 rounded-lg p-4">
@@ -451,7 +409,7 @@ export default function Checkout2Confirmation() {
                     Order Number
                   </label>
                   <p className="text-sm text-gray-900 font-mono">
-                    {order.code}
+                    {displayCode}
                   </p>
                 </div>
                 <div>
@@ -663,19 +621,18 @@ export default function Checkout2Confirmation() {
       </div>
 
       {/* Sidebar */}
+      {order && (
       <div className="lg:col-span-1">
         <div className="sticky top-4 space-y-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-          {/* Order Summary */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Order Summary
             </h3>
 
-            {/* Order Info */}
             <div className="mb-4">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Order Code</span>
-                <span className="text-gray-900 font-mono">{order.code}</span>
+                <span className="text-gray-900 font-mono">{displayCode}</span>
               </div>
               <div className="flex justify-between text-sm mt-1">
                 <span className="text-gray-600">Date</span>
@@ -713,20 +670,9 @@ export default function Checkout2Confirmation() {
               </div>
             </div>
 
-            {/* Order Items */}
             <div className="space-y-3 mb-6">
               {order.lines.map((line: any) => (
                   <div key={line.id} className="flex items-center gap-3">
-                    {/* {line.featuredAsset?.preview && (
-                      <img
-                        src={line.featuredAsset.preview}
-                        alt={
-                          line.productVariant.product?.name ||
-                          line.productVariant.name
-                        }
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
-                    )} */}
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
                         {line.productVariant.product?.name ||
@@ -743,7 +689,6 @@ export default function Checkout2Confirmation() {
                 ))}
             </div>
 
-            {/* Totals Breakdown */}
             <div className="border-t border-gray-200 pt-4 space-y-2 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
@@ -787,7 +732,6 @@ export default function Checkout2Confirmation() {
               </div>
             </div>
 
-            {/* Pending Status Note */}
             {isPending && (
               <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-start gap-2">
@@ -805,7 +749,6 @@ export default function Checkout2Confirmation() {
               </div>
             )}
 
-            {/* Customer Info */}
             {order.customer && (
               <div className="pt-4 border-t border-gray-200">
                 <h4 className="text-sm font-medium text-gray-900 mb-2">
@@ -820,7 +763,6 @@ export default function Checkout2Confirmation() {
               </div>
             )}
 
-            {/* Shipping Address */}
             {isSuccess && order.shippingAddress && (
               <div className="pt-4 border-t border-gray-200">
                 <h4 className="text-sm font-medium text-gray-900 mb-2">
@@ -848,6 +790,7 @@ export default function Checkout2Confirmation() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

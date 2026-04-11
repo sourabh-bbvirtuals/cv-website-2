@@ -81,7 +81,7 @@ function decodeEditorHtml(raw: string): string {
 
 function ShareButtons({ title, slug }: { title: string; slug: string }) {
   const handleShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : `https://cv.bbvirtuals.tech/blogs/${slug}`;
+    const url = typeof window !== 'undefined' ? window.location.href : `/blogs/${slug}`;
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title, url });

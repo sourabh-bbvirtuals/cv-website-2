@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from '@remix-run/node';
 import { API_URL } from '~/constants';
 import { getBlogCollections } from '~/providers/blog/blog-collections';
 
-const SITE_URL = 'https://cv.bbvirtuals.tech';
+const SITE_URL = 'https://commercevirtuals.com';
 
 const FREE_RESOURCE_TABS = [
   'mock-tests',

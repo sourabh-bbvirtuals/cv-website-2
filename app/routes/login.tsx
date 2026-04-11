@@ -12,6 +12,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const phone = formData.get('phone') as string;
   const otp = formData.get('otp') as string;
+  const redirectTo = (formData.get('redirectTo') as string) || '/';
 
   try {
     const result = await sdk.Authenticate(
@@ -85,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
         return redirect('/sign-up', { headers });
       }
 
-      return redirect('/', { headers });
+      return redirect(redirectTo, { headers });
     }
 
     return json(

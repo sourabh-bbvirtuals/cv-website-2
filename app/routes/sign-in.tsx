@@ -118,13 +118,15 @@ export default function SignInPage() {
     }
   }, [phoneOtpFetcher.state, phoneOtpFetcher.data]);
 
+  const redirectTo = searchParams.get('redirectTo') || '/';
+
   const verifyPhoneOtp = () => {
     const otpValue = otp.join('');
     if (otpValue.length < 6) return;
     setOtpError(null);
     const fullPhone = `+91${phoneNumber}`;
     verifyOtpFetcher.submit(
-      { phone: fullPhone, otp: otpValue },
+      { phone: fullPhone, otp: otpValue, redirectTo },
       { method: 'POST', action: '/login' },
     );
   };

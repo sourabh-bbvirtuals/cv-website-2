@@ -33,7 +33,7 @@ const ACTIVE_ORDER_QUERY = `
 `;
 
 const CUSTOMER_QUERY = `
-  query { activeCustomer { id firstName lastName emailAddress phoneNumber } }
+  query { activeCustomer { id firstName lastName emailAddress phoneNumber customFields { contactEmail } } }
 `;
 
 const CUSTOMER_ADDRESSES_QUERY = `
@@ -270,7 +270,10 @@ export async function action({ request }: LoaderFunctionArgs) {
     if (!loggedInCustomer) {
       return redirect('/sign-in?redirectTo=/cart');
     }
-    const email = loggedInCustomer.emailAddress;
+    const email = body.get('email')?.toString()
+      || loggedInCustomer.customFields?.contactEmail
+      || (loggedInCustomer.emailAddress?.endsWith('@bbvirtuals.tech') ? '' : loggedInCustomer.emailAddress)
+      || '';
 
     const fullName = body.get('fullName')?.toString() || '';
     const phone = body.get('phone')?.toString() || '';
@@ -502,9 +505,13 @@ export async function action({ request }: LoaderFunctionArgs) {
         ? 'https://pay.easebuzz.in'
         : 'https://testpay.easebuzz.in';
 
-      const siteUrl = request.url.includes('localhost')
+      const url = new URL(request.url);
+      const forwardedHost = request.headers.get('X-Forwarded-Host') || url.host;
+      const forwardedProto = request.headers.get('X-Forwarded-Proto') || url.protocol.replace(':', '');
+      const origin = `${forwardedProto}://${forwardedHost}`;
+      const siteUrl = forwardedHost.includes('localhost')
         ? 'http://localhost:8080'
-        : 'https://cv.bbvirtuals.tech';
+        : origin;
 
       const initiateBody = new URLSearchParams({
         key: ebKey,
@@ -612,9 +619,14 @@ export default function CartPage() {
       ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
       : ''),
   );
-  const [phone, setPhone] = useState(
-    defaultAddr?.phoneNumber || customer?.phoneNumber || '',
+  const [email, setEmail] = useState(
+    customer?.customFields?.contactEmail ||
+    (customer?.emailAddress?.endsWith('@bbvirtuals.tech') ? '' : customer?.emailAddress || ''),
   );
+  const [phone, setPhone] = useState(() => {
+    const digits = (defaultAddr?.phoneNumber || customer?.phoneNumber || '').replace(/\D/g, '');
+    return digits.slice(-10);
+  });
   const [streetLine1, setStreetLine1] = useState(defaultAddr?.streetLine1 || '');
   const [streetLine2, setStreetLine2] = useState(defaultAddr?.streetLine2 || '');
   const [postalCode, setPostalCode] = useState(defaultAddr?.postalCode || '');
@@ -649,6 +661,7 @@ export default function CartPage() {
         if (saved) {
           const info = JSON.parse(saved);
           if (info.fullName) setFullName(info.fullName);
+          if (info.email) setEmail(info.email);
           if (info.phone) setPhone(info.phone);
           if (info.streetLine1) setStreetLine1(info.streetLine1);
           if (info.streetLine2) setStreetLine2(info.streetLine2);
@@ -702,6 +715,7 @@ export default function CartPage() {
         {
           _action: 'buyNow',
           fullName: fullName.trim(),
+          email: email.trim(),
           phone: phone.trim(),
           streetLine1: streetLine1.trim(),
           streetLine2: streetLine2.trim(),
@@ -714,7 +728,7 @@ export default function CartPage() {
         { method: 'post' },
       );
     }
-  }, [autoBuy, restoredFromSession, autoBuyTriggered, customer, isEmpty, fullName, phone, streetLine1, postalCode, city, savedCouponsForServer, appliedCoupons]);
+  }, [autoBuy, restoredFromSession, autoBuyTriggered, customer, isEmpty, fullName, email, phone, streetLine1, postalCode, city, savedCouponsForServer, appliedCoupons]);
 
   const couponData = couponFetcher.data as any;
   useEffect(() => {
@@ -789,7 +803,7 @@ export default function CartPage() {
     if (!customer) {
       try {
         sessionStorage.setItem('cartBillingInfo', JSON.stringify({
-          fullName, phone, streetLine1, streetLine2, postalCode, city, province,
+          fullName, email, phone, streetLine1, streetLine2, postalCode, city, province,
           coupons: appliedCoupons,
         }));
       } catch {}
@@ -799,6 +813,10 @@ export default function CartPage() {
 
     if (!fullName.trim()) {
       setFormError('Full name is required');
+      return;
+    }
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email.trim())) {
+      setFormError('Valid email address is required');
       return;
     }
     if (!phone.trim()) {
@@ -822,6 +840,7 @@ export default function CartPage() {
       {
         _action: 'buyNow',
         fullName: fullName.trim(),
+        email: email.trim(),
         phone: phone.trim(),
         streetLine1: streetLine1.trim(),
         streetLine2: streetLine2.trim(),
@@ -986,6 +1005,18 @@ export default function CartPage() {
                           )
                         }
                         placeholder="9999999999"
+                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
                         className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
                       />
                     </div>
