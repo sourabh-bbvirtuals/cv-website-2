@@ -48,10 +48,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
       })
       .filter(Boolean) as BoardOption[];
 
-    const selectedSlug =
+    let selectedSlug =
       cookieSlug && boardOptions.some((o) => o.slug === cookieSlug)
         ? cookieSlug
-        : boardOptions[0]?.slug || '';
+        : '';
+
+    if (!selectedSlug && boardOptions.length > 0) {
+      const cookies = request.headers.get('Cookie') || '';
+      const boardMatch = cookies.match(/bb-user-board=([^;]*)/);
+      const classMatch = cookies.match(/bb-user-class=([^;]*)/);
+      if (boardMatch) {
+        const userBoard = decodeURIComponent(boardMatch[1]).toLowerCase();
+        const userClass = classMatch
+          ? decodeURIComponent(classMatch[1]).replace(/\D/g, '')
+          : '';
+        const matched =
+          boardOptions.find((o) => {
+            const oBoard = o.board.toLowerCase();
+            const oClass = o.class.replace(/\D/g, '');
+            return oBoard.includes(userBoard) && userClass && oClass.includes(userClass);
+          }) ||
+          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+        if (matched) selectedSlug = matched.slug;
+      }
+    }
 
     return json({ boardOptions, selectedSlug });
   } catch {

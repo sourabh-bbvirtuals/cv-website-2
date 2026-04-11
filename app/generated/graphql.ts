@@ -873,6 +873,11 @@ export type CustomerCustomFields = {
   __typename?: 'CustomerCustomFields';
   gstin?: Maybe<Scalars['String']>;
   icaiRegistrationNumber?: Maybe<Scalars['String']>;
+  dateOfBirth?: Maybe<Scalars['String']>;
+  gender?: Maybe<Scalars['String']>;
+  board?: Maybe<Scalars['String']>;
+  studentClass?: Maybe<Scalars['String']>;
+  contactEmail?: Maybe<Scalars['String']>;
 };
 
 export type CustomerFilterParameter = {
@@ -3725,6 +3730,11 @@ export type UpdateAddressInput = {
 export type UpdateCustomerCustomFieldsInput = {
   gstin?: InputMaybe<Scalars['String']>;
   icaiRegistrationNumber?: InputMaybe<Scalars['String']>;
+  dateOfBirth?: InputMaybe<Scalars['String']>;
+  gender?: InputMaybe<Scalars['String']>;
+  board?: InputMaybe<Scalars['String']>;
+  studentClass?: InputMaybe<Scalars['String']>;
+  contactEmail?: InputMaybe<Scalars['String']>;
 };
 
 export type UpdateCustomerEmailAddressResult =
@@ -4804,6 +4814,11 @@ export type ActiveCustomerQuery = {
     firstName: string;
     lastName: string;
     emailAddress: string;
+    phoneNumber?: string | null;
+    customFields?: {
+      __typename?: 'CustomerCustomFields';
+      contactEmail?: string | null;
+    } | null;
   } | null;
 };
 
@@ -4825,6 +4840,11 @@ export type ActiveCustomerDetailsQuery = {
       __typename?: 'CustomerCustomFields';
       icaiRegistrationNumber?: string | null;
       gstin?: string | null;
+      dateOfBirth?: string | null;
+      gender?: string | null;
+      board?: string | null;
+      studentClass?: string | null;
+      contactEmail?: string | null;
     } | null;
   } | null;
 };
@@ -8071,7 +8091,18 @@ export const VerifyCustomerAccountDocument = gql`
 export const UpdateCustomerDocument = gql`
   mutation updateCustomer($input: UpdateCustomerInput!) {
     updateCustomer(input: $input) {
-      __typename
+      id
+      firstName
+      lastName
+      phoneNumber
+      emailAddress
+      customFields {
+        dateOfBirth
+        gender
+        board
+        studentClass
+        contactEmail
+      }
     }
   }
 `;
@@ -8417,6 +8448,10 @@ export const ActiveCustomerDocument = gql`
       firstName
       lastName
       emailAddress
+      phoneNumber
+      customFields {
+        contactEmail
+      }
     }
   }
 `;
@@ -8429,7 +8464,13 @@ export const ActiveCustomerDetailsDocument = gql`
       lastName
       phoneNumber
       emailAddress
-      customFields
+      customFields {
+        dateOfBirth
+        gender
+        board
+        studentClass
+        contactEmail
+      }
     }
   }
 `;

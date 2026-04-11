@@ -28,9 +28,12 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
   const isLoggedIn = !!customer;
   const isOurCoursesPage = location.pathname === '/our-courses';
   const showBoardDropdown =
-    location.pathname === '/' ||
-    location.pathname === '/our-courses' ||
-    location.pathname.startsWith('/courses/');
+    isLoggedIn &&
+    (location.pathname === '/' ||
+      location.pathname === '/our-courses' ||
+      location.pathname.startsWith('/courses/') ||
+      location.pathname === '/free-resources' ||
+      location.pathname.startsWith('/free-resources/'));
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

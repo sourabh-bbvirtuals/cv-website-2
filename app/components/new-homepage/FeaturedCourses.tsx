@@ -143,34 +143,23 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
             </h2>
           </div>
 
-          <div className="hidden sm:flex flex-col items-end gap-3 sm:gap-5 shrink-0">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
-                }}
-                className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft className="size-5" />
-              </button>
-              <button
-                onClick={() => {
-                  scrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
-                }}
-                className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronRight className="size-5" />
-              </button>
-            </div>
-            <Link
-              to={coursesHref}
-              className="flex items-center gap-3 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
+              }}
+              className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              View All Courses
-              <span className="flex size-6 items-center justify-center rounded-full bg-[#3a6bfc] text-white">
-                <ArrowRight className="size-3.5" aria-hidden />
-              </span>
-            </Link>
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              onClick={() => {
+                scrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
+              }}
+              className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <ChevronRight className="size-5" />
+            </button>
           </div>
         </div>
 
@@ -185,8 +174,7 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
           </div>
         </div>
 
-        {/* Mobile View - Link Below Cards */}
-        <div className="sm:hidden flex justify-center mt-6">
+        <div className="flex justify-start mt-6">
           <Link
             to={coursesHref}
             className="flex items-center gap-3 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"

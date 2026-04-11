@@ -66,12 +66,12 @@ export const DEFAULT_SITE_SETTINGS: FooterData = {
     {
       id: '1',
       icon: 'mail',
-      text: 'techsupport@gmail.com',
+      text: 'support@commercevirtuals.com',
     },
     {
       id: '2',
       icon: 'phone',
-      text: '+91 9999999999',
+      text: '+91 62910 40 600',
     },
   ],
   address: {
@@ -106,8 +106,8 @@ export const DEFAULT_SITE_SETTINGS: FooterData = {
   },
   whatsappQuickConnect: {
     name: 'Commerce Virtuals',
-    phone: '919999999999',
-    link: 'https://wa.me/919999999999?text=Hi+Commerce+Virtuals%2C+I%27d+like+to+know+more+about+courses.',
+    phone: '916291040600',
+    link: 'https://wa.me/916291040600?text=Hi+Commerce+Virtuals%2C+I%27d+like+to+know+more+about+courses.',
   },
 };
 

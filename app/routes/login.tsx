@@ -4,6 +4,9 @@ import { useFetcher, useNavigate, useSearchParams } from '@remix-run/react';
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node';
 import { API_URL } from '~/constants';
 import { sdk } from '~/graphqlWrapper';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
+
+const PROFILE_INCOMPLETE_COOKIE = 'bb-profile-incomplete=1; Path=/; Max-Age=86400; SameSite=Lax';
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -14,8 +17,8 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await sdk.Authenticate(
       {
         input: {
-          phone: {
-            phone,
+          otp: {
+            identifier: phone,
             otp,
           },
         } as any,
@@ -27,9 +30,62 @@ export async function action({ request }: ActionFunctionArgs) {
       result.authenticate?.__typename === 'CurrentUser' ||
       (result.authenticate as any)?.id
     ) {
-      return redirect('/', {
-        headers: result._headers,
+      const headers = new Headers();
+      result._headers.forEach((value, key) => {
+        headers.append(key, value);
       });
+
+      const setCookieHeader = headers.get('Set-Cookie') || '';
+      const newSessionCookie = setCookieHeader.split(';')[0] || '';
+
+      const oldCookies = (request.headers.get('Cookie') || '')
+        .split(';')
+        .map((c) => c.trim())
+        .filter((c) => !c.startsWith('__session='))
+        .join('; ');
+      const mergedCookie = oldCookies
+        ? `${oldCookies}; ${newSessionCookie}`
+        : newSessionCookie;
+
+      const authedRequest = new Request(request.url, {
+        headers: { Cookie: mergedCookie },
+      });
+
+      try {
+        const customer = await getActiveCustomerDetails({
+          request: authedRequest,
+        });
+        const c = customer?.activeCustomer;
+        console.log('[login] activeCustomer after auth:', c?.id, c?.firstName, c?.lastName);
+
+        if (c && !c.phoneNumber && phone) {
+          try {
+            const { updateCustomer } = await import('~/providers/account/account');
+            await updateCustomer(
+              { phoneNumber: phone },
+              { request: authedRequest },
+            );
+          } catch (e) {
+            console.error('[login] failed to set phoneNumber:', e);
+          }
+        }
+
+        const isIncomplete =
+          !c ||
+          !c.firstName ||
+          c.firstName === 'BB Virtual';
+
+        if (isIncomplete) {
+          headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+          return redirect('/sign-up', { headers });
+        }
+      } catch (e) {
+        console.error('[login] getActiveCustomerDetails failed:', e);
+        headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+        return redirect('/sign-up', { headers });
+      }
+
+      return redirect('/', { headers });
     }
 
     return json(

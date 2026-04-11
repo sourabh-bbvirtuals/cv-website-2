@@ -46,6 +46,10 @@ gql`
       firstName
       lastName
       emailAddress
+      phoneNumber
+      customFields {
+        contactEmail
+      }
     }
   }
 `;
@@ -59,7 +63,13 @@ gql`
       lastName
       phoneNumber
       emailAddress
-      customFields
+      customFields {
+        dateOfBirth
+        gender
+        board
+        studentClass
+        contactEmail
+      }
     }
   }
 `;

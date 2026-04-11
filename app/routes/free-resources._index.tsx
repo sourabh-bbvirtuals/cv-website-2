@@ -15,27 +15,33 @@ import {
   fetchTabNames,
   fetchTabContent,
 } from '~/utils/bbServer';
+import { resolveNavbarBoardSelection } from '~/utils/resolveNavbarBoard.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const boardId = url.searchParams.get('boardId') ?? undefined;
-  const classId = url.searchParams.get('classId') ?? undefined;
   const subjectId = url.searchParams.get('subjectId') ?? undefined;
   const chapterNames = url.searchParams.get('chapterNames') ?? undefined;
   const page = url.searchParams.get('page') ?? '1';
   const q = url.searchParams.get('q') ?? undefined;
 
+  const navSelection = await resolveNavbarBoardSelection(request);
+
   try {
     const result = await withGuestToken(request, async (token) => {
       const boards = await fetchBoards(token);
-      const selectedBoardId = boardId ?? boards[0]?.id;
+
+      let selectedBoardId = boards[0]?.id ?? '';
+      if (navSelection) {
+        const navBoard = navSelection.board.toLowerCase();
+        const matched = boards.find((b) => {
+          const bn = b.name.toLowerCase();
+          return bn.includes(navBoard) || navBoard.includes(bn);
+        });
+        if (matched) selectedBoardId = matched.id;
+      }
 
       if (!selectedBoardId) {
         return {
-          boards,
-          classes: [],
-          selectedBoardId: '',
-          selectedClassId: '',
           tabNames: [] as string[],
           activeTab: '',
           content: null,
@@ -43,7 +49,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
 
       const classes = await fetchClasses(token, selectedBoardId);
-      const selectedClassId = classId ?? classes[0]?.id ?? '';
+      let selectedClassId = classes[0]?.id ?? '';
+      if (navSelection) {
+        const matched = classes.find(
+          (c) => c.name.toLowerCase().trim() === navSelection.class.toLowerCase().trim(),
+        );
+        if (matched) selectedClassId = matched.id;
+      }
 
       const tabNames = selectedClassId
         ? await fetchTabNames(token, selectedBoardId, selectedClassId)
@@ -64,10 +76,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
 
       return {
-        boards,
-        classes,
-        selectedBoardId,
-        selectedClassId,
         tabNames,
         activeTab,
         content,
@@ -81,10 +89,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } catch (err) {
     if (err instanceof LimitReachedError) {
       return json({
-        boards: [],
-        classes: [],
-        selectedBoardId: '',
-        selectedClassId: '',
         tabNames: [] as string[],
         activeTab: '',
         content: null,
@@ -101,10 +105,6 @@ export default function FreeResourcesIndexRoute() {
   return (
     <Layout>
       <FreeResourcesPage
-        boards={data.boards}
-        classes={data.classes}
-        selectedBoardId={data.selectedBoardId}
-        selectedClassId={data.selectedClassId}
         tabNames={data.tabNames}
         activeTab={data.activeTab}
         content={data.content}

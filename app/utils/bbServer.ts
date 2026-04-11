@@ -245,3 +245,48 @@ export async function fetchTabContent(
     params as Record<string, string | undefined>,
   );
 }
+
+// ── Test / Quiz helpers ─────────────────────────────────────────
+
+export interface TestInfo {
+  id: string;
+  name: string;
+  description: string;
+  difficulty: string | null;
+  questionCount: number;
+  totalMarks: number;
+  duration: number | null;
+}
+
+export type ContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; url: string; alt?: string };
+
+export interface TestQuestion {
+  id: string;
+  index: number;
+  passage: string;
+  stem: ContentBlock[];
+  options: { id: string; content: ContentBlock[] }[];
+  correctOptionId: string | null;
+}
+
+export async function fetchTestInfo(
+  token: string,
+  testId: string,
+): Promise<TestInfo> {
+  return bbGet<TestInfo>(
+    `/student/free-resources/tests/${testId}/info`,
+    token,
+  );
+}
+
+export async function fetchTestQuestions(
+  token: string,
+  testId: string,
+): Promise<{ questions: TestQuestion[] }> {
+  return bbGet<{ questions: TestQuestion[] }>(
+    `/student/free-resources/tests/${testId}/questions`,
+    token,
+  );
+}

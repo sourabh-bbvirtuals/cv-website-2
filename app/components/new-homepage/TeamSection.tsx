@@ -17,20 +17,34 @@ export interface TeamSectionProps {
   title: string;
   members: TeamMember[];
   boardFaculties?: Record<string, TeamMember[]>;
+  hasExplicitBoard?: boolean;
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFaculties }) => {
+const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFaculties, hasExplicitBoard }) => {
   const { selectedSlug, boardOptions } = useBoardSelection();
   const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
-  const boardKey = selectedBoard?.board.toLowerCase() || 'mh';
+  const boardKey = hasExplicitBoard ? (selectedBoard?.board.toLowerCase() || '') : '';
 
-  const vendureBoardMembers = boardFaculties?.[boardKey];
+  const allBoardFaculties = boardFaculties
+    ? Object.values(boardFaculties).flat().filter(Boolean)
+    : [];
+  const allFallbackFaculties = Object.values(FACULTIES_BY_BOARD).flat();
+
+  const vendureBoardMembers = boardKey ? boardFaculties?.[boardKey] : null;
   const faculties =
     vendureBoardMembers && vendureBoardMembers.length > 0
       ? vendureBoardMembers
-      : members.length > 0
-        ? members
-        : FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
+      : boardKey && FACULTIES_BY_BOARD[boardKey]?.length > 0
+        ? FACULTIES_BY_BOARD[boardKey]
+        : allBoardFaculties.length > 0
+          ? allBoardFaculties
+          : members.length > 0
+            ? members
+            : allFallbackFaculties;
+
+  const uniqueFaculties = faculties.filter(
+    (f, i, arr) => arr.findIndex((x) => x.name === f.name) === i,
+  );
   const swiperRef = useRef<SwiperType | null>(null);
 
   // if (!members || members.length === 0) return null;
@@ -92,7 +106,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
             }}
             className="w-full"
           >
-            {faculties.map((member, index) => (
+            {uniqueFaculties.map((member, index) => (
               <SwiperSlide key={index}>
                 <article
                   className={`group flex flex-col items-center px-0.5 text-center ${
@@ -104,7 +118,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
                       src={member.image}
                       alt={member.name}
                       loading="lazy"
-                      className="w-full h-full object-contain object-bottom"
+                      className="w-full h-full object-cover object-top"
                     />
                   </div>
                   <div className="flex flex-col gap-3">

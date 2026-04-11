@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link, useRouteLoaderData, useSearchParams } from '@remix-run/react';
 import { Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { CourseCard } from '../new-homepage/CourseCard';
@@ -268,8 +268,10 @@ export default function CourseListings({
   const [searchParams] = useSearchParams();
   const urlBoard = searchParams.get('board') || '';
   const urlClass = searchParams.get('class') || '';
-  const { selectedSlug, boardOptions } = useBoardSelection();
-  const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
+  const { selectedSlug, boardOptions, setSelectedBoard } = useBoardSelection();
+  const rootData = useRouteLoaderData('root') as any;
+  const isLoggedIn = !!rootData?.activeCustomer?.activeCustomer;
+  const selectedBoard = isLoggedIn ? undefined : boardOptions.find((o) => o.slug === selectedSlug);
 
   const allCourses = useMemo(
     () => products.map(mapVendureToFeaturedCourse),
@@ -395,7 +397,7 @@ export default function CourseListings({
     const filterClass = classMap[rawClass.toLowerCase()] || rawClass;
 
     if (filterBoard || filterClass) {
-      const boardFiltered = filtered.filter((course) => {
+      filtered = filtered.filter((course) => {
         const facets = course.meta;
         const matchBoard =
           !filterBoard ||
@@ -405,9 +407,6 @@ export default function CourseListings({
           facets.some((f) => f.toLowerCase() === filterClass.toLowerCase());
         return matchBoard && matchClass;
       });
-      if (boardFiltered.length > 0) {
-        filtered = boardFiltered;
-      }
     }
 
     if (selectedLanguage.length > 0) {
@@ -500,22 +499,85 @@ export default function CourseListings({
           ref={filtersContainerRef}
         >
           <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center justify-between lg:block">
-              <span className="font-semibold text-lightgray text-lg sm:text-2xl">
+            <div className="flex items-center justify-between gap-3 lg:block">
+              <span className="font-semibold text-lightgray text-lg sm:text-2xl whitespace-nowrap">
                 {mappedCourses.length} Courses
               </span>
+
               <button
                 onClick={handleResetFilters}
-                className="text-sm sm:text-base font-medium text-lightgray/60 hover:text-lightgray transition-colors cursor-pointer lg:hidden"
+                className="text-sm sm:text-base font-medium text-lightgray/60 hover:text-lightgray transition-colors cursor-pointer lg:hidden whitespace-nowrap"
               >
                 Reset
               </button>
             </div>
 
             <div
-              className="relative scrollbar-hide overflow-x-auto flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+              className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
               ref={filterScrollRef}
             >
+              {/* Board Selector — visible for guests */}
+              {!isLoggedIn && boardOptions.length > 0 && (
+                <div className="relative h-fit shrink-0">
+                  <button
+                    onClick={() =>
+                      setActiveModal(activeModal === 'board' ? null : 'board')
+                    }
+                    className={getBtnClass(activeModal === 'board')}
+                  >
+                    <span className="font-semibold text-sm sm:text-base">
+                      {selectedBoard
+                        ? `${selectedBoard.class} · ${selectedBoard.board}`
+                        : 'All Boards'}
+                    </span>
+                    <ChevronDown isOpen={activeModal === 'board'} />
+                  </button>
+                  {activeModal === 'board' && (
+                    <div
+                      style={
+                        isMobile
+                          ? { top: '90px', left: '10px' }
+                          : {}
+                      }
+                      className="fixed z-[9999] w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => {
+                          setSelectedBoard('');
+                          setActiveModal(null);
+                        }}
+                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
+                          !selectedSlug
+                            ? 'bg-lightgray/5 text-lightgray font-medium'
+                            : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                        }`}
+                      >
+                        All Boards
+                        {!selectedSlug && <CheckIcon />}
+                      </button>
+                      <div className="border-t border-lightgray/10" />
+                      {boardOptions.map((item) => (
+                        <button
+                          key={item.slug}
+                          onClick={() => {
+                            setSelectedBoard(item.slug);
+                            setActiveModal(null);
+                          }}
+                          className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
+                            selectedSlug === item.slug
+                              ? 'bg-lightgray/5 text-lightgray font-medium'
+                              : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                          }`}
+                        >
+                          {item.class} · {item.board} Board
+                          {selectedSlug === item.slug && <CheckIcon />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               {/* SortBy Dropdown */}
               <div className="relative h-fit shrink-0">
                 <button
@@ -887,6 +949,18 @@ export default function CourseListings({
         </div>
 
         {/* Course Grid */}
+        {mappedCourses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-xl font-semibold text-lightgray/70">No courses found</p>
+            <p className="mt-2 text-base text-lightgray/50">Try changing the filters or selecting a different board.</p>
+            <button
+              onClick={handleResetFilters}
+              className="mt-6 px-6 py-2.5 rounded-full bg-lightgray text-white font-medium text-sm hover:bg-lightgray/90 transition-colors"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
         <div className="flex flex-col items-center md:grid gap-4 sm:gap-6  md:px-4 md:grid-cols-2 lg:grid-cols-3">
           {mappedCourses.map((course) => {
             const isPrimary = course.id === '1';
@@ -1005,6 +1079,7 @@ export default function CourseListings({
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );

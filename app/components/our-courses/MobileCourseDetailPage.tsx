@@ -784,6 +784,18 @@ function CompositeBlock({
 }
 
 /** Route a spec item to the right renderer */
+function hasRenderableContent(item: SpecItem): boolean {
+  if (item.type === 'table' && item.table && Object.keys(item.table).length > 0) return true;
+  if (item.type === 'list' && item.list && item.list.length > 0) return true;
+  if ((item.type === 'html' || item.type === 'text' || item.type === 'html_text') && item.text) return true;
+  if (item.type === 'video' && item.text) return true;
+  if (item.type === 'faq' && item.faqItems && item.faqItems.length > 0) return true;
+  if (item.type === 'video_carousel' && item.videoItems && item.videoItems.length > 0) return true;
+  if (item.type === 'stat_items' && item.statItems && item.statItems.length > 0) return true;
+  if (item.type === 'composite' && item.data) return item.data.some(hasRenderableContent);
+  return false;
+}
+
 function SpecBlock({ item, depth = 0 }: { item: SpecItem; depth?: number }) {
   if (item.type === 'table' && item.table)
     return <SpecTable table={item.table} />;
@@ -987,6 +999,7 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             child.list?.length ||
             child.videoItems?.length ||
             0;
+          const hasExpandableContent = hasRenderableContent(child);
           const durationRaw =
             child.extraFields?.duration ||
             child.extraFields?.duration_minutes ||
@@ -1038,8 +1051,8 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
               >
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-4 text-left"
-                  onClick={() => setOpenAccordion(open ? null : idx)}
+                  className={`w-full flex items-center justify-between gap-4 text-left ${!hasExpandableContent ? 'cursor-default' : ''}`}
+                  onClick={() => hasExpandableContent && setOpenAccordion(open ? null : idx)}
                 >
                   {/* LEFT CONTENT */}
                   <div className="flex flex-col gap-2 flex-1 min-w-0">
@@ -1064,13 +1077,15 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                   </div>
 
                   {/* CHEVRON */}
-                  <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
-                    {open ? (
-                      <ChevronDown className="size-4 text-lightgray/50" />
-                    ) : (
-                      <ChevronRight className="size-4 text-lightgray/50" />
-                    )}
-                  </div>
+                  {hasExpandableContent && (
+                    <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                      {open ? (
+                        <ChevronDown className="size-4 text-lightgray/50" />
+                      ) : (
+                        <ChevronRight className="size-4 text-lightgray/50" />
+                      )}
+                    </div>
+                  )}
                 </button>
                 {/* specification blocks */}
                 <div

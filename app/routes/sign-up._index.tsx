@@ -1,8 +1,111 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { API_URL } from '~/constants';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
+import { updateCustomer } from '~/providers/account/account';
 
-// Interfaces for Form Data and Errors
+const CLEAR_PROFILE_COOKIE =
+  'bb-profile-incomplete=; Path=/; Max-Age=0; SameSite=Lax';
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  let phone = '';
+  try {
+    const customer = await getActiveCustomerDetails({ request });
+    const c = customer?.activeCustomer;
+    if (c?.phoneNumber) {
+      phone = c.phoneNumber.replace(/^\+91/, '');
+    }
+    if (!phone && c?.emailAddress?.endsWith('@bbvirtuals.tech')) {
+      phone = c.emailAddress.replace('@bbvirtuals.tech', '').replace(/^\+?91/, '');
+    }
+  } catch {}
+  return json({ phone });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const fullName = (formData.get('fullName') as string)?.trim();
+  const email = (formData.get('email') as string)?.trim();
+
+  if (!fullName) {
+    return json({ error: 'Full Name is required' }, { status: 400 });
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ error: 'Valid email is required' }, { status: 400 });
+  }
+
+  const nameParts = fullName.split(/\s+/);
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  const phone = (formData.get('phone') as string) || '';
+  const dob = (formData.get('dob') as string) || '';
+  const gender = (formData.get('gender') as string) || '';
+
+  console.log('[sign-up] updateCustomer input:', { firstName, lastName, phoneNumber: phone, dob, gender });
+
+  try {
+    const updateResult = await updateCustomer(
+      {
+        firstName,
+        lastName,
+        phoneNumber: phone,
+        customFields: {
+          dateOfBirth: dob || null,
+          gender: gender || null,
+          board: ((formData.get('board') as string) || '') || null,
+          studentClass: ((formData.get('studentClass') as string) || '') || null,
+          contactEmail: email || null,
+        },
+      },
+      { request },
+    );
+    console.log('[sign-up] updateCustomer result:', JSON.stringify(updateResult));
+  } catch (err) {
+    console.error('updateCustomer threw:', err);
+    return json(
+      { error: 'Failed to update profile. Please try again.' },
+      { status: 500 },
+    );
+  }
+
+  try {
+    const verify = await getActiveCustomerDetails({ request });
+    const c = verify?.activeCustomer;
+    if (c && c.firstName !== firstName) {
+      console.error(
+        `updateCustomer did NOT persist. Expected firstName="${firstName}", got "${c?.firstName}"`,
+      );
+      return json(
+        { error: 'Profile update did not save. Please try again.' },
+        { status: 500 },
+      );
+    }
+  } catch (verifyErr) {
+    console.error('Failed to verify customer update:', verifyErr);
+  }
+
+  const board = (formData.get('board') as string) || '';
+  const studentClass = (formData.get('studentClass') as string) || '';
+
+  const headers = new Headers();
+  headers.append('Set-Cookie', CLEAR_PROFILE_COOKIE);
+  if (board) {
+    headers.append(
+      'Set-Cookie',
+      `bb-user-board=${encodeURIComponent(board)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+    );
+  }
+  if (studentClass) {
+    headers.append(
+      'Set-Cookie',
+      `bb-user-class=${encodeURIComponent(studentClass.replace(/\D/g, ''))}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+    );
+  }
+  return redirect('/', { headers });
+}
+
 interface SignUpFormData {
   fullName: string;
   email: string;
@@ -16,12 +119,13 @@ interface SignUpFormData {
 interface FormErrors {
   fullName?: string;
   email?: string;
-  phone?: string;
-  general?: string;
 }
 
 const SignUp: React.FC = () => {
-  // State Management
+  const { phone: prefillPhone } = useLoaderData<typeof loader>();
+  const actionData = useActionData<{ error?: string }>();
+  const navigation = useNavigation();
+
   const [formData, setFormData] = useState<SignUpFormData>({
     fullName: '',
     email: '',
@@ -29,17 +133,11 @@ const SignUp: React.FC = () => {
     gender: '',
     board: '',
     studentClass: '',
-    phone: '',
+    phone: prefillPhone || '',
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-
-  // Phone Specific Handler (Numbers only, max 10 digits)
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-    setFormData((prev) => ({ ...prev, phone: value }));
-    if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
-  };
+  const isSubmitting = navigation.state !== 'idle';
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,118 +147,12 @@ const SignUp: React.FC = () => {
     }
   };
 
-  // Custom useMutation-style hook to match requested pattern using Axios
-  const useSignupMutation = () => {
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
-
-    const mutate = async (data: SignUpFormData) => {
-      setIsLoading(true);
-      setError(null);
-
-      // Split Full Name into First and Last Name
-      const nameParts = data.fullName.trim().split(/\s+/);
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      const fullPhone = `+91${data.phone}`;
-
-      const mutation = `
-        mutation registerCustomerAccount($input: RegisterCustomerInput!) {
-          registerCustomerAccount(input: $input) {
-            __typename
-            ... on Success {
-              success
-            }
-            ... on ErrorResult {
-              errorCode
-              message
-            }
-          }
-        }
-      `;
-
-      const cleanApiUrl = API_URL.split('?')[0];
-      const vendureToken =
-        new URL(API_URL, 'http://localhost').searchParams.get(
-          'vendure-token',
-        ) || 'bb-virtual-commerce';
-
-      try {
-        const response = await axios.post(
-          cleanApiUrl,
-          {
-            query: mutation,
-            variables: {
-              input: {
-                emailAddress: data.email,
-                firstName: firstName,
-                lastName: lastName,
-                phoneNumber: fullPhone,
-                password: '123456',
-                // NOTE: The staging backend does not currently have customFields
-                // mapped for RegisterCustomerInput. Sending it causes a BAD_USER_INPUT error.
-                /*
-                customFields: {
-                  dateOfBirth: data.dob,
-                  gender: data.gender,
-                  board: data.board,
-                  studentClass: data.studentClass,
-                },
-                */
-              },
-            },
-          },
-          {
-            headers: {
-              'vendure-token': vendureToken,
-            },
-          },
-        );
-
-        if (response.data?.errors?.length > 0) {
-          console.error('GraphQL Errors:', response.data.errors);
-          const errMsg =
-            response.data.errors[0]?.message || 'GraphQL error occurred';
-          setError(errMsg);
-          setIsLoading(false);
-          return { success: false, error: errMsg };
-        }
-
-        const result = response.data?.data?.registerCustomerAccount;
-
-        if (result?.__typename === 'Success') {
-          setIsLoading(false);
-          return { success: true };
-        } else {
-          const errMsg =
-            result?.message || 'Registration failed. Please try again.';
-          setError(errMsg);
-          setIsLoading(false);
-          return { success: false, error: errMsg };
-        }
-      } catch (err: any) {
-        const errMsg =
-          err.response?.data?.errors?.[0]?.message ||
-          'Network error. Please try again.';
-        setError(errMsg);
-        setIsLoading(false);
-        return { success: false, error: errMsg };
-      }
-    };
-
-    return { mutate, isLoading, error };
-  };
-
-  const { mutate, isLoading, error: serverError } = useSignupMutation();
-
   const handleSelect = (field: keyof SignUpFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Validation & Submit Handler
-  const handleSignUp = async () => {
+  const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     const newErrors: FormErrors = {};
-
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
     if (
       !formData.email.trim() ||
@@ -168,23 +160,26 @@ const SignUp: React.FC = () => {
     ) {
       newErrors.email = 'Valid Email is required';
     }
-    if (!formData.phone || formData.phone.length !== 10) {
-      newErrors.phone = 'Valid 10-digit Phone Number is required';
-    }
-
     if (Object.keys(newErrors).length > 0) {
+      e.preventDefault();
       setErrors(newErrors);
       return;
     }
 
-    const result = await mutate(formData);
-    if (result.success) {
-      // Success - Redirect to login with success message so they can verify phone there
-      window.location.href = '/login?registered=true';
-    }
+    try {
+      localStorage.setItem(
+        'bb_user_profile',
+        JSON.stringify({
+          board: formData.board,
+          classLevel: formData.studentClass,
+          dob: formData.dob,
+          gender: formData.gender,
+          email: formData.email.trim(),
+        }),
+      );
+    } catch {}
   };
 
-  // Helper for generating dynamic classes for segmented buttons
   const getSegmentClass = (isActive: boolean) =>
     `flex items-center justify-center gap-2 flex-1 py-2 sm:py-3 rounded-full border text-sm sm:text-base font-geist font-medium transition-all bg-white cursor-pointer ${
       isActive
@@ -192,31 +187,40 @@ const SignUp: React.FC = () => {
         : 'border-[#0816271A] text-lightgray opacity-80 hover:opacity-100 hover:border-[#3A6BFC]'
     }`;
 
-  // Reusable Input Wrapper Class
   const inputClass =
     'w-full bg-white rounded-full px-4 md:px-6 py-2.5 md:py-3.5 border border-[#0816271A] text-lightgray text-sm sm:text-base font-medium outline-none focus:border-[#3A6BFC] focus:ring-1 focus:ring-[#3A6BFC] transition-all';
 
+  const serverError = actionData?.error;
+
   return (
     <main className="relative min-h-screen bg-white flex flex-col items-center justify-between p-4 py-6 sm:py-10 xl:py-15 overflow-y-auto mx-auto bg-[url('/assets/images/homepage/hero-bg.png')] bg-no-repeat bg-cover bg-center">
-      {/* Top Logo */}
       <a href="/" className="relative max-w-61.25 w-full aspect-245/48">
         <img src="/assets/logo.png" alt="logo" />
       </a>
 
-      {/* Main Form Container */}
       <div className="flex flex-col items-center w-full gap-4 sm:gap-6 text-center grow justify-center max-w-150 py-16">
-        {/* Headers */}
         <div className="flex flex-col items-center mb-2">
           <h1 className="font-geist font-semibold leading-[120%] text-2xl md:text-3xl lg:text-[32px] tracking-[-1%] text-lightgray">
-            Create an Account
+            Complete Your Profile
           </h1>
           <p className="text-lightgray opacity-50 font-geist leading-[120%] text-xs sm:text-sm lg:text-base mt-2 sm:mt-3">
             We'd like to know about your current status
           </p>
         </div>
 
-        {/* Form Box */}
-        <div className="bg-[#FFFFFF33] border border-[#FFFFFF] w-full max-w-120 lg:max-w-150 rounded-[30px] p-5 sm:p-8 text-left z-10 flex flex-col gap-4 sm:gap-5">
+        <Form
+          method="POST"
+          onSubmit={handleSignUp}
+          className="bg-[#FFFFFF33] border border-[#FFFFFF] w-full max-w-120 lg:max-w-150 rounded-[30px] p-5 sm:p-8 text-left z-10 flex flex-col gap-4 sm:gap-5"
+        >
+          <input
+            type="hidden"
+            name="phone"
+            value={formData.phone ? `+91${formData.phone.replace(/\D/g, '')}` : ''}
+          />
+          <input type="hidden" name="gender" value={formData.gender} />
+          <input type="hidden" name="board" value={formData.board} />
+          <input type="hidden" name="studentClass" value={formData.studentClass} />
           {/* Full Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
@@ -227,9 +231,7 @@ const SignUp: React.FC = () => {
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className={`${inputClass} ${
-                errors.fullName ? 'border-red-500' : ''
-              }`}
+              className={`${inputClass} ${errors.fullName ? 'border-red-500' : ''}`}
               placeholder="Write Name here"
             />
             {errors.fullName && (
@@ -249,9 +251,7 @@ const SignUp: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`${inputClass} ${
-                errors.email ? 'border-red-500' : ''
-              }`}
+              className={`${inputClass} ${errors.email ? 'border-red-500' : ''}`}
               placeholder="Write Email here"
             />
             {errors.email && (
@@ -307,21 +307,21 @@ const SignUp: React.FC = () => {
                 onClick={() => handleSelect('board', 'CBSE')}
                 className={getSegmentClass(formData.board === 'CBSE')}
               >
-                🏵️ CBSE
+                CBSE
               </button>
               <button
                 type="button"
                 onClick={() => handleSelect('board', 'MH')}
                 className={getSegmentClass(formData.board === 'MH')}
               >
-                🏫 MH
+                MH
               </button>
               <button
                 type="button"
                 onClick={() => handleSelect('board', 'CUET')}
                 className={getSegmentClass(formData.board === 'CUET')}
               >
-                🎓 CUET
+                CUET
               </button>
             </div>
           </div>
@@ -349,46 +349,18 @@ const SignUp: React.FC = () => {
             </div>
           </div>
 
-          {/* Phone Number */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
-              Phone Number
-            </label>
-            <div
-              className={`flex items-center gap-2 bg-white rounded-full px-4 md:px-6 py-2.5 md:py-3.5 border ${
-                errors.phone ? 'border-red-500' : 'border-[#0816271A]'
-              } focus-within:border-[#3A6BFC] transition-all`}
-            >
-              <span className="text-lightgray font-medium font-geist text-sm sm:text-base">
-                +91
-              </span>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={handlePhoneChange}
-                className="bg-transparent w-full text-lightgray text-sm sm:text-base font-medium border-none outline-none focus:ring-0"
-                placeholder="00000-00000"
-              />
-            </div>
-            {errors.phone && (
-              <span className="text-red-500 text-xs px-2">{errors.phone}</span>
-            )}
-          </div>
-
-          {/* Server Error Display */}
           {serverError && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-geist">
               {serverError}
             </div>
           )}
 
-          {/* Submit Button */}
           <button
-            onClick={handleSignUp}
-            disabled={isLoading}
+            type="submit"
+            disabled={isSubmitting}
             className="font-geist font-medium text-sm sm:text-base lg:text-lg bg-[#3A6BFC] py-3 md:py-4 min-h-[48px] md:min-h-[56px] text-white flex items-center justify-center w-full rounded-full shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] mt-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <svg
                 className="animate-spin h-5 w-5 text-white"
                 xmlns="http://www.w3.org/2000/svg"
@@ -402,46 +374,34 @@ const SignUp: React.FC = () => {
                   r="10"
                   stroke="currentColor"
                   strokeWidth="4"
-                ></circle>
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
+                />
               </svg>
             ) : (
-              'Create an Account'
+              'Save & Continue'
             )}
           </button>
-        </div>
-
-        {/* Redirect to Login */}
-        <a
-          href="/login"
-          className="font-geist font-medium text-sm sm:text-base text-[#808591] group mt-2"
-        >
-          Old User?{' '}
-          <span className="text-[#3A6BFC] group-hover:underline transition-all duration-300 ease-in-out">
-            Login
-          </span>
-        </a>
+        </Form>
       </div>
 
-      {/* Policy Section (Bottom) */}
       <div className="w-full text-center mt-auto pt-4">
         <p className="font-geist font-medium text-xs sm:text-sm leading-[120%] text-lightgray opacity-50">
           You Acknowledge that you read, and agree to our
         </p>
         <p className="font-geist font-medium text-xs sm:text-sm leading-[120%] text-lightgray opacity-50 mt-1">
           <a
-            href="#"
+            href="/terms-and-conditions"
             className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline"
           >
             Terms of Service
           </a>{' '}
           and{' '}
           <a
-            href="#"
+            href="/privacy-and-terms"
             className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline"
           >
             Privacy Policy

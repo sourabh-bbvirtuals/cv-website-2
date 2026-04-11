@@ -18,6 +18,11 @@ export async function action({ request }: ActionFunctionArgs) {
       customFields: {
         icaiRegistrationNumber: formData.get('icaiRegistrationNumber') as string,
         gstin: formData.get('gstin') as string,
+        dateOfBirth: (formData.get('dateOfBirth') as string) || null,
+        gender: (formData.get('gender') as string) || null,
+        board: (formData.get('board') as string) || null,
+        studentClass: (formData.get('studentClass') as string) || null,
+        contactEmail: (formData.get('contactEmail') as string) || null,
       },
     };
 

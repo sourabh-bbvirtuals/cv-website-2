@@ -124,7 +124,7 @@ export default function BlogListingPage() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-violet-50 pt-14 md:pt-36 xl:pt-40">
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20">
-          <div className="max-w-[980px] mx-auto w-full px-4 pb-12 lg:pb-16 flex flex-col items-center gap-4">
+            <div className="custom-container pb-12 lg:pb-16 flex flex-col items-center gap-4">
             <h1 className="text-center text-slate-900 text-5xl font-semibold font-['Geist'] leading-[48px]">
               Blog
             </h1>
@@ -137,7 +137,7 @@ export default function BlogListingPage() {
 
       {/* Blog Grid */}
       <div className="w-full bg-white pb-20">
-        <div className="max-w-[1320px] mx-auto px-4 pt-10 flex flex-col gap-10">
+        <div className="custom-container pt-10 flex flex-col gap-10">
           {blogs.length === 0 && (
             <div className="py-20 text-center text-slate-400 text-lg">
               No blog posts yet. Check back soon.

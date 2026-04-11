@@ -3,24 +3,49 @@ import { ChevronRight } from 'lucide-react';
 
 export const faqs = [
   {
-    question: '1. How to attend Live Classes after purchase?',
+    question: 'What boards does Commerce Virtuals cover?',
     answer:
-      'You will get the notification of every class in your APP and registered mail or you can access it from My Purchased Courses.',
+      'We specialize in CBSE (Class 11 & 12), Maharashtra State Board HSC (Class 11 & 12), and CUET-UG Entrance Test preparation for commerce students.',
   },
   {
-    question: '2. How to check the study plan?',
+    question: 'Which subjects are covered?',
     answer:
-      'To check the study plan, open your purchased live batch. If you are looking to make a purchase on the store/website, you can find the study plan in the package description section of the course. All details are updated there.',
+      'For CBSE: Accountancy, Business Studies, Economics, Applied Mathematics, IP/CS. For Maharashtra Board: Book-Keeping & Accountancy, OCM, Economics, Secretarial Practice. For CUET: Domain subjects, English, and General Test.',
   },
   {
-    question: '3. What should I do if I forget my password?',
+    question: 'What is included in the test series?',
     answer:
-      "If you forget your password, click on the 'Forgot Password?' link on the login page. An email will be sent to you with instructions to reset your password.",
+      'Our test series includes unit tests, chapter-wise quizzes, mock exams aligned with board patterns, CUET practice tests, detailed solutions, and performance analytics to track your progress.',
   },
   {
-    question: '4. How can I contact customer support?',
+    question: 'Do you offer mentorship?',
     answer:
-      'You can contact customer support through the help center on our website or by emailing support@ourcompany.com for assistance.',
+      'Mentorship is coming soon! We are developing comprehensive guidance services including personalized study plans, 1-on-1 guidance, doubt resolution, and career planning. Contact us at +91 62910 40 600 to express your interest.',
+  },
+  {
+    question: 'How is Commerce Virtuals different from free online content?',
+    answer:
+      'Unlike scattered free content, Commerce Virtuals offers a structured learning platform with organized test series, performance tracking, mentorship (coming soon), personalized guidance, and deep Maharashtra Board focus—all in one place.',
+  },
+  {
+    question: 'What payment options do you accept?',
+    answer:
+      'We accept Credit & Debit Cards (Visa, Mastercard, Amex), UPI (Google Pay, PhonePe, Paytm, BHIM), Net Banking (all major Indian banks), and Digital Wallets (Paytm, Amazon Pay).',
+  },
+  {
+    question: "What is your refund policy?",
+    answer:
+      "We offer a 7-day money-back guarantee. You can request a full refund within 7 days of purchase if you haven't consumed more than 20% of the course content. Visit our Refund & Cancellations Policy page for complete details.",
+  },
+  {
+    question: 'Can I access content on mobile?',
+    answer:
+      'Yes! Commerce Virtuals is fully accessible on smartphones (iOS & Android), tablets, and desktops/laptops. Video quality auto-adjusts based on your internet speed.',
+  },
+  {
+    question: 'How do I contact support?',
+    answer:
+      'You can reach us at +91 62910 40 600 (Admissions & Sales) or email support@commercevirtuals.com. We aim to respond within 24 hours on business days.',
   },
 ];
 

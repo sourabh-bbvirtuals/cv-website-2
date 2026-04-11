@@ -1,7 +1,7 @@
 import { Maximize2, Play, Volume2 } from 'lucide-react';
 import React, { useRef } from 'react';
 import type { Swiper as SwiperType } from 'swiper';
-import { Navigation } from 'swiper/modules';
+import { Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { SliderArrow } from './Icons';
 
@@ -24,8 +24,6 @@ const notesRows = [
 
 const LearningFormats: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
-
-  const CARD_WIDTH = 420; // Fixed card width in pixels
 
   const cards = [
     {
@@ -118,26 +116,25 @@ const LearningFormats: React.FC = () => {
         {/* Desktop Carousel View */}
         <div className="hidden sm:block relative">
           <Swiper
-            modules={[Navigation]}
+            modules={[Navigation, Autoplay]}
             onBeforeInit={(swiper) => {
               swiperRef.current = swiper;
             }}
-            spaceBetween={80}
+            spaceBetween={32}
             slidesPerView={3}
             speed={600}
+            loop
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
             breakpoints={{
               320: { slidesPerView: 1 },
               768: { slidesPerView: 2 },
               1280: { slidesPerView: 3 },
             }}
-            className="w-full overflow-visible!"
+            className="w-full"
           >
             {cards.map((card) => (
               <SwiperSlide key={card.id} className="h-auto!">
-                <div
-                  className="flex flex-col gap-6 h-full"
-                  style={{ width: `${CARD_WIDTH}px` }}
-                >
+                <div className="flex flex-col gap-6 h-full">
                   {/* img */}
                   {card.img && (
                     <img

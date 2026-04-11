@@ -322,10 +322,41 @@ export async function loader({ request }: LoaderFunctionArgs) {
       })
       .filter(Boolean) as BoardOption[];
 
-    const selectedSlug =
+    const isLoggedIn = !!customerData?.activeCustomer;
+
+    let selectedSlug =
       cookieSlug && boardOptions.some((o) => o.slug === cookieSlug)
         ? cookieSlug
-        : boardOptions[0]?.slug || '';
+        : '';
+
+    let hasExplicitBoard = !!selectedSlug;
+
+    if (!selectedSlug && boardOptions.length > 0) {
+      const cookies = request.headers.get('Cookie') || '';
+      const boardMatch = cookies.match(/bb-user-board=([^;]*)/);
+      const classMatch = cookies.match(/bb-user-class=([^;]*)/);
+      if (boardMatch) {
+        const userBoard = decodeURIComponent(boardMatch[1]).toLowerCase();
+        const userClass = classMatch
+          ? decodeURIComponent(classMatch[1]).replace(/\D/g, '')
+          : '';
+        const matched =
+          boardOptions.find((o) => {
+            const oBoard = o.board.toLowerCase();
+            const oClass = o.class.replace(/\D/g, '');
+            return oBoard.includes(userBoard) && userClass && oClass.includes(userClass);
+          }) ||
+          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+        if (matched) {
+          selectedSlug = matched.slug;
+          hasExplicitBoard = true;
+        }
+      }
+    }
+
+    if (!selectedSlug && boardOptions.length > 0) {
+      selectedSlug = boardOptions[0]?.slug || '';
+    }
 
     let featuredCourses: any[] = [];
 
@@ -349,10 +380,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     return json({
-      isLoggedIn: !!customerData?.activeCustomer,
+      isLoggedIn,
       featuredCourses,
       boardOptions,
       selectedSlug,
+      hasExplicitBoard,
       teamSection: teamData,
       testimonialSection: testimonialsData,
       faqSection: faqsData,
@@ -364,6 +396,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       featuredCourses: [],
       boardOptions: [],
       selectedSlug: '',
+      hasExplicitBoard: false,
       teamSection: null,
       testimonialSection: null,
       faqSection: null,
@@ -377,6 +410,7 @@ export default function Index() {
     featuredCourses,
     boardOptions,
     selectedSlug,
+    hasExplicitBoard,
     teamSection,
     testimonialSection,
     faqSection,
@@ -404,6 +438,7 @@ export default function Index() {
                 cbse: teamSection.cbse || [],
                 cuet: teamSection.cuet || [],
               }}
+              hasExplicitBoard={hasExplicitBoard}
             />
           ) : (
             <OurTeam />

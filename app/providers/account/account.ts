@@ -329,7 +329,18 @@ gql`
 gql`
   mutation updateCustomer($input: UpdateCustomerInput!) {
     updateCustomer(input: $input) {
-      __typename
+      id
+      firstName
+      lastName
+      phoneNumber
+      emailAddress
+      customFields {
+        dateOfBirth
+        gender
+        board
+        studentClass
+        contactEmail
+      }
     }
   }
 `;

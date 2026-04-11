@@ -1,15 +1,20 @@
-import { Outlet, useLoaderData } from '@remix-run/react';
-import type { LoaderFunctionArgs } from '@remix-run/node';
-import { json } from '@remix-run/node';
 import {
-  BoardSelectionProvider,
   parseBoardCookie,
   type BoardOption,
 } from '~/context/BoardSelectionContext';
 import { API_URL } from '~/constants';
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const cookieSlug = parseBoardCookie(request.headers.get('Cookie'));
+/**
+ * Resolves the navbar board/class selection from cookies and Vendure,
+ * returning the board and class labels (e.g. { board: "CBSE", class: "XII" }).
+ * Falls back to the first available option if no cookie is set.
+ */
+export async function resolveNavbarBoardSelection(
+  request: Request,
+): Promise<{ board: string; class: string } | null> {
+  const cookieHeader = request.headers.get('Cookie');
+  const cookieSlug = parseBoardCookie(cookieHeader);
+
   try {
     const parentResult = await fetch(API_URL, {
       method: 'POST',
@@ -40,50 +45,37 @@ export async function loader({ request }: LoaderFunctionArgs) {
       })
       .filter(Boolean) as BoardOption[];
 
-    let selectedSlug =
-      cookieSlug && boardOptions.some((o) => o.slug === cookieSlug)
-        ? cookieSlug
-        : '';
+    if (boardOptions.length === 0) return null;
 
-    if (!selectedSlug && boardOptions.length > 0) {
-      const cookies = request.headers.get('Cookie') || '';
-      const boardMatch = cookies.match(/bb-user-board=([^;]*)/);
-      const classMatch = cookies.match(/bb-user-class=([^;]*)/);
+    let selected = cookieSlug
+      ? boardOptions.find((o) => o.slug === cookieSlug) ?? null
+      : null;
+
+    if (!selected && cookieHeader) {
+      const boardMatch = cookieHeader.match(/bb-user-board=([^;]*)/);
+      const classMatch = cookieHeader.match(/bb-user-class=([^;]*)/);
       if (boardMatch) {
         const userBoard = decodeURIComponent(boardMatch[1]).toLowerCase();
         const userClass = classMatch
           ? decodeURIComponent(classMatch[1]).replace(/\D/g, '')
           : '';
-        const matched =
+        selected =
           boardOptions.find((o) => {
             const oBoard = o.board.toLowerCase();
             const oClass = o.class.replace(/\D/g, '');
             return (
-              oBoard.includes(userBoard) &&
-              userClass &&
-              oClass.includes(userClass)
+              oBoard.includes(userBoard) && userClass && oClass.includes(userClass)
             );
-          }) ||
-          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
-        if (matched) selectedSlug = matched.slug;
+          }) ??
+          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard)) ??
+          null;
       }
     }
 
-    return json({ boardOptions, selectedSlug });
+    if (!selected) selected = boardOptions[0];
+
+    return { board: selected.board, class: selected.class };
   } catch {
-    return json({ boardOptions: [] as BoardOption[], selectedSlug: '' });
+    return null;
   }
-}
-
-export default function FreeResourcesLayoutRoute() {
-  const { boardOptions, selectedSlug } = useLoaderData<typeof loader>();
-
-  return (
-    <BoardSelectionProvider
-      selectedSlug={selectedSlug}
-      boardOptions={boardOptions}
-    >
-      <Outlet />
-    </BoardSelectionProvider>
-  );
 }

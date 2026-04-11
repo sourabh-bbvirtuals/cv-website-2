@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from '@remix-run/react';
 import { Download, Eye, Play, FileText, Link2, Clock } from 'lucide-react';
 import type { ContentItem } from '~/utils/bbServer';
 
@@ -192,58 +193,7 @@ function VideoCard({
   );
 }
 
-const APP_LINKS = {
-  playStore:
-    'https://play.google.com/store/apps/details?id=com.commercevirtuals.student&hl=en_IN',
-  appStore: 'https://apps.apple.com/app/commerce-virtual/id6761752942',
-};
-
-function AppDownloadPopover({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-xl border border-gray-100 bg-white p-4 shadow-xl">
-        <p className="mb-3 text-center text-sm font-medium text-lightgray">
-          Download our app to attempt quizzes &amp; mock tests
-        </p>
-        <div className="flex items-center justify-center gap-2">
-          <a
-            href={APP_LINKS.playStore}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-              alt="Google Play"
-              className="h-9"
-            />
-          </a>
-          <a
-            href={APP_LINKS.appStore}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-              alt="App Store"
-              className="h-9"
-            />
-          </a>
-        </div>
-      </div>
-    </>
-  );
-}
-
 function TestCard({ item, subjectName }: { item: ContentItem; subjectName: string }) {
-  const [showAppPopover, setShowAppPopover] = useState(false);
   const meta = [
     item.questionCount && `${item.questionCount} Questions`,
     item.totalMarks != null && `${item.totalMarks} Marks`,
@@ -255,19 +205,13 @@ function TestCard({ item, subjectName }: { item: ContentItem; subjectName: strin
   return (
     <CardShell
       footer={
-        <div className="relative flex flex-1">
-          <button
-            type="button"
-            onClick={() => setShowAppPopover((p) => !p)}
-            className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
-          >
-            Start
-          </button>
-          <AppDownloadPopover
-            open={showAppPopover}
-            onClose={() => setShowAppPopover(false)}
-          />
-        </div>
+        <Link
+          to={`/free-resources/quizzes/${item.id}/start`}
+          className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
+        >
+          <Play className="size-4 shrink-0 fill-[#3a6bfc] text-[#3a6bfc]" />
+          Start Quiz
+        </Link>
       }
     >
       <div className="flex flex-wrap gap-2 px-3 md:px-6">

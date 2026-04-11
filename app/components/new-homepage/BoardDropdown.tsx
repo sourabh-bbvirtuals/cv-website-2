@@ -5,13 +5,15 @@ import {
   type BoardOption,
 } from '~/context/BoardSelectionContext';
 
-const BoardDropdown = ({ isMobile = false }) => {
+const BoardDropdown = ({ isMobile = false, showAll = false }: { isMobile?: boolean; showAll?: boolean }) => {
   const { selectedSlug, boardOptions, setSelectedBoard } = useBoardSelection();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selected = boardOptions.find((o) => o.slug === selectedSlug) ||
-    boardOptions[0] || { class: 'Class 12', board: 'MH', slug: '', label: '' };
+  const selected = showAll
+    ? (selectedSlug ? boardOptions.find((o) => o.slug === selectedSlug) : null)
+    : (boardOptions.find((o) => o.slug === selectedSlug) ||
+       boardOptions[0] || { class: 'Class 12', board: 'MH', slug: '', label: '' });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,9 +42,15 @@ const BoardDropdown = ({ isMobile = false }) => {
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 border relative z-20 border-gray-200 rounded-full px-5 py-[11px] text-[#081627] text-base font-medium bg-white hover:bg-gray-50 transition-all active:scale-95"
         >
-          <span>{selected.class}</span>
-          <span className="text-gray-300 mx-1">&bull;</span>
-          <span>{selected.board}</span>
+          {selected ? (
+            <>
+              <span>{selected.class}</span>
+              <span className="text-gray-300 mx-1">&bull;</span>
+              <span>{selected.board}</span>
+            </>
+          ) : (
+            <span>All Boards</span>
+          )}
           <ChevronDown
             size={16}
             className={`text-[#081627] transition-transform ${
@@ -60,7 +68,7 @@ const BoardDropdown = ({ isMobile = false }) => {
               SELECTED BOARD
             </span>
             <span className="font-bold text-[#081627] text-lg">
-              {selected.class} &bull; {selected.board} Board
+              {selected ? `${selected.class} \u2022 ${selected.board} Board` : 'All Boards'}
             </span>
           </div>
           <ChevronDown size={20} className="text-blue-600" />
@@ -76,6 +84,19 @@ const BoardDropdown = ({ isMobile = false }) => {
           <div className="px-5 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
             Select your Board
           </div>
+          {showAll && (
+            <button
+              onClick={() => { setSelectedBoard(''); setIsOpen(false); }}
+              className="w-full text-left px-5 py-3 hover:bg-blue-50 transition-colors flex items-center justify-between group"
+            >
+              <span className="font-semibold text-[#081627]">All Boards</span>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  !selectedSlug ? 'bg-blue-500' : 'bg-transparent'
+                }`}
+              />
+            </button>
+          )}
           {boardOptions.map((item) => (
             <button
               key={item.slug}

@@ -744,7 +744,7 @@ export default function Checkout2Payment() {
         customerId: order.customer?.id,
         customerName: formData.shippingFullName || 'Customer',
         customerEmail: formData.shippingEmailAddress || 'customer@example.com',
-        customerPhone: formData.shippingPhoneNumber || '9999999999',
+        customerPhone: formData.shippingPhoneNumber || '6291040600',
         productInfo: `Order ${order.code}`,
       };
 

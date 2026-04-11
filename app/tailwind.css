@@ -52,6 +52,19 @@
     @apply text-xs sm:text-xl md:text-2xl lg:text-3xl font-semibold sm:font-medium tracking-tight leading-[120%] sm:text-lightgray uppercase sm:normal-case text-lightgray/50 flex items-center gap-2.5 whitespace-nowrap
   }
 }
+/* Blog content: force CMS-injected HTML to fill container width */
+.blog-full-width > *,
+.blog-full-width [style*="max-width"] {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+.blog-full-width [style*="margin: 0 auto"],
+.blog-full-width [style*="margin:0 auto"] {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
 /* Utilities */
 @layer utilities {
   .scrollbar-hide {

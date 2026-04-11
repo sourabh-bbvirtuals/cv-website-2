@@ -39,6 +39,30 @@ export function BoardSelectionProvider({
     setLocalSlug(selectedSlug);
   }, [selectedSlug]);
 
+  useEffect(() => {
+    if (selectedSlug || boardOptions.length === 0) return;
+    try {
+      const stored = localStorage.getItem('bb_user_profile');
+      if (!stored) return;
+      const profile = JSON.parse(stored);
+      const userBoard = (profile.board || '').toLowerCase();
+      const userClass = (profile.classLevel || '').replace(/\D/g, '');
+      if (!userBoard) return;
+
+      const match = boardOptions.find((o) => {
+        const oBoard = o.board.toLowerCase();
+        const oClass = o.class.toLowerCase().replace(/\D/g, '');
+        return oBoard.includes(userBoard) && (!userClass || oClass.includes(userClass));
+      }) || boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+
+      if (match) {
+        setLocalSlug(match.slug);
+        document.cookie = `${COOKIE_NAME}=${match.slug}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        revalidator.revalidate();
+      }
+    } catch {}
+  }, [boardOptions, selectedSlug, revalidator]);
+
   const setSelectedBoard = useCallback(
     (slug: string) => {
       setLocalSlug(slug);

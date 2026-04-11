@@ -3,10 +3,13 @@ import {
   NavLink,
   Outlet,
   useOutletContext,
+  useLoaderData,
   useRouteLoaderData,
 } from '@remix-run/react';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import Layout from '~/components/Layout';
 import type { RootLoaderData } from '~/root';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 
 export interface UserProfileData {
   firstName: string;
@@ -26,6 +29,31 @@ export interface UserProfileData {
 export interface OutletContextType {
   userData: UserProfileData;
   setUserData: React.Dispatch<React.SetStateAction<UserProfileData>>;
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  try {
+    const result = await getActiveCustomerDetails({ request });
+    const c = result?.activeCustomer;
+    if (c) {
+      return json({
+        customer: {
+          firstName: c.firstName || '',
+          lastName: c.lastName || '',
+          emailAddress: c.emailAddress || '',
+          phoneNumber: c.phoneNumber || '',
+          customFields: {
+            dateOfBirth: (c as any).customFields?.dateOfBirth || '',
+            gender: (c as any).customFields?.gender || '',
+            board: (c as any).customFields?.board || '',
+            studentClass: (c as any).customFields?.studentClass || '',
+            contactEmail: (c as any).customFields?.contactEmail || '',
+          },
+        },
+      });
+    }
+  } catch {}
+  return json({ customer: null });
 }
 
 const STORAGE_KEY = 'bb_user_profile';
@@ -75,7 +103,10 @@ interface ActiveCustomerInfo {
   firstName?: string;
   lastName?: string;
   emailAddress?: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
+  customFields?: {
+    contactEmail?: string | null;
+  } | null;
 }
 
 function OnboardingForm({
@@ -88,7 +119,11 @@ function OnboardingForm({
   const knownName = [activeCustomer?.firstName, activeCustomer?.lastName]
     .filter(Boolean)
     .join(' ');
-  const knownEmail = activeCustomer?.emailAddress || '';
+  const knownEmail =
+    activeCustomer?.customFields?.contactEmail ||
+    (activeCustomer?.emailAddress?.endsWith('@bbvirtuals.tech')
+      ? ''
+      : activeCustomer?.emailAddress || '');
   const knownPhone = activeCustomer?.phoneNumber?.replace(/^\+91\s?/, '') || '';
 
   const [fullName, setFullName] = useState(knownName);
@@ -364,12 +399,56 @@ function OnboardingForm({
 export default function AccountLayout() {
   const rootData = useRouteLoaderData('root') as RootLoaderData | undefined;
   const activeCustomer = rootData?.activeCustomer?.activeCustomer;
+  const { customer: vendureCustomer } = useLoaderData<typeof loader>();
 
   const [userData, setUserData] = useState<UserProfileData>(emptyProfile);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     const stored = getStoredProfile();
+    if (stored && isProfileComplete(stored)) {
+      if (stored.email?.endsWith('@bbvirtuals.tech')) {
+        stored.email =
+          vendureCustomer?.customFields?.contactEmail ||
+          activeCustomer?.customFields?.contactEmail || '';
+      }
+      if (!stored.phone && (vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber)) {
+        stored.phone = vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
+      }
+      setUserData(stored);
+      setProfileLoaded(true);
+      return;
+    }
+
+    if (vendureCustomer && vendureCustomer.firstName && vendureCustomer.firstName !== 'BB Virtual') {
+      const cf = vendureCustomer.customFields;
+      const email =
+        cf?.contactEmail ||
+        (vendureCustomer.emailAddress?.endsWith('@bbvirtuals.tech')
+          ? ''
+          : vendureCustomer.emailAddress || '');
+      const vendureProfile: UserProfileData = {
+        firstName: vendureCustomer.firstName || '',
+        lastName: vendureCustomer.lastName || '',
+        email,
+        phone: vendureCustomer.phoneNumber || '',
+        dob: cf?.dateOfBirth || '',
+        gender: cf?.gender || '',
+        address: '',
+        state: '',
+        city: '',
+        pincode: '',
+        classLevel: cf?.studentClass || '',
+        board: cf?.board || '',
+      };
+      if (isProfileComplete(vendureProfile)) {
+        storeProfile(vendureProfile);
+        setUserData(vendureProfile);
+        setProfileLoaded(true);
+        return;
+      }
+    }
+
     if (stored) {
       setUserData(stored);
     }
