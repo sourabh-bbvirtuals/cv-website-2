@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, RefObject } from 'react';
-import { Link, useNavigate } from '@remix-run/react';
+import { Link } from '@remix-run/react';
 import { Gift } from 'lucide-react';
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
 // Hook to handle clicking outside of the custom dropdown
 type AnyEvent = MouseEvent | TouchEvent;
@@ -109,42 +110,61 @@ interface FormDataState {
 }
 
 const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormDataState>({
-    class: '12th',
+    class: 'XII',
     board: 'CBSE',
     name: '',
     phone: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const classOptions: string[] = ['11th', '12th', 'CA Foundation', 'CUET'];
-  const boardOptions: string[] = ['CBSE', 'ICSE', 'State Board'];
+  const formBoardOptions: string[] = ['MH', 'CBSE', 'CUET UG'];
+  const classOptions: string[] =
+    formData.board === 'CUET UG' ? ['XII'] : ['XI', 'XII'];
+
+  const { boardOptions, setSelectedBoard } = useBoardSelection();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.phone.trim()) return;
 
     setSubmitting(true);
-    try {
-      await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          phone: formData.phone.trim(),
-          board: formData.board,
-          courseInterest: `${formData.board} - ${formData.class}`,
-        }),
-      });
-    } catch {
-      // silently continue — lead capture failure shouldn't block navigation
+
+    fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        board: formData.board,
+        courseInterest: `${formData.board} - ${formData.class}`,
+      }),
+    }).catch(() => {});
+
+    const classMap: Record<string, string> = { XI: '11', XII: '12' };
+    const classNum = classMap[formData.class] || formData.class;
+    const boardLower = formData.board.toLowerCase().replace(/\s+/g, '');
+
+    const match = boardOptions.find((o) => {
+      const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
+      const oClass = o.class.toLowerCase();
+      const boardMatch = oBoard === boardLower || oBoard.includes(boardLower) || boardLower.includes(oBoard);
+      const classMatch = oClass.includes(classNum);
+      return boardMatch && classMatch;
+    }) || boardOptions.find((o) => {
+      const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
+      return oBoard === boardLower || oBoard.includes(boardLower) || boardLower.includes(oBoard);
+    });
+
+    if (match) {
+      setSelectedBoard(match.slug);
     }
 
-    const params = new URLSearchParams();
-    if (formData.board) params.set('board', formData.board);
-    if (formData.class) params.set('class', formData.class);
-    navigate(`/our-courses?${params.toString()}`);
+    setSubmitting(false);
+
+    setTimeout(() => {
+      document.getElementById('our-team')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -301,10 +321,14 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
               <form className="grow flex flex-col" onSubmit={handleSubmit}>
                 <CustomSelect
                   label="Select Board"
-                  options={boardOptions}
+                  options={formBoardOptions}
                   selected={formData.board}
                   onSelect={(val: string) =>
-                    setFormData({ ...formData, board: val })
+                    setFormData({
+                      ...formData,
+                      board: val,
+                      ...(val === 'CUET UG' ? { class: 'XII' } : {}),
+                    })
                   }
                   placeholder="Choose board"
                 />

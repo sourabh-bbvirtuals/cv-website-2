@@ -127,7 +127,8 @@ const ALL_PRODUCTS_QUERY = `
 
 function mapProductsToCourses(products: any[]) {
   return (products || []).map((product: any) => {
-    const variant = product.variants?.[0] || {};
+    const variants = product.variants || [];
+    const variant = variants[0] || {};
     const productFacets = product.facetValues || [];
     const variantFacets = variant.facetValues || [];
     const facetNames = [...productFacets, ...variantFacets]
@@ -169,7 +170,12 @@ function mapProductsToCourses(products: any[]) {
       /* ignore */
     }
 
-    const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
+    const minPrice = variants.reduce(
+      (min: number, v: any) =>
+        v?.priceWithTax != null && v.priceWithTax < min ? v.priceWithTax : min,
+      variants[0]?.priceWithTax ?? 0,
+    );
+    const priceVal = minPrice / 100;
 
     const language = byGroup('language')[0] || '';
     const lectureMode = byGroup('lecture mode')[0] || '';

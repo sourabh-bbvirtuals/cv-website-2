@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from '@remix-run/react';
 import {
-  Search,
   ChevronDown,
   Menu,
   X,
   User,
   ShoppingBasket,
   ShoppingCart,
+  LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import BoardDropdown from './BoardDropdown';
 import { useRootLoader } from '~/utils/use-root-loader';
@@ -18,11 +19,28 @@ interface NavbarProps {
 
 const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { activeCustomer: customerData } = useRootLoader();
-  const isLoggedIn = !!customerData?.activeCustomer;
+  const customer = customerData?.activeCustomer;
+  const isLoggedIn = !!customer;
   const isOurCoursesPage = location.pathname === '/our-courses';
+  const showBoardDropdown =
+    location.pathname === '/' ||
+    location.pathname === '/our-courses' ||
+    location.pathname.startsWith('/courses/');
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav
@@ -73,44 +91,65 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
         {/* Right Side: Actions */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* 1. Desktop Board Dropdown (Pill UI) */}
-          <div className="hidden xl:block">
-            <BoardDropdown isMobile={false} />
-          </div>
+          {showBoardDropdown && (
+            <div className="hidden lg:block">
+              <BoardDropdown isMobile={false} />
+            </div>
+          )}
 
-          {/* Search Icon - Desktop */}
-          <button className="hidden xl:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors">
-            <Search size={20} />
-          </button>
 
           <button
             onClick={() => navigate('/cart')}
-            className="hidden xl:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors"
+            className="hidden lg:block p-3 border-[#0816271A] text-lightgray border hover:bg-gray-100 rounded-full transition-colors"
           >
             <ShoppingCart size={20} />
           </button>
 
-          {/* Login - Desktop */}
-          {!isLoggedIn ? (
-            <button
-              onClick={() => navigate('/sign-in')}
-              className="hidden xl:block text-lightgray font-medium text-base px-2 hover:text-blue-600 transition-colors"
-            >
-              Login
-            </button>
+          {isLoggedIn ? (
+            <div className="hidden lg:block relative" ref={accountRef}>
+              <button
+                onClick={() => setAccountOpen(!accountOpen)}
+                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-base font-medium transition-colors border ${accountOpen ? 'bg-[#081627] text-white border-[#081627]' : 'bg-white text-[#081627] border-gray-200 hover:bg-gray-50'}`}
+              >
+                <span>{customer.firstName} {customer.lastName}</span>
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform ${accountOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {accountOpen && (
+                <div className="absolute top-[120%] right-0 min-w-[200px] bg-white border border-gray-100 shadow-2xl rounded-2xl py-2 z-[100]">
+                  <button
+                    onClick={() => { navigate('/account'); setAccountOpen(false); }}
+                    className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors text-[#081627] font-medium text-base"
+                  >
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => { navigate('/account/orders'); setAccountOpen(false); }}
+                    className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors text-[#081627] font-medium text-base"
+                  >
+                    Order History
+                  </button>
+                  <div className="border-t border-gray-100 mx-3" />
+                  <button
+                    onClick={async () => {
+                      setAccountOpen(false);
+                      await fetch('/api/logout', { method: 'POST' });
+                      window.location.href = '/';
+                    }}
+                    className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors text-gray-400 font-medium text-base"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <button
-              onClick={() => navigate('/account')}
-              className="hidden xl:flex text-lightgray font-medium text-base px-2 hover:text-blue-600 transition-colors items-center gap-2"
-            >
-              <User size={18} />
-              Account
-            </button>
+            <Link to="/sign-in" className="primary-btn text-sm sm:text-base font-medium leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75">
+              Start For Free
+            </Link>
           )}
-
-          {/* CTA Button */}
-          <Link to="/free-resources" className="primary-btn text-sm sm:text-base font-medium leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75">
-            Start For Free
-          </Link>
 
           {/* Mobile Menu Toggle */}
           <button
@@ -125,18 +164,6 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
       {/* Mobile Menu Dropdown (xl se niche dikhega) */}
       {isOpen && (
         <div className="absolute top-25 md:top-28 left-4 right-4 bg-white border border-gray-100 shadow-2xl rounded-xl lg:rounded-3xl p-4 lg:p-6 flex flex-col gap-5 xl:hidden z-50 animate-in fade-in zoom-in duration-300">
-          {/* Mobile Search */}
-          <div className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search courses..."
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-400"
-            />
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-          </div>
 
           {/* Mobile Links */}
           <div className="flex flex-col gap-3">
@@ -165,28 +192,47 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
               Blogs
             </a>
             <div className="border-t my-1"></div>
-            {!isLoggedIn ? (
+            {isLoggedIn ? (
+              <>
+                <a
+                  href="/account"
+                  className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2 flex items-center gap-2"
+                >
+                  <User size={20} />
+                  {customer.firstName} {customer.lastName}
+                </a>
+                <a
+                  href="/account/orders"
+                  className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
+                >
+                  Order History
+                </a>
+                <button
+                  onClick={async () => {
+                    await fetch('/api/logout', { method: 'POST' });
+                    window.location.href = '/';
+                  }}
+                  className="text-gray-400 font-medium text-lg hover:text-blue-600 transition-colors text-left"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
               <a
                 href="/sign-in"
                 className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2"
               >
-                Login
-              </a>
-            ) : (
-              <a
-                href="/account"
-                className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2 flex items-center gap-2"
-              >
-                <User size={20} />
-                My Account
+                Login / Sign Up
               </a>
             )}
           </div>
 
           {/* 2. Mobile Board Dropdown (Card UI) */}
-          <div className="w-full">
-            <BoardDropdown isMobile={true} />
-          </div>
+          {showBoardDropdown && (
+            <div className="w-full">
+              <BoardDropdown isMobile={true} />
+            </div>
+          )}
         </div>
       )}
     </nav>

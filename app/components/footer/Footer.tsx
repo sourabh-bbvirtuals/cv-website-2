@@ -13,14 +13,11 @@ const Footer = () => {
     {
       title: 'Know More',
       links: [
-        'About Us',
         'Terms & Conditions',
         'Refund & Cancellations',
-        'Contact us',
         'Privacy Policy',
       ],
     },
-    { title: 'Connect', links: ['Youtube', 'Instagram'] },
   ];
 
   const socialIcons = [

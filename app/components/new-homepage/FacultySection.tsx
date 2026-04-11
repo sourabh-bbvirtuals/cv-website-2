@@ -22,7 +22,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
   mh: [
     {
       id: '1',
-      name: 'CA Ankita Sanghvi',
+      name: 'CA Ankita Sanghavi',
       designation: 'CA, AIR 27',
       experience: '5+ Years Experience',
       image: 'https://bbvendure.appwallah.com/assets/preview/b8/ca-ankita-sanghvi__preview.png',
@@ -43,14 +43,14 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     },
     {
       id: '4',
-      name: 'CA Mayur Sanghvi',
+      name: 'CA Mayur Sanghavi',
       designation: 'FCA, CFA, FRM, Rank 1 CA Finals',
       experience: '10+ Years Experience',
       image: 'https://bbvendure.appwallah.com/assets/preview/87/ca-mayur-sanghvi__preview.png',
     },
     {
       id: '5',
-      name: 'CA Payal Sanghvi',
+      name: 'CA Payal Sanghavi',
       designation: 'CA, CFA III',
       experience: '5+ Years Experience',
       image: 'https://bbvendure.appwallah.com/assets/preview/96/ca-payal-sanghvi__preview.png',
@@ -71,7 +71,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     },
     {
       id: '8',
-      name: 'CA Shubham Sanghvi',
+      name: 'CA Shubham Sanghavi',
 
       designation: 'CA, CFA, State Topper SSC&HSC',
       experience: '14+ Years Experience',

@@ -1,6 +1,6 @@
 import { Link } from '@remix-run/react';
-import { ArrowRight } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CourseCard } from './CourseCard';
 import { useBoardSelection } from '~/context/BoardSelectionContext';
 
@@ -21,118 +21,19 @@ export type FeaturedCourse = {
   type?: string;
 };
 
-const fallbackCourses: FeaturedCourse[] = [
-  {
-    id: '1',
-    title: 'Class 11 Commerce Complete Batch 2025',
-    meta: ['Business Studies', 'English', 'CA Ashish'],
-    enrolled: '1240 Students Enrolled',
-    image:
-      'https://www.figma.com/api/mcp/asset/4dce5674-3071-4998-a233-86e915e354f1',
-    badge: "Student's Favourite",
-    starts: '10 May, 2026',
-    ends: '10 May, 2027',
-    price: '₹14,200',
-    wasPrice: '₹25,500',
-    language: 'Hindi',
-    type: 'Live',
-  },
-  {
-    id: '2',
-    title: 'CA Foundation — All Subjects Live',
-    meta: ['Accounts', 'Law', 'May 2026'],
-    enrolled: '890 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-    badge: 'Bestseller',
-    starts: '12 May, 2026',
-    ends: '15 Nov, 2026',
-    price: '₹24,499',
-    wasPrice: '₹32,999',
-    language: 'Hinglish',
-    type: 'Recorded',
-  },
-  {
-    id: '3',
-    title: 'Class 12 Commerce — Boards + CUET',
-    meta: ['CBSE', 'Economics', 'CA Mayur Sanghvi'],
-    enrolled: '2100 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-    starts: '05 May, 2026',
-    ends: '28 Feb, 2027',
-    price: '₹16,999',
-    wasPrice: '₹22,000',
-    language: 'Hindi',
-    type: 'Live',
-  },
-  {
-    id: '2',
-    title: 'CA Foundation — All Subjects Live',
-    meta: ['Accounts', 'Law', 'May 2026'],
-    enrolled: '890 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-    badge: 'Bestseller',
-    starts: '12 May, 2026',
-    ends: '15 Nov, 2026',
-    price: '₹24,499',
-    wasPrice: '₹32,999',
-    language: 'Hinglish',
-    type: 'Recorded',
-  },
-  {
-    id: '4',
-    title: 'CUET Commerce — Section II & III',
-    meta: ['Mock tests', 'PYQs', 'General Test'],
-    enrolled: '560 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
-    starts: '01 Jun, 2026',
-    ends: '30 Jun, 2026',
-    price: '₹7,499',
-    wasPrice: '₹9,999',
-    language: 'Hindi',
-    type: 'Live',
-  },
-  {
-    id: '2',
-    title: 'CA Foundation — All Subjects Live',
-    meta: ['Accounts', 'Law', 'May 2026'],
-    enrolled: '890 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-    badge: 'Bestseller',
-    starts: '12 May, 2026',
-    ends: '15 Nov, 2026',
-    price: '₹24,499',
-    wasPrice: '₹32,999',
-    language: 'Hinglish',
-    type: 'Recorded',
-  },
-  {
-    id: '3',
-    title: 'Class 12 Commerce — Boards + CUET',
-    meta: ['CBSE', 'Economics', 'CA Mayur Sanghvi'],
-    enrolled: '2100 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-    starts: '05 May, 2026',
-    ends: '28 Feb, 2027',
-    price: '₹16,999',
-    wasPrice: '₹22,000',
-    language: 'Hindi',
-    type: 'Live',
-  },
-];
+const fallbackCourses: FeaturedCourse[] = [];
 
 const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
   courses: dynamicCourses,
 }) => {
-  const displayCourses =
+  const rawCourses =
     dynamicCourses && dynamicCourses.length > 0
       ? dynamicCourses
       : fallbackCourses;
+  const displayCourses = rawCourses.filter(
+    (c, i, arr) => arr.findIndex((x) => x.title === c.title) === i,
+  );
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slidesPerView, setSlidesPerView] = useState(1.05);
   const [spaceBetween, setSpaceBetween] = useState(30);
@@ -140,9 +41,7 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
   const [dragStart, setDragStart] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const { selectedSlug } = useBoardSelection();
-  const coursesHref = selectedSlug
-    ? `/courses/${selectedSlug}`
-    : '/our-courses';
+  const coursesHref = '/our-courses';
 
   // Handle responsive breakpoints
   useEffect(() => {
@@ -228,6 +127,8 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
 
   const slideWidth = getSlideWidth();
 
+  if (displayCourses.length === 0) return null;
+
   return (
     <section className="bg-white">
       <div className="custom-container">
@@ -243,6 +144,24 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
           </div>
 
           <div className="hidden sm:flex flex-col items-end gap-3 sm:gap-5 shrink-0">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
+                }}
+                className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                onClick={() => {
+                  scrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
+                }}
+                className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </div>
             <Link
               to={coursesHref}
               className="flex items-center gap-3 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"
@@ -257,7 +176,7 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
 
         {/* Swiper Slider with Bleed Logic */}
         <div className="relative">
-          <div className={`flex overflow-x-auto scrollbar-hide py-3 gap-4 `}>
+          <div ref={scrollRef} className={`flex overflow-x-auto scrollbar-hide py-3 gap-4 `}>
             {displayCourses.map((course, index) => (
               <div key={`${course.id}-${index}`} className="">
                 <CourseCard course={course} isAlternate={index % 2 === 1} />

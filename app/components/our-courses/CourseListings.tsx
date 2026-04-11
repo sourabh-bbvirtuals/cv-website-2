@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Link, useSearchParams } from '@remix-run/react';
 import { Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { CourseCard } from '../new-homepage/CourseCard';
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
 // --- Types ---
 export type FeaturedCourse = {
@@ -55,9 +56,15 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
     ) || {};
   const table = courseInfo?.table || {};
 
-  // 2. Extract price
-  const variant = (product.variants || [])[0];
-  const priceVal = variant?.priceWithTax ? variant.priceWithTax / 100 : 0;
+  // 2. Extract price — use minimum variant price for listings
+  const variants = product.variants || [];
+  const variant = variants[0];
+  const minPrice = variants.reduce(
+    (min: number, v: any) =>
+      v?.priceWithTax != null && v.priceWithTax < min ? v.priceWithTax : min,
+    variants[0]?.priceWithTax ?? 0,
+  );
+  const priceVal = minPrice / 100;
 
   // 3. Facets mapping — group-aware
   const facetValues = (product.facetValues || []) as Array<{
@@ -261,6 +268,8 @@ export default function CourseListings({
   const [searchParams] = useSearchParams();
   const urlBoard = searchParams.get('board') || '';
   const urlClass = searchParams.get('class') || '';
+  const { selectedSlug, boardOptions } = useBoardSelection();
+  const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
 
   const allCourses = useMemo(
     () => products.map(mapVendureToFeaturedCourse),
@@ -374,15 +383,26 @@ export default function CourseListings({
   const mappedCourses = useMemo(() => {
     let filtered = [...allCourses];
 
-    if (urlBoard || urlClass) {
+    const filterBoard = urlBoard || selectedBoard?.board || '';
+    const rawClass = urlClass || selectedBoard?.class || '';
+
+    const classMap: Record<string, string> = {
+      'class 11': 'xi',
+      'class 12': 'xii',
+      'xi': 'xi',
+      'xii': 'xii',
+    };
+    const filterClass = classMap[rawClass.toLowerCase()] || rawClass;
+
+    if (filterBoard || filterClass) {
       const boardFiltered = filtered.filter((course) => {
         const facets = course.meta;
         const matchBoard =
-          !urlBoard ||
-          facets.some((f) => f.toLowerCase() === urlBoard.toLowerCase());
+          !filterBoard ||
+          facets.some((f) => f.toLowerCase() === filterBoard.toLowerCase());
         const matchClass =
-          !urlClass ||
-          facets.some((f) => f.toLowerCase() === urlClass.toLowerCase());
+          !filterClass ||
+          facets.some((f) => f.toLowerCase() === filterClass.toLowerCase());
         return matchBoard && matchClass;
       });
       if (boardFiltered.length > 0) {
@@ -443,6 +463,7 @@ export default function CourseListings({
     allCourses,
     urlBoard,
     urlClass,
+    selectedBoard,
     selectedLanguage,
     selectedSubjects,
     selectedFaculties,

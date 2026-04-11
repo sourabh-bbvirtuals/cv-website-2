@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, useCallback, useState, useEffect } from 'react';
 import { useRevalidator } from '@remix-run/react';
 
 export interface BoardOption {
@@ -33,9 +33,15 @@ export function BoardSelectionProvider({
   children: React.ReactNode;
 }) {
   const revalidator = useRevalidator();
+  const [localSlug, setLocalSlug] = useState(selectedSlug);
+
+  useEffect(() => {
+    setLocalSlug(selectedSlug);
+  }, [selectedSlug]);
 
   const setSelectedBoard = useCallback(
     (slug: string) => {
+      setLocalSlug(slug);
       document.cookie = `${COOKIE_NAME}=${slug}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
       revalidator.revalidate();
     },
@@ -44,7 +50,7 @@ export function BoardSelectionProvider({
 
   return (
     <BoardSelectionContext.Provider
-      value={{ selectedSlug, boardOptions, setSelectedBoard }}
+      value={{ selectedSlug: localSlug, boardOptions, setSelectedBoard }}
     >
       {children}
     </BoardSelectionContext.Provider>

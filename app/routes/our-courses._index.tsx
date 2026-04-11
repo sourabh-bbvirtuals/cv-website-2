@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node';
+import { json, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
 export const meta: MetaFunction = () => [
@@ -8,10 +8,9 @@ export const meta: MetaFunction = () => [
 import CourseListings from '~/components/our-courses/CourseListings';
 import Hero from '~/components/our-courses/Hero';
 import { API_URL } from '~/constants';
-
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader() {
   try {
-    const response = await fetch(API_URL, {
+    const productsResult = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -46,12 +45,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
         `,
         variables: { options: { take: 100 } },
       }),
-    });
+    }).then((r) => r.json());
 
-    const result = (await response.json()) as {
-      data?: { products?: { items: any[] } };
-    };
-    const products = result?.data?.products?.items || [];
+    const products = (productsResult as any)?.data?.products?.items || [];
 
     return json({ products, error: null });
   } catch (error: any) {

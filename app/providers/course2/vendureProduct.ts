@@ -387,13 +387,15 @@ async function convertVendureProductToCourse2Product(
             description: f.description || '',
           }));
         } else {
-          // Fill in missing images from spec data
           for (const fd of facultyData) {
-            if (!fd.image) {
-              const match = facultyInfos.find(
-                (f) => f.name && f.name.toLowerCase() === fd.name.toLowerCase(),
-              );
-              if (match?.imageUrl) fd.image = match.imageUrl;
+            const fdName = fd.name?.toLowerCase() || '';
+            const match = facultyInfos.find((f) => {
+              const fName = f.name?.toLowerCase() || '';
+              return fName && (fName === fdName || fName.includes(fdName) || fdName.includes(fName));
+            });
+            if (match) {
+              if (!fd.image && match.imageUrl) fd.image = match.imageUrl;
+              if (!fd.description && match.description) fd.description = match.description;
             }
           }
         }

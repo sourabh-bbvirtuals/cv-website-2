@@ -36,7 +36,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
   // if (!members || members.length === 0) return null;
 
   return (
-    <section className="overflow-hidden">
+    <section id="our-team" className="scroll-mt-32 overflow-hidden">
       <div className="custom-container">
         <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-2 sm:mb-12 md:mb-16">
           <div className="text-left max-sm:text-center">
@@ -117,9 +117,11 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
                     <p className="text-sm md:text-base font-normal leading-[120%] text-lightgray/60 sm:text-base">
                       {member.designation}
                     </p>
-                    {/* <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
-                      {member.experience}
-                    </span> */}
+                    {member.experience && (
+                      <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
+                        {member.experience}
+                      </span>
+                    )}
                   </div>
                 </article>
               </SwiperSlide>
