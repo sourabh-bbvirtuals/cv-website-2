@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useNavigate, useRouteLoaderData, useSearchParams } from '@remix-run/react';
+import { useNavigate, useSearchParams } from '@remix-run/react';
 import { ChevronDown, Play, ServerOff, X } from 'lucide-react';
 import { PillSelect } from '../ui/PillSelect';
 import { ContentCardItem } from './ContentCard';
@@ -238,14 +238,11 @@ export default function FreeResourcesPage({
   } | null>(null);
 
   const { selectedSlug, boardOptions: ctxBoardOptions, setSelectedBoard } = useBoardSelection();
-  const rootData = useRouteLoaderData('root') as any;
-  const isLoggedIn = !!rootData?.activeCustomer?.activeCustomer;
-  const effectiveSlug = isLoggedIn ? '' : selectedSlug;
   const boardKey = useMemo(
-    () => resolveBoardKey(effectiveSlug, ctxBoardOptions),
-    [effectiveSlug, ctxBoardOptions],
+    () => resolveBoardKey(selectedSlug, ctxBoardOptions),
+    [selectedSlug, ctxBoardOptions],
   );
-  const selected = ctxBoardOptions.find((o) => o.slug === effectiveSlug);
+  const selected = ctxBoardOptions.find((o) => o.slug === selectedSlug);
   const classLabel = selected?.class || '';
 
   const heroTitle = boardKey
@@ -526,8 +523,8 @@ export default function FreeResourcesPage({
             data-pill-wrapper
             className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
           >
-            {/* Board Selector — visible for guests */}
-            {!isLoggedIn && ctxBoardOptions.length > 0 && (
+            {/* Board Selector */}
+            {ctxBoardOptions.length > 0 && (
               <PillSelect
                 value={selected ? `${selected.class} · ${selected.board}` : 'All Boards'}
                 options={['All Boards', ...ctxBoardOptions.map((o) => `${o.class} · ${o.board}`)]}

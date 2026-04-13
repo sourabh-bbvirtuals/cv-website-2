@@ -67,9 +67,32 @@ export function BoardSelectionProvider({
     (slug: string) => {
       setLocalSlug(slug);
       document.cookie = `${COOKIE_NAME}=${slug}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+
+      const option = boardOptions.find((o) => o.slug === slug);
+      if (option) {
+        document.cookie = `bb-user-board=${encodeURIComponent(option.board)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        document.cookie = `bb-user-class=${encodeURIComponent(option.class.replace(/\D/g, ''))}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+
+        try {
+          const stored = localStorage.getItem('bb_user_profile');
+          if (stored) {
+            const profile = JSON.parse(stored);
+            profile.board = option.board;
+            profile.classLevel = option.class;
+            localStorage.setItem('bb_user_profile', JSON.stringify(profile));
+          }
+        } catch {}
+
+        fetch('/api/update-board', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ board: option.board, studentClass: option.class }),
+        }).catch(() => {});
+      }
+
       revalidator.revalidate();
     },
-    [revalidator],
+    [revalidator, boardOptions],
   );
 
   return (

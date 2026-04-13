@@ -106,7 +106,7 @@ export default function HowItWorks() {
               Choose Your Exam
             </h3>
             <p className="text-base md:text-lg max-w-xs text-lightgray/60 leading-[150%]">
-              Choose Class 11, 12, CA Foundation, or CUET. Select your board and
+              Choose Class 11, 12 or CUET. Select your board and
               subjects.
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function HowItWorks() {
               Select Course & Make Purchase
             </h3>
             <p className="text-base md:text-lg max-w-xs text-lightgray/70 leading-[150%]">
-              Choose Class 11, 12, CA Foundation, or CUET. Select your board and
+              Choose Class 11, 12 or CUET. Select your board and
               subjects.
             </p>
           </div>
@@ -195,7 +195,7 @@ export default function HowItWorks() {
               {steps[1].title}
             </h3>
             <p className="text-sm text-center md:text-lg max-w-xs text-lightgray/70 leading-[150%]">
-              Choose Class 11, 12, CA Foundation, or CUET. Select your board and
+              Choose Class 11, 12 or CUET. Select your board and
               subjects.
             </p>
           </div>
@@ -223,7 +223,7 @@ export default function HowItWorks() {
               {steps[2].title}
             </h3>
             <p className="text-sm text-center md:text-lg max-w-xs text-lightgray/70 leading-[150%]">
-              Choose Class 11, 12, CA Foundation, or CUET. Select your board and
+              Choose Class 11, 12 or CUET. Select your board and
               subjects.
             </p>
           </div>

@@ -110,7 +110,7 @@ const FreeResources = () => {
           Start Learning Today
         </h2>
         <p className="text-lightgray text-sm mt-3 leading-[140%] max-w-xs">
-          Choose Class 11, 12, CA Foundation, or CUET. Select your board and
+          Choose Class 11, 12 or CUET. Select your board and
           subjects.
         </p>
       </div>
@@ -164,7 +164,7 @@ const FreeResources = () => {
             Start Learning Today
           </h2>
           <p className="text-lightgray text-base sm:text-lg xl:text-xl mt-3 sm:mt-4 leading-[140%] xl:leading-[150%]">
-            Choose Class 11, 12, CA Foundation, or CUET. Select your board and
+            Choose Class 11, 12 or CUET. Select your board and
             subjects.
           </p>
           <div className="flex gap-3 sm:gap- shrink-0 mt-16">

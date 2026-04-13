@@ -7,7 +7,7 @@ const steps = {
   1: {
     title: 'Choose Your Exam',
     descrption:
-      'Choose Class 11, 12, CA Foundation, or CUET. Select your board and subjects.',
+      'Choose Class 11, 12 or CUET. Select your board and subjects.',
     video: '/assets/vid/Scene-1.mp4',
   },
   2: {

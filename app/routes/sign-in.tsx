@@ -10,11 +10,11 @@ import { API_URL } from '~/constants';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Sign In - Commerce Virtual' },
+    { title: 'Sign In - Commerce Virtuals' },
     {
       name: 'description',
       content:
-        'Sign in to your Commerce Virtual account to access your courses and study materials.',
+        'Sign in to your Commerce Virtuals account to access your courses and study materials.',
     },
   ];
 };

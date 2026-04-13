@@ -24,7 +24,7 @@ import LearningFormats from '~/components/new-homepage/LearningFormats';
 import OurTeam from '~/components/new-homepage/OurTeam';
 import TeamSection from '~/components/new-homepage/TeamSection';
 import Testimonials from '~/components/new-homepage/Testimonials';
-import { getActiveCustomer } from '~/providers/customer/customer';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import {
   BoardSelectionProvider,
   parseBoardCookie,
@@ -294,7 +294,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const cookieSlug = parseBoardCookie(request.headers.get('Cookie'));
 
     const [customerData, parentResult, sectionsResult] = await Promise.all([
-      getActiveCustomer({ request }).catch(() => null),
+      getActiveCustomerDetails({ request }).catch(() => null),
       gqlFetch(PARENT_QUERY)
         .then((r: any) => r.data?.collection)
         .catch(() => null),
@@ -340,6 +340,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const userClass = classMatch
           ? decodeURIComponent(classMatch[1]).replace(/\D/g, '')
           : '';
+        const matched =
+          boardOptions.find((o) => {
+            const oBoard = o.board.toLowerCase();
+            const oClass = o.class.replace(/\D/g, '');
+            return oBoard.includes(userBoard) && userClass && oClass.includes(userClass);
+          }) ||
+          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+        if (matched) {
+          selectedSlug = matched.slug;
+          hasExplicitBoard = true;
+        }
+      }
+    }
+
+    if (!selectedSlug && boardOptions.length > 0 && isLoggedIn) {
+      const c = customerData?.activeCustomer;
+      const userBoard = ((c as any)?.customFields?.board || '').toLowerCase();
+      const userClass = ((c as any)?.customFields?.studentClass || '').toString().replace(/\D/g, '');
+      if (userBoard) {
         const matched =
           boardOptions.find((o) => {
             const oBoard = o.board.toLowerCase();

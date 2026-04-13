@@ -100,7 +100,7 @@ const Footer = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Commerce Virtual
+            Commerce Virtuals
           </h2>
         </div>
         {/* 3. Main Footer Content (Links & Logo) */}

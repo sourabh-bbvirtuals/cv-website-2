@@ -197,7 +197,7 @@ function TestCard({ item, subjectName }: { item: ContentItem; subjectName: strin
   const meta = [
     item.questionCount && `${item.questionCount} Questions`,
     item.totalMarks != null && `${item.totalMarks} Marks`,
-    item.testDuration != null && `${item.testDuration} Minutes`,
+    item.testDuration != null && `${Math.ceil(item.testDuration / 60)} Minutes`,
   ]
     .filter(Boolean)
     .join(' • ');

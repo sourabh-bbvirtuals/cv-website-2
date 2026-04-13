@@ -52,7 +52,7 @@ const LearningFormats: React.FC = () => {
     },
     {
       id: 'mock',
-      title: 'DPPs & mock tests',
+      title: 'DPPs & Mock Tests',
       desc: 'Daily practice problems matching exam patterns. Full-length mocks with detailed guide.',
       wrapperClass: 'bg-[#f0f9ff]',
       borderClass: 'border-[#d0e8ff]',

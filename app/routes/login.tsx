@@ -80,6 +80,21 @@ export async function action({ request }: ActionFunctionArgs) {
           headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
           return redirect('/sign-up', { headers });
         }
+
+        const userBoard = (c as any).customFields?.board;
+        const userClass = (c as any).customFields?.studentClass;
+        if (userBoard) {
+          headers.append(
+            'Set-Cookie',
+            `bb-user-board=${encodeURIComponent(userBoard)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+          );
+        }
+        if (userClass) {
+          headers.append(
+            'Set-Cookie',
+            `bb-user-class=${encodeURIComponent(String(userClass).replace(/\D/g, ''))}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+          );
+        }
       } catch (e) {
         console.error('[login] getActiveCustomerDetails failed:', e);
         headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
@@ -286,7 +301,7 @@ const Login: React.FC = () => {
 
               <p className="text-lightgray opacity-50 font-geist leading-[120%] text-sm sm:text-lg lg:text-xl mt-3 sm:mt-4">
                 {step === 'login' &&
-                  'Please Login to Continue with Commerce Virtual'}
+                  'Please Login to Continue with Commerce Virtuals'}
               </p>
               {step === 'otp' && (
                 <button

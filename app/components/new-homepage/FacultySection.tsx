@@ -36,7 +36,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     },
     {
       id: '3',
-      name: 'CA Bhushal Gosar',
+      name: 'CA Bhushan Gosal',
       designation: 'CA, MCom',
       experience: '15+ Years Experience',
       image: 'https://bbvendure.appwallah.com/assets/preview/50/ca-bhushal-gosar__preview.png',
