@@ -18,6 +18,7 @@ import {
   DataFunctionArgs,
   json,
   LinksFunction,
+  redirect,
 } from '@remix-run/server-runtime';
 import { useEffect } from 'react';
 import { getActiveCustomer } from '~/providers/customer/customer';
@@ -64,6 +65,9 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
     // just logged in via new login route
     return true;
   }
+  if (currentUrl.pathname === '/sign-up') {
+    return true;
+  }
 
   if (currentUrl.pathname === '/account' && nextUrl.pathname === '/') {
     // just logged out
@@ -84,6 +88,9 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   }
   if (formAction === '/account') {
     // account form submitted (logout, etc.)
+    return true;
+  }
+  if (formAction === '/sign-up') {
     return true;
   }
   return false;
@@ -108,6 +115,17 @@ export async function loader({ request, context }: DataFunctionArgs) {
   if (cfEnv?.SESSION_SECRET) {
     setSessionSecret(cfEnv.SESSION_SECRET);
   }
+
+  const url = new URL(request.url);
+  const allowedPaths = ['/sign-up', '/sign-in', '/login', '/auth/'];
+  const isAllowed = allowedPaths.some(
+    (p) => url.pathname === p || url.pathname.startsWith(p),
+  );
+  const cookies = request.headers.get('Cookie') || '';
+  if (!isAllowed && cookies.includes('bb-profile-incomplete=1')) {
+    return redirect('/sign-up');
+  }
+
   const activeCustomer = await getActiveCustomer({ request });
 
   const locale = await getI18NextServer().then((i18next) =>
@@ -148,7 +166,7 @@ export async function loader({ request, context }: DataFunctionArgs) {
 export default function App() {
   const loaderData = useLoaderData<RootLoaderData>();
   const location = useLocation();
-  const hideFooterRoutes = ['/login', '/sign-up', '/sign-in'];
+  const hideFooterRoutes = ['/login', '/sign-up', '/sign-in', '/account'];
   const shouldHideFooter =
     hideFooterRoutes.includes(location.pathname) ||
     location.pathname.startsWith('/free-resources/quizzes/');
@@ -172,22 +190,19 @@ export default function App() {
     refresh();
   }, [loaderData]);
 
-  const faviconUrl = '/favicon.ico';
-  const title = 'BB Virtuals';
+  const title = 'Commerce Virtuals';
 
   useEffect(() => {
-    const favicon = document.querySelector(
-      "link[rel~='icon']",
-    ) as HTMLLinkElement;
-    if (favicon) {
-      favicon.href = faviconUrl;
-    } else {
-      const newFavicon = document.createElement('link');
-      newFavicon.rel = 'icon';
-      newFavicon.href = '/favicon.ico';
-      document.head.appendChild(newFavicon);
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('config', 'G-001NR9NF1Y', {
+        page_path: location.pathname + location.search,
+      });
     }
-  }, []);
+  }, [location]);
+
+  const isQuizPlayPage = location.pathname.startsWith(
+    '/free-resources/quizzes/',
+  );
 
   return (
     <html lang={locale} dir={i18n.dir()} id="app">
@@ -196,11 +211,30 @@ export default function App() {
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
-        <link rel="icon" href="/favicon.ico" type="image/png"></link>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/favicon-192.png" />
         <title>{title}</title>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-001NR9NF1Y"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-001NR9NF1Y');`,
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","wb7fifwfxt");`,
+          }}
+        />
       </head>
-      <body>
-        <main>
+      <body
+        className={`flex flex-col min-h-screen ${
+          isQuizPlayPage ? 'bg-[#F5F7FF]' : ''
+        }`}
+      >
+        <main className="flex-1">
           <Outlet
             context={{
               activeOrderFetcher,
@@ -252,24 +286,6 @@ function DefaultSparseErrorPage({
   headline,
   description,
 }: DefaultSparseErrorPageProps) {
-  const faviconUrl =
-    typeof process !== 'undefined'
-      ? process.env.FAVICON_URL || '/favicon.ico'
-      : '/favicon.ico';
-  useEffect(() => {
-    const favicon = document.querySelector(
-      "link[rel~='icon']",
-    ) as HTMLLinkElement;
-    if (favicon) {
-      favicon.href = faviconUrl;
-    } else {
-      const newFavicon = document.createElement('link');
-      newFavicon.rel = 'icon';
-      newFavicon.href = faviconUrl;
-      document.head.appendChild(newFavicon);
-    }
-  }, [faviconUrl]);
-
   return (
     <html lang="en" id="app">
       <head>
@@ -277,7 +293,8 @@ function DefaultSparseErrorPage({
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
-        <title>Error</title>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <title>Commerce Virtuals</title>
       </head>
       <body>
         <main className="flex flex-col items-center px-4 py-16 sm:py-32 text-center">

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
+    "@floating-ui/react-dom": "^2.1.8",
     "@graphql-codegen/typescript-generic-sdk": "^3.0.4",
     "@headlessui/react": "^1.7.4",
     "@heroicons/react": "^2.0.13",
@@ -56,6 +57,7 @@
     "i18next-resources-to-backend": "^1.2.0",
     "isbot": "^3.7.1",
     "lottie-react": "^2.4.1",
+    "lottie-web": "^5.13.0",
     "lucide-react": "^0.507.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",

@@ -2,7 +2,10 @@ import { useLoaderData, useNavigation } from '@remix-run/react';
 import { AccountDetails, LoadingState } from '~/components/account';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { updateCustomer } from '~/providers/account/account';
-import type { DataFunctionArgs, ActionFunctionArgs } from '@remix-run/server-runtime';
+import type {
+  DataFunctionArgs,
+  ActionFunctionArgs,
+} from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -16,19 +19,26 @@ export async function action({ request }: ActionFunctionArgs) {
       phoneNumber: formData.get('phoneNumber') as string,
       title: formData.get('title') as string,
       customFields: {
-        icaiRegistrationNumber: formData.get('icaiRegistrationNumber') as string,
+        icaiRegistrationNumber: formData.get(
+          'icaiRegistrationNumber',
+        ) as string,
         gstin: formData.get('gstin') as string,
+        dateOfBirth: (formData.get('dateOfBirth') as string) || null,
+        gender: (formData.get('gender') as string) || null,
+        board: (formData.get('board') as string) || null,
+        studentClass: (formData.get('studentClass') as string) || null,
+        contactEmail: (formData.get('contactEmail') as string) || null,
       },
     };
 
     const result = await updateCustomer(input, { request });
-    
+
     if (result.updateCustomer) {
       return json({ success: true, customer: result.updateCustomer });
     } else {
-      return json({ 
-        success: false, 
-        error: 'Failed to update customer details' 
+      return json({
+        success: false,
+        error: 'Failed to update customer details',
       });
     }
   }
@@ -44,8 +54,8 @@ export async function loader({ request }: DataFunctionArgs) {
       return redirect('/');
     }
 
-    return json({ 
-      customer: customerDetails.activeCustomer
+    return json({
+      customer: customerDetails.activeCustomer,
     });
   } catch (error) {
     console.error('Account details loader error:', error);
@@ -64,5 +74,3 @@ export default function AccountDetailsPage() {
 
   return <AccountDetails customer={customer} />;
 }
-
-

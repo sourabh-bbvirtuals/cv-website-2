@@ -93,17 +93,16 @@ function mapChildToBlogItem(child: {
   id: string;
   slug: string;
   name: string;
+  description?: string;
   customFields?: { customData?: string | null } | null;
   featuredAsset?: { preview: string } | null;
   assets?: Array<{ preview: string }>;
 }): BlogCollectionItem {
   let childBlogData: Record<string, unknown> | null = null;
-  if (child.customFields?.customData) {
+  const rawJson = child.description || child.customFields?.customData;
+  if (rawJson) {
     try {
-      childBlogData = JSON.parse(child.customFields.customData) as Record<
-        string,
-        unknown
-      >;
+      childBlogData = JSON.parse(rawJson) as Record<string, unknown>;
     } catch {
       // ignore
     }
@@ -192,10 +191,9 @@ export async function getBlogCollections(
           'blogs',
           options,
         );
-        if (bySlug?.customFields?.customData) {
-          blogs.push(
-            ...parseBlogsFromCustomDataString(bySlug.customFields.customData),
-          );
+        const rawJson = bySlug?.description || bySlug?.customFields?.customData;
+        if (rawJson) {
+          blogs.push(...parseBlogsFromCustomDataString(rawJson));
         }
       } catch {
         // ignore
@@ -220,24 +218,24 @@ export async function getBlogCollections(
         blogs.push(mapChildToBlogItem(child as any));
       }
     } else {
-      // 4) No children: CustomData as JSON array `[{...}]` or `{ "posts": [...] }`
+      // 4) No children: description or customData as JSON array
       const fromCustom = parseBlogsFromCustomDataString(
-        collection.customFields?.customData,
+        collection.description || (collection as any).customFields?.customData,
       );
       blogs.push(...fromCustom);
     }
 
-    // 5) Still empty (e.g. list returned collection but no children / empty customData)
+    // 5) Still empty (e.g. list returned collection but no children / empty data)
     if (blogs.length === 0) {
       try {
         const { collection: bySlug } = await getCollectionBySlug(
           'blogs',
           options,
         );
-        if (bySlug?.customFields?.customData) {
-          blogs.push(
-            ...parseBlogsFromCustomDataString(bySlug.customFields.customData),
-          );
+        const rawJson2 =
+          bySlug?.description || bySlug?.customFields?.customData;
+        if (rawJson2) {
+          blogs.push(...parseBlogsFromCustomDataString(rawJson2));
         }
       } catch {
         // ignore

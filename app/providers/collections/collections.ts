@@ -21,7 +21,7 @@ export async function getCollectionWithChildren(
   options: QueryOptions,
 ) {
   const API_URL =
-    (process.env.VENDURE_API_URL || 'http://localhost:3000/shop-api')
+    process.env.VENDURE_API_URL || 'http://localhost:3000/shop-api';
 
   const { getSessionStorage } = await import('../../sessions');
   const query = `
@@ -32,9 +32,8 @@ export async function getCollectionWithChildren(
         slug
         description
         customFields {
-          customData
-          productDisplayOrder
-          pageRules
+          videoUrl
+          videoDuration
         }
         featuredAsset {
           id
@@ -53,9 +52,7 @@ export async function getCollectionWithChildren(
           id
           name
           slug
-          customFields {
-            customData
-          }
+          description
         }
         parent {
           id
@@ -65,9 +62,7 @@ export async function getCollectionWithChildren(
             id
             name
             slug
-            customFields {
-              customData
-            }
+            description
           }
         }
         createdAt
@@ -145,9 +140,8 @@ gql`
       slug
       description
       customFields {
-        customData
-        productDisplayOrder
-        pageRules
+        videoUrl
+        videoDuration
       }
       featuredAsset {
         id
@@ -166,9 +160,7 @@ gql`
         id
         name
         slug
-        customFields {
-          customData
-        }
+        description
       }
       parent {
         id
@@ -198,9 +190,8 @@ gql`
       slug
       description
       customFields {
-        customData
-        productDisplayOrder
-        pageRules
+        videoUrl
+        videoDuration
       }
       featuredAsset {
         id
@@ -219,9 +210,7 @@ gql`
         id
         name
         slug
-        customFields {
-          customData
-        }
+        description
       }
       parent {
         id
@@ -231,9 +220,7 @@ gql`
           id
           name
           slug
-          customFields {
-            customData
-          }
+          description
         }
       }
       createdAt

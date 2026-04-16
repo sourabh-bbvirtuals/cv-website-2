@@ -216,61 +216,64 @@ export default function Checkout2Layout() {
     }
   };
 
+  const isConfirmation = currentStep === 3;
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <button
-                onClick={handleBackNavigation}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </button>
-              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight">
-                Checkout
-              </h1>
-            </div>
+        <div
+          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+            isConfirmation ? 'pt-28 md:pt-36 pb-8' : 'py-8'
+          }`}
+        >
+          {!isConfirmation && (
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <button
+                  onClick={handleBackNavigation}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <ArrowLeftIcon className="w-5 h-5" />
+                </button>
+                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight">
+                  Checkout
+                </h1>
+              </div>
 
-            {/* Progress Indicator */}
-            <div className="flex items-center gap-2 text-sm">
-              <span
-                className={`px-3 py-1 rounded-full font-medium ${
-                  currentStep >= 1
-                    ? 'bg-indigo-100 text-indigo-800'
-                    : 'bg-gray-100 text-gray-500'
-                }`}
-              >
-                1. Shipping
-                {/* {currentStep > 1 ? '✓' : ''} */}
-              </span>
-              <div className="w-8 h-px bg-gray-300"></div>
-              <span
-                className={`px-3 py-1 rounded-full font-medium ${
-                  currentStep >= 2
-                    ? 'bg-indigo-100 text-indigo-800'
-                    : 'bg-gray-100 text-gray-500'
-                }`}
-              >
-                2. Payment
-                {/* {currentStep > 2 ? '✓' : ''} */}
-              </span>
-              <div className="w-8 h-px bg-gray-300"></div>
-              <span
-                className={`px-3 py-1 rounded-full font-medium ${
-                  currentStep >= 3
-                    ? 'bg-indigo-100 text-indigo-800'
-                    : 'bg-gray-100 text-gray-500'
-                }`}
-              >
-                3. Confirmation
-              </span>
+              <div className="flex items-center gap-2 text-sm">
+                <span
+                  className={`px-3 py-1 rounded-full font-medium ${
+                    currentStep >= 1
+                      ? 'bg-indigo-100 text-indigo-800'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  1. Shipping
+                </span>
+                <div className="w-8 h-px bg-gray-300"></div>
+                <span
+                  className={`px-3 py-1 rounded-full font-medium ${
+                    currentStep >= 2
+                      ? 'bg-indigo-100 text-indigo-800'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  2. Payment
+                </span>
+                <div className="w-8 h-px bg-gray-300"></div>
+                <span
+                  className={`px-3 py-1 rounded-full font-medium ${
+                    currentStep >= 3
+                      ? 'bg-indigo-100 text-indigo-800'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  3. Confirmation
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Nested Route Content */}
           <Outlet
             context={{
               cart,

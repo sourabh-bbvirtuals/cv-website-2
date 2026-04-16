@@ -37,7 +37,7 @@ export function VsmartHeader({
       {/* Top notification bar */}
       <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-600 text-white text-center py-2 px-4">
         <p className="text-sm font-medium tracking-wide">
-          Best Online Classes for CA Final AFM and CA Inter FM by CA Shubham Agrawal
+          Commerce Virtuals – Best Online Commerce Classes for Class 11 & 12
         </p>
       </div>
 
@@ -49,7 +49,7 @@ export function VsmartHeader({
               <img
                 className="h-10 w-auto"
                 src="/images/logo.webp"
-                alt="Shubham Agrawal Classes - CA Shubham Agrawal"
+                alt="Commerce Virtuals"
                 onError={(e) => {
                   e.currentTarget.src = '/images/logo.webp';
                 }}

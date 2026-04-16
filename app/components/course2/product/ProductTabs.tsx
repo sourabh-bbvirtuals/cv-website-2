@@ -311,7 +311,7 @@ export function ProductTabs({
                 (() => {
                   const faculty = product.faculties[0];
                   const name = faculty?.name || 'Faculty';
-                  const fallbackImage = '/assets/faculty-shubham-agrawal.png';
+                  const fallbackImage = '';
                   const image = faculty?.image || fallbackImage;
                   const description =
                     faculty?.description ||

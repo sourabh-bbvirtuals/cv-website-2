@@ -51,7 +51,9 @@ async function getBlogPostFromBlogsArray(
   options: QueryOptions,
 ): Promise<BlogCollectionData | null> {
   const result = await getCollectionBySlug('blogs', options);
-  const raw = result.collection?.customFields?.customData;
+  const raw =
+    result.collection?.description ||
+    result.collection?.customFields?.customData;
   if (!raw) return null;
   let parsed: unknown;
   try {
@@ -116,12 +118,13 @@ export async function getBlogCollectionBySlug(
 
     const result = await getCollectionBySlug(slug, options);
 
-    if (result.collection?.customFields?.customData) {
+    const rawBlogJson =
+      result.collection?.description ||
+      result.collection?.customFields?.customData;
+    if (rawBlogJson) {
       let blogData: Record<string, unknown>;
       try {
-        blogData = JSON.parse(
-          result.collection.customFields.customData,
-        ) as Record<string, unknown>;
+        blogData = JSON.parse(rawBlogJson) as Record<string, unknown>;
       } catch (parseError) {
         console.error(
           `❌ Error parsing custom data for blog collection "${slug}":`,

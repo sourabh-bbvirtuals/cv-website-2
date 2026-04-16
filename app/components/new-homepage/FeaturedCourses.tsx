@@ -1,9 +1,6 @@
 import { Link } from '@remix-run/react';
-import { ArrowRight } from 'lucide-react';
-import React, { useRef } from 'react';
-import type { Swiper as SwiperType } from 'swiper';
-import { Navigation } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CourseCard } from './CourseCard';
 import { useBoardSelection } from '~/context/BoardSelectionContext';
 
@@ -20,133 +17,124 @@ export type FeaturedCourse = {
   price: string;
   wasPrice: string;
   language?: string;
+  lectureMode?: string;
   type?: string;
 };
 
-const fallbackCourses: FeaturedCourse[] = [
-  {
-    id: '1',
-    title: 'Class 11 Commerce Complete Batch 2025',
-    meta: ['Business Studies', 'English', 'CA Ashish'],
-    enrolled: '1240 Students Enrolled',
-    image:
-      'https://www.figma.com/api/mcp/asset/4dce5674-3071-4998-a233-86e915e354f1',
-    badge: "Student's Favourite",
-    starts: '10 May, 2026',
-    ends: '10 May, 2027',
-    price: '₹14,200',
-    wasPrice: '₹25,500',
-    language: 'Hindi',
-    type: 'Live',
-  },
-  {
-    id: '2',
-    title: 'CA Foundation — All Subjects Live',
-    meta: ['Accounts', 'Law', 'May 2026'],
-    enrolled: '890 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-    badge: 'Bestseller',
-    starts: '12 May, 2026',
-    ends: '15 Nov, 2026',
-    price: '₹24,499',
-    wasPrice: '₹32,999',
-    language: 'Hinglish',
-    type: 'Recorded',
-  },
-  {
-    id: '3',
-    title: 'Class 12 Commerce — Boards + CUET',
-    meta: ['CBSE', 'Economics', 'CA Mayur Sanghvi'],
-    enrolled: '2100 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-    starts: '05 May, 2026',
-    ends: '28 Feb, 2027',
-    price: '₹16,999',
-    wasPrice: '₹22,000',
-    language: 'Hindi',
-    type: 'Live',
-  },
-  {
-    id: '2',
-    title: 'CA Foundation — All Subjects Live',
-    meta: ['Accounts', 'Law', 'May 2026'],
-    enrolled: '890 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-    badge: 'Bestseller',
-    starts: '12 May, 2026',
-    ends: '15 Nov, 2026',
-    price: '₹24,499',
-    wasPrice: '₹32,999',
-    language: 'Hinglish',
-    type: 'Recorded',
-  },
-  {
-    id: '4',
-    title: 'CUET Commerce — Section II & III',
-    meta: ['Mock tests', 'PYQs', 'General Test'],
-    enrolled: '560 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
-    starts: '01 Jun, 2026',
-    ends: '30 Jun, 2026',
-    price: '₹7,499',
-    wasPrice: '₹9,999',
-    language: 'Hindi',
-    type: 'Live',
-  },
-  {
-    id: '2',
-    title: 'CA Foundation — All Subjects Live',
-    meta: ['Accounts', 'Law', 'May 2026'],
-    enrolled: '890 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-    badge: 'Bestseller',
-    starts: '12 May, 2026',
-    ends: '15 Nov, 2026',
-    price: '₹24,499',
-    wasPrice: '₹32,999',
-    language: 'Hinglish',
-    type: 'Recorded',
-  },
-  {
-    id: '3',
-    title: 'Class 12 Commerce — Boards + CUET',
-    meta: ['CBSE', 'Economics', 'CA Mayur Sanghvi'],
-    enrolled: '2100 Students Enrolled',
-    image:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-    starts: '05 May, 2026',
-    ends: '28 Feb, 2027',
-    price: '₹16,999',
-    wasPrice: '₹22,000',
-    language: 'Hindi',
-    type: 'Live',
-  },
-];
+const fallbackCourses: FeaturedCourse[] = [];
 
 const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
   courses: dynamicCourses,
 }) => {
-  const displayCourses =
+  const rawCourses =
     dynamicCourses && dynamicCourses.length > 0
       ? dynamicCourses
       : fallbackCourses;
-  const swiperRef = useRef<SwiperType | null>(null);
+  const displayCourses = rawCourses.filter(
+    (c, i, arr) => arr.findIndex((x) => x.title === c.title) === i,
+  );
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slidesPerView, setSlidesPerView] = useState(1.05);
+  const [spaceBetween, setSpaceBetween] = useState(30);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
   const { selectedSlug } = useBoardSelection();
-  const coursesHref = selectedSlug
-    ? `/courses/${selectedSlug}`
-    : '/our-courses';
+  const coursesHref = '/our-courses';
+
+  // Handle responsive breakpoints
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) {
+        setSlidesPerView(3.2);
+        setSpaceBetween(20);
+      } else if (width >= 1024) {
+        setSlidesPerView(2.5);
+        setSpaceBetween(24);
+      } else if (width >= 768) {
+        setSlidesPerView(1.7);
+        setSpaceBetween(100);
+      } else if (width >= 640) {
+        setSlidesPerView(1.2);
+        setSpaceBetween(50);
+      } else {
+        setSlidesPerView(1.05);
+        setSpaceBetween(30);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Calculate max slides
+  const maxSlides = Math.ceil(
+    displayCourses.length - Math.floor(slidesPerView),
+  );
+
+  const handlePrev = () => {
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNext = () => {
+    setCurrentSlide((prev) => Math.min(prev + 1, maxSlides));
+  };
+
+  // Drag handlers
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    const startX =
+      'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    setDragStart(startX);
+    setDragOffset(0);
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentX =
+      'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const diff = currentX - dragStart;
+    setDragOffset(diff);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    const threshold = 50; // minimum pixels to trigger slide change
+
+    if (Math.abs(dragOffset) > threshold) {
+      if (dragOffset > 0) {
+        handlePrev();
+      } else {
+        handleNext();
+      }
+    }
+    setDragOffset(0);
+  };
+
+  // Calculate slide width based on viewport and slides per view
+  const getSlideWidth = () => {
+    if (typeof window === 'undefined') return 390;
+    const width = window.innerWidth;
+    if (width >= 1280) return 414; // 390 + 24px gap
+    if (width >= 1024) return 414; // 390 + 24px gap
+    if (width >= 768) return 308; // approximate for tablet
+    if (width >= 640) return 272; // approximate for small devices
+    return 272; // mobile
+  };
+
+  const slideWidth = getSlideWidth();
+
+  if (displayCourses.length === 0) return null;
 
   return (
-    <section className="bg-white overflow-hidden home-section-y pt-0! max-lg:py-10!">
+    <section className="bg-white">
       <div className="custom-container">
         {/* Header Section - Modern Aligned */}
         <div className="flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-3 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
-          <div className="text-left max-sm:text-center max-w-150 flex flex-col text-lightgray">
+          <div className="text-left max-sm:text-center max-w-180 flex flex-col text-lightgray">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Our Courses
             </p>
@@ -155,43 +143,50 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
             </h2>
           </div>
 
-          <div className="flex flex-col items-end gap-3 sm:gap-5 shrink-0">
-            <Link
-              to={coursesHref}
-              className="flex items-center gap-3 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
+              }}
+              className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              View All Courses
-              <span className="flex size-6 items-center justify-center rounded-full bg-[#3a6bfc] text-white">
-                <ArrowRight className="size-3.5" aria-hidden />
-              </span>
-            </Link>
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              onClick={() => {
+                scrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
+              }}
+              className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <ChevronRight className="size-5" />
+            </button>
           </div>
         </div>
 
         {/* Swiper Slider with Bleed Logic */}
         <div className="relative">
-          <Swiper
-            modules={[Navigation]}
-            onBeforeInit={(swiper) => {
-              swiperRef.current = swiper;
-            }}
-            spaceBetween={16}
-            slidesPerView={1.1}
-            speed={600}
-            breakpoints={{
-              640: { slidesPerView: 1.2, spaceBetween: 16 },
-              768: { slidesPerView: 1.7, spaceBetween: 16 },
-              1024: { slidesPerView: 2.5, spaceBetween: 20 },
-              1280: { slidesPerView: 3.2, spaceBetween: 20 },
-            }}
-            className="w-full overflow-visible!"
+          <div
+            ref={scrollRef}
+            className={`flex overflow-x-auto scrollbar-hide py-3 gap-4 `}
           >
             {displayCourses.map((course, index) => (
-              <SwiperSlide key={`${course.id}-${index}`} className="h-auto!">
+              <div key={`${course.id}-${index}`} className="">
                 <CourseCard course={course} isAlternate={index % 2 === 1} />
-              </SwiperSlide>
+              </div>
             ))}
-          </Swiper>
+          </div>
+        </div>
+
+        <div className="flex justify-start mt-6">
+          <Link
+            to={coursesHref}
+            className="flex items-center gap-3 rounded-[38px] sm:px-3 sm:py-2 text-[#3a6bfc] text-base sm:text-[20px] font-medium leading-[1.2] hover:opacity-90 transition-opacity"
+          >
+            View All Courses
+            <span className="flex size-6 items-center justify-center rounded-full bg-[#3a6bfc] text-white">
+              <ArrowRight className="size-3.5" aria-hidden />
+            </span>
+          </Link>
         </div>
       </div>
     </section>

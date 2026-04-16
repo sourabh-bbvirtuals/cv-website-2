@@ -121,12 +121,12 @@ export function BookProductCard({
     }
 
     // Get WhatsApp configuration
-    const phoneNumber = '917773977747'; // Default phone number
+    const phoneNumber = '916291040600';
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const productUrl = `${baseUrl}/courses2/product/${slug}`;
 
     // Create message with product details
-    const message = `Hi Shubham Agrawal Classes, I am interested in this book and I want to get connected with you for more details and offerings. plz get back to me asap.
+    const message = `Hi Commerce Virtuals, I am interested in this book and I want to get connected with you for more details and offerings. plz get back to me asap.
 
 PID: ${id}
 SKU: ${sellerSku || 'N/A'}
@@ -224,4 +224,3 @@ PRODUCT-URL: ${productUrl}`;
     </div>
   );
 }
-

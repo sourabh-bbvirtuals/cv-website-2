@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import {
   NavLink,
   Outlet,
-  Link,
   useOutletContext,
+  useLoaderData,
   useRouteLoaderData,
 } from '@remix-run/react';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import Layout from '~/components/Layout';
 import type { RootLoaderData } from '~/root';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 
 export interface UserProfileData {
   firstName: string;
@@ -27,6 +29,31 @@ export interface UserProfileData {
 export interface OutletContextType {
   userData: UserProfileData;
   setUserData: React.Dispatch<React.SetStateAction<UserProfileData>>;
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  try {
+    const result = await getActiveCustomerDetails({ request });
+    const c = result?.activeCustomer;
+    if (c) {
+      return json({
+        customer: {
+          firstName: c.firstName || '',
+          lastName: c.lastName || '',
+          emailAddress: c.emailAddress || '',
+          phoneNumber: c.phoneNumber || '',
+          customFields: {
+            dateOfBirth: (c as any).customFields?.dateOfBirth || '',
+            gender: (c as any).customFields?.gender || '',
+            board: (c as any).customFields?.board || '',
+            studentClass: (c as any).customFields?.studentClass || '',
+            contactEmail: (c as any).customFields?.contactEmail || '',
+          },
+        },
+      });
+    }
+  } catch {}
+  return json({ customer: null });
 }
 
 const STORAGE_KEY = 'bb_user_profile';
@@ -72,32 +99,14 @@ function isProfileComplete(data: UserProfileData): boolean {
   );
 }
 
-function CalendarIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="opacity-50"
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
 interface ActiveCustomerInfo {
   firstName?: string;
   lastName?: string;
   emailAddress?: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
+  customFields?: {
+    contactEmail?: string | null;
+  } | null;
 }
 
 function OnboardingForm({
@@ -110,7 +119,11 @@ function OnboardingForm({
   const knownName = [activeCustomer?.firstName, activeCustomer?.lastName]
     .filter(Boolean)
     .join(' ');
-  const knownEmail = activeCustomer?.emailAddress || '';
+  const knownEmail =
+    activeCustomer?.customFields?.contactEmail ||
+    (activeCustomer?.emailAddress?.endsWith('@bbvirtuals.tech')
+      ? ''
+      : activeCustomer?.emailAddress || '');
   const knownPhone = activeCustomer?.phoneNumber?.replace(/^\+91\s?/, '') || '';
 
   const [fullName, setFullName] = useState(knownName);
@@ -158,38 +171,35 @@ function OnboardingForm({
     onComplete(profileData);
   };
 
-  const toggleClass = (base: string, isActive: boolean) =>
-    `${base} ${
+  const getSegmentClass = (isActive: boolean) =>
+    `flex items-center justify-center gap-2 flex-1 py-2 sm:py-3 rounded-full border text-sm sm:text-base font-geist font-medium transition-all bg-white cursor-pointer ${
       isActive
-        ? 'outline-2 outline-[#3A6BFC] text-slate-900'
-        : 'outline-1 outline-slate-900/10 text-slate-900'
+        ? 'border-[#3A6BFC] text-[#3A6BFC]'
+        : 'border-[#0816271A] text-lightgray opacity-80 hover:opacity-100 hover:border-[#3A6BFC]'
     }`;
+
+  const inputClass =
+    'w-full bg-white rounded-full px-4 md:px-6 py-2.5 md:py-3.5 border border-[#0816271A] text-lightgray text-sm sm:text-base font-medium outline-none focus:border-[#3A6BFC] focus:ring-1 focus:ring-[#3A6BFC] transition-all';
 
   return (
     <main className="relative min-h-screen bg-white flex flex-col items-center justify-between p-4 py-6 sm:py-10 xl:py-15 overflow-y-auto mx-auto bg-[url('/assets/images/homepage/hero-bg.png')] bg-no-repeat bg-cover bg-center">
-      {/* Logo */}
-      <a
-        href="/"
-        className="relative max-w-61.25 w-full aspect-245/48 shrink-0"
-      >
+      <a href="/" className="relative max-w-61.25 w-full aspect-245/48">
         <img src="/assets/logo.png" alt="logo" />
       </a>
 
-      {/* Form Card */}
-      <div className="w-full max-w-[600px] flex flex-col items-center gap-5 sm:gap-7 my-8 sm:my-12 grow justify-center">
-        <div className="text-center space-y-3 sm:space-y-4">
-          <h1 className="text-slate-900 text-2xl sm:text-3xl lg:text-4xl font-semibold font-geist leading-tight">
+      <div className="flex flex-col items-center w-full gap-4 sm:gap-6 text-center grow justify-center max-w-150 py-16">
+        <div className="flex flex-col items-center mb-2">
+          <h1 className="font-geist font-semibold leading-[120%] text-2xl md:text-3xl lg:text-[32px] tracking-[-1%] text-lightgray">
             Create an Account
           </h1>
-          <p className="text-slate-900/50 text-sm sm:text-lg lg:text-xl font-normal font-geist leading-snug">
+          <p className="text-lightgray opacity-50 font-geist leading-[120%] text-sm sm:text-base lg:text-xl mt-2 sm:mt-3">
             We'd like to know about your current status
           </p>
         </div>
 
-        <div className="self-stretch p-5 sm:p-7 bg-white/20 rounded-2xl sm:rounded-[30px] outline outline-1 outline-white flex flex-col gap-5 sm:gap-7 backdrop-blur-sm">
-          {/* Full Name */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+        <div className="bg-[#FFFFFF33] border border-[#FFFFFF] w-full max-w-120 lg:max-w-150 rounded-[30px] p-5 sm:p-8 text-left z-10 flex flex-col gap-4 sm:gap-5">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Full Name
             </label>
             <input
@@ -199,55 +209,47 @@ function OnboardingForm({
                 setFullName(e.target.value);
                 setErrors((p) => ({ ...p, fullName: '' }));
               }}
-              placeholder="Write Name here"
-              className={`h-12 sm:h-14 px-5 sm:px-6 bg-white rounded-full outline outline-1 outline-offset-[-1px] text-base sm:text-xl font-medium font-geist focus:outline-2 focus:outline-[#3A6BFC] transition-all ${
-                errors.fullName ? 'outline-red-400' : 'outline-slate-900/10'
+              className={`${inputClass} ${
+                errors.fullName ? 'border-red-500' : ''
               }`}
+              placeholder="Write Name here"
             />
             {errors.fullName && (
-              <span className="text-red-500 text-xs sm:text-sm px-2">
+              <span className="text-red-500 text-sm px-2">
                 {errors.fullName}
               </span>
             )}
           </div>
 
-          {/* Email — hidden if already known from login */}
           {!knownEmail && (
-            <div className="flex flex-col gap-2 sm:gap-3">
-              <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
                 Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
                 placeholder="Write Email here"
-                className="h-12 sm:h-14 px-5 sm:px-6 bg-white rounded-full outline outline-1 outline-offset-[-1px] outline-slate-900/10 text-base sm:text-xl font-medium font-geist focus:outline-2 focus:outline-[#3A6BFC] transition-all"
               />
             </div>
           )}
 
-          {/* Date of Birth */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Date of Birth
             </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                className="h-12 sm:h-14 px-5 sm:px-6 bg-white rounded-full outline outline-1 outline-offset-[-1px] outline-slate-900/10 text-base sm:text-xl font-medium font-geist w-full focus:outline-2 focus:outline-[#3A6BFC] transition-all appearance-none"
-              />
-              <div className="absolute right-5 sm:right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                <CalendarIcon />
-              </div>
-            </div>
+            <input
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              className={inputClass}
+            />
           </div>
 
-          {/* Gender */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Gender
             </label>
             <div className="flex gap-3">
@@ -259,25 +261,19 @@ function OnboardingForm({
                     setGender(g);
                     setErrors((p) => ({ ...p, gender: '' }));
                   }}
-                  className={toggleClass(
-                    'flex-1 h-12 sm:h-14 rounded-full bg-white outline outline-offset-[-1px] text-center text-base sm:text-xl font-medium font-geist cursor-pointer transition-all hover:bg-blue-50/50',
-                    gender === g,
-                  )}
+                  className={getSegmentClass(gender === g)}
                 >
                   {g}
                 </button>
               ))}
             </div>
             {errors.gender && (
-              <span className="text-red-500 text-xs sm:text-sm px-2">
-                {errors.gender}
-              </span>
+              <span className="text-red-500 text-sm px-2">{errors.gender}</span>
             )}
           </div>
 
-          {/* Board */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Which Board?
             </label>
             <div className="flex gap-2 sm:gap-3">
@@ -289,25 +285,20 @@ function OnboardingForm({
                     setBoard(b);
                     setErrors((p) => ({ ...p, board: '' }));
                   }}
-                  className={toggleClass(
-                    'flex-1 h-12 sm:h-14 rounded-full bg-white outline outline-offset-[-1px] text-center text-base sm:text-xl font-medium font-geist cursor-pointer transition-all hover:bg-blue-50/50',
-                    board === b,
-                  )}
+                  className={getSegmentClass(board === b)}
                 >
+                  {b === 'CBSE' ? '🏵️ ' : b === 'MH' ? '🏫 ' : '🎓 '}
                   {b}
                 </button>
               ))}
             </div>
             {errors.board && (
-              <span className="text-red-500 text-xs sm:text-sm px-2">
-                {errors.board}
-              </span>
+              <span className="text-red-500 text-sm px-2">{errors.board}</span>
             )}
           </div>
 
-          {/* Class */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Which Class Are You In?
             </label>
             <div className="flex gap-3">
@@ -319,33 +310,29 @@ function OnboardingForm({
                     setClassLevel(c);
                     setErrors((p) => ({ ...p, classLevel: '' }));
                   }}
-                  className={toggleClass(
-                    'flex-1 h-12 sm:h-14 rounded-full bg-white outline outline-offset-[-1px] text-center text-base sm:text-xl font-medium font-geist cursor-pointer transition-all hover:bg-blue-50/50',
-                    classLevel === c,
-                  )}
+                  className={getSegmentClass(classLevel === c)}
                 >
                   {c}
                 </button>
               ))}
             </div>
             {errors.classLevel && (
-              <span className="text-red-500 text-xs sm:text-sm px-2">
+              <span className="text-red-500 text-sm px-2">
                 {errors.classLevel}
               </span>
             )}
           </div>
 
-          {/* Phone Number */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <label className="text-slate-900/50 text-base sm:text-xl font-medium font-geist leading-snug">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Phone Number
             </label>
             <div
-              className={`h-12 sm:h-14 px-5 sm:px-6 bg-white rounded-full outline outline-1 outline-offset-[-1px] flex items-center gap-2 ${
-                errors.phone ? 'outline-red-400' : 'outline-slate-900/10'
-              }`}
+              className={`flex items-center gap-2 bg-white rounded-full px-4 md:px-6 py-2.5 md:py-3.5 border ${
+                errors.phone ? 'border-red-500' : 'border-[#0816271A]'
+              } focus-within:border-[#3A6BFC] transition-all`}
             >
-              <span className="text-slate-900 text-base sm:text-xl font-medium font-geist shrink-0">
+              <span className="text-lightgray font-medium font-geist text-sm sm:text-base">
                 +91
               </span>
               <input
@@ -356,63 +343,54 @@ function OnboardingForm({
                   setPhone(v);
                   setErrors((p) => ({ ...p, phone: '' }));
                 }}
+                className="bg-transparent w-full text-lightgray/60 text-sm sm:text-base font-medium border-none outline-none focus:ring-0"
                 placeholder="00000-00000"
-                className="flex-1 bg-transparent text-base sm:text-xl font-medium font-geist outline-none border-none"
               />
             </div>
             {errors.phone && (
-              <span className="text-red-500 text-xs sm:text-sm px-2">
-                {errors.phone}
-              </span>
+              <span className="text-red-500 text-sm px-2">{errors.phone}</span>
             )}
           </div>
 
-          {/* Submit Button */}
           <button
             type="button"
             onClick={handleSubmit}
-            className="h-14 sm:h-16 bg-[#3A6BFC] rounded-full shadow-[inset_0px_4px_8px_0px_rgba(131,162,255,0.75),inset_0px_-2px_2px_0px_rgba(15,63,206,1)] flex justify-center items-center cursor-pointer hover:brightness-110 transition-all"
+            className="font-geist font-medium text-sm sm:text-base lg:text-lg bg-[#3A6BFC] py-3 md:py-4 min-h-[48px] md:min-h-[56px] text-white flex items-center justify-center w-full rounded-full shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] mt-2 transition-all"
           >
-            <span className="text-white text-base sm:text-xl font-medium font-geist">
-              Create an Account
-            </span>
+            Create an Account
           </button>
         </div>
 
-        {/* Login Link */}
-        <p className="font-geist font-medium text-base sm:text-xl leading-snug text-slate-900/50">
+        <a
+          href="/login"
+          className="font-geist font-medium text-sm sm:text-base text-[#808591] group mt-2"
+        >
           Old User?{' '}
-          <Link
-            to="/login"
-            className="text-[#3A6BFC] hover:underline transition-all"
-          >
+          <span className="text-[#3A6BFC] group-hover:underline transition-all duration-300 ease-in-out">
             Login
-          </Link>
-        </p>
+          </span>
+        </a>
       </div>
 
-      {/* Terms */}
-      <div className="w-full text-center py-4 sm:py-6 shrink-0">
-        <p className="font-geist font-medium text-sm sm:text-lg lg:text-xl leading-snug text-slate-900/50">
+      <div className="w-full text-center mt-auto pt-4">
+        <p className="font-geist font-medium text-sm sm:text-xl leading-[120%] text-lightgray opacity-50">
           You Acknowledge that you read, and agree to our
         </p>
-        <div className="flex justify-center gap-1">
+        <p className="font-geist font-medium text-sm sm:text-xl leading-[120%] text-lightgray opacity-50 mt-1">
           <a
             href="#"
-            className="font-geist font-medium text-sm sm:text-lg lg:text-xl text-slate-900/50 hover:text-[#3A6BFC] underline"
+            className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline"
           >
             Terms of Service
-          </a>
-          <span className="text-slate-900/50 text-sm sm:text-lg lg:text-xl">
-            and
-          </span>
+          </a>{' '}
+          and{' '}
           <a
             href="#"
-            className="font-geist font-medium text-sm sm:text-lg lg:text-xl text-slate-900/50 hover:text-[#3A6BFC] underline"
+            className="hover:text-[#3A6BFC] hover:opacity-100 transition-all duration-300 ease-in-out underline"
           >
             Privacy Policy
           </a>
-        </div>
+        </p>
       </div>
     </main>
   );
@@ -421,12 +399,65 @@ function OnboardingForm({
 export default function AccountLayout() {
   const rootData = useRouteLoaderData('root') as RootLoaderData | undefined;
   const activeCustomer = rootData?.activeCustomer?.activeCustomer;
+  const { customer: vendureCustomer } = useLoaderData<typeof loader>();
 
   const [userData, setUserData] = useState<UserProfileData>(emptyProfile);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     const stored = getStoredProfile();
+    if (stored && isProfileComplete(stored)) {
+      if (stored.email?.endsWith('@bbvirtuals.tech')) {
+        stored.email =
+          vendureCustomer?.customFields?.contactEmail ||
+          activeCustomer?.customFields?.contactEmail ||
+          '';
+      }
+      if (
+        !stored.phone &&
+        (vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber)
+      ) {
+        stored.phone =
+          vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
+      }
+      setUserData(stored);
+      setProfileLoaded(true);
+      return;
+    }
+
+    if (
+      vendureCustomer &&
+      vendureCustomer.firstName &&
+      vendureCustomer.firstName !== 'BB Virtual'
+    ) {
+      const cf = vendureCustomer.customFields;
+      const email =
+        cf?.contactEmail ||
+        (vendureCustomer.emailAddress?.endsWith('@bbvirtuals.tech')
+          ? ''
+          : vendureCustomer.emailAddress || '');
+      const vendureProfile: UserProfileData = {
+        firstName: vendureCustomer.firstName || '',
+        lastName: vendureCustomer.lastName || '',
+        email,
+        phone: vendureCustomer.phoneNumber || '',
+        dob: cf?.dateOfBirth || '',
+        gender: cf?.gender || '',
+        address: '',
+        state: '',
+        city: '',
+        pincode: '',
+        classLevel: cf?.studentClass || '',
+        board: cf?.board || '',
+      };
+      if (isProfileComplete(vendureProfile)) {
+        storeProfile(vendureProfile);
+        setUserData(vendureProfile);
+        setProfileLoaded(true);
+        return;
+      }
+    }
+
     if (stored) {
       setUserData(stored);
     }

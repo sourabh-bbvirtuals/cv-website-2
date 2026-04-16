@@ -12,14 +12,25 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const displayEmail =
+    customer?.customFields?.contactEmail ||
+    (customer?.emailAddress?.endsWith('@bbvirtuals.tech')
+      ? ''
+      : customer?.emailAddress || '');
+
   const [formData, setFormData] = useState({
     firstName: customer?.firstName || '',
     lastName: customer?.lastName || '',
-    email: customer?.emailAddress || '',
+    email: displayEmail,
     phone: customer?.phoneNumber || '',
     title: customer?.title || '',
-    icaiRegistrationNumber: customer?.customFields?.icaiRegistrationNumber || '',
+    icaiRegistrationNumber:
+      customer?.customFields?.icaiRegistrationNumber || '',
     gstin: customer?.customFields?.gstin || '',
+    dateOfBirth: customer?.customFields?.dateOfBirth || '',
+    gender: customer?.customFields?.gender || '',
+    board: customer?.customFields?.board || '',
+    studentClass: customer?.customFields?.studentClass || '',
   });
   const fetcher = useFetcher();
 
@@ -41,6 +52,11 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
     form.append('title', formData.title);
     form.append('icaiRegistrationNumber', formData.icaiRegistrationNumber);
     form.append('gstin', formData.gstin);
+    form.append('dateOfBirth', formData.dateOfBirth);
+    form.append('gender', formData.gender);
+    form.append('board', formData.board);
+    form.append('studentClass', formData.studentClass);
+    form.append('contactEmail', formData.email);
 
     fetcher.submit(form, { method: 'POST' });
   };
@@ -52,11 +68,16 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
     setFormData({
       firstName: customer?.firstName || '',
       lastName: customer?.lastName || '',
-      email: customer?.emailAddress || '',
+      email: displayEmail,
       phone: customer?.phoneNumber || '',
       title: customer?.title || '',
-      icaiRegistrationNumber: customer?.customFields?.icaiRegistrationNumber || '',
+      icaiRegistrationNumber:
+        customer?.customFields?.icaiRegistrationNumber || '',
       gstin: customer?.customFields?.gstin || '',
+      dateOfBirth: customer?.customFields?.dateOfBirth || '',
+      gender: customer?.customFields?.gender || '',
+      board: customer?.customFields?.board || '',
+      studentClass: customer?.customFields?.studentClass || '',
     });
   };
 
@@ -212,12 +233,74 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date of Birth
+            </label>
+            <input
+              type="date"
+              value={formData.dateOfBirth}
+              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Gender
+            </label>
+            <select
+              value={formData.gender}
+              onChange={(e) => handleInputChange('gender', e.target.value)}
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Board
+            </label>
+            <select
+              value={formData.board}
+              onChange={(e) => handleInputChange('board', e.target.value)}
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Select Board</option>
+              <option value="CBSE">CBSE</option>
+              <option value="MH">MH</option>
+              <option value="CUET">CUET</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Class
+            </label>
+            <select
+              value={formData.studentClass}
+              onChange={(e) =>
+                handleInputChange('studentClass', e.target.value)
+              }
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Select Class</option>
+              <option value="11th">11th</option>
+              <option value="12th">12th</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               ICAI Registration Number
             </label>
             <input
               type="tel"
               value={formData.icaiRegistrationNumber}
-              onChange={(e) => handleInputChange('icaiRegistrationNumber', e.target.value)}
+              onChange={(e) =>
+                handleInputChange('icaiRegistrationNumber', e.target.value)
+              }
               disabled={!isEditing}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />

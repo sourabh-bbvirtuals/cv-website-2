@@ -2,25 +2,33 @@ import type { LoaderFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import Layout from '~/components/Layout';
-import {
-  getQuizSession,
-  isValidQuizSlug,
-} from '~/components/free-resources/quiz/quizData';
 import { QuizResultScreen } from '~/components/free-resources/quiz/QuizScreens';
+import { fetchTestInfo, fetchTestQuestions } from '~/utils/bbServer';
+import { withGuestToken } from '~/utils/guestSession.server';
 
-export function loader({ params }: LoaderFunctionArgs) {
-  const slug = params.slug;
-  if (!slug || !isValidQuizSlug(slug)) {
-    throw new Response(null, { status: 404 });
-  }
-  return json({ session: getQuizSession(slug) });
+export async function loader({ params, request }: LoaderFunctionArgs) {
+  const testId = params.slug;
+  if (!testId) throw new Response(null, { status: 404 });
+
+  const result = await withGuestToken(request, async (token) => {
+    const [info, questionsRes] = await Promise.all([
+      fetchTestInfo(token, testId),
+      fetchTestQuestions(token, testId),
+    ]);
+    return { testInfo: info, questions: questionsRes.questions };
+  });
+
+  return json(
+    result.data,
+    result.headers ? { headers: result.headers } : undefined,
+  );
 }
 
 export default function QuizResultRoute() {
-  const { session } = useLoaderData<typeof loader>();
+  const { testInfo, questions } = useLoaderData<typeof loader>();
   return (
     <Layout bare>
-      <QuizResultScreen session={session} />
+      <QuizResultScreen testInfo={testInfo} questions={questions} />
     </Layout>
   );
 }

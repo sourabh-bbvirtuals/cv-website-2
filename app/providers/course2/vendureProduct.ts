@@ -25,7 +25,12 @@ export interface VendureCourse2Product {
     priceWithTax: number;
     sku: string;
     stockLevel: number;
-    options: Array<{ id: string; name: string; value: string }>;
+    options: Array<{
+      id: string;
+      name: string;
+      value?: string;
+      group?: { id: string; name: string };
+    }>;
     variantDetails?: Array<{
       subject: string;
       testSeries?: string;
@@ -350,8 +355,61 @@ async function convertVendureProductToCourse2Product(
     facultyData = [];
   }
 
-  // const relatedProducts = await getProductsByIds(vendureProduct.customFields?.relatedProductIds || [], options);
-  // console.log('Related Products:', JSON.stringify(vendureProduct.customFields?.relatedProductIds));
+  // Enrich faculty data from specifications' our_faculty section when
+  // collection-based images are missing
+  try {
+    const customDataRaw = vendureProduct.customFields?.customData;
+    if (customDataRaw) {
+      const parsed =
+        typeof customDataRaw === 'string'
+          ? JSON.parse(customDataRaw)
+          : customDataRaw;
+      const specs =
+        parsed?.specifications?.product ??
+        (Array.isArray(parsed) ? parsed : []);
+      const facultySpec = specs.find(
+        (s: any) =>
+          s.identifier === 'our_faculty' ||
+          s.identifier === 'faculty_info' ||
+          s.identifier === 'faculties',
+      );
+      const facultyInfos: Array<{
+        name?: string;
+        imageUrl?: string;
+        description?: string;
+      }> = facultySpec?.facultyInfos ?? [];
+
+      if (facultyInfos.length > 0) {
+        if (facultyData.length === 0) {
+          facultyData = facultyInfos.map((f) => ({
+            name: f.name || 'Faculty',
+            image: f.imageUrl || '',
+            description: f.description || '',
+          }));
+        } else {
+          for (const fd of facultyData) {
+            const fdName = fd.name?.toLowerCase() || '';
+            const match = facultyInfos.find((f) => {
+              const fName = f.name?.toLowerCase() || '';
+              return (
+                fName &&
+                (fName === fdName ||
+                  fName.includes(fdName) ||
+                  fdName.includes(fName))
+              );
+            });
+            if (match) {
+              if (!fd.image && match.imageUrl) fd.image = match.imageUrl;
+              if (!fd.description && match.description)
+                fd.description = match.description;
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // non-fatal
+  }
 
   return {
     id: vendureProduct.id,

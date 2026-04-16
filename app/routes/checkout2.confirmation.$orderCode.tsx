@@ -7,9 +7,7 @@ import {
 import { DataFunctionArgs, json, redirect } from '@remix-run/server-runtime';
 import { APP_META_TITLE } from '~/constants';
 import { getTopAnnouncementsForLayout } from '~/providers/announcements';
-import {
-  getOrderByCode,
-} from '~/providers/orders/order';
+import { getOrderByCode } from '~/providers/orders/order';
 import { formatPrice } from '~/providers/cart/vendureCart';
 import {
   CheckIcon,
@@ -72,12 +70,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
       customerId: order?.customer?.id,
     });
   } catch (orderError) {
-    console.log(
-      'Could not get order data (order not found or access denied):',
-      orderError,
-    );
-    // Redirect to home if order cannot be found
-    return redirect('/');
+    console.error('[Confirmation] Could not get order data:', orderError);
   }
 
   // Try to get announcements, but don't fail if we can't
@@ -97,35 +90,44 @@ export async function loader({ request, params }: DataFunctionArgs) {
   let isFailure = false;
   let isCancelled = false;
 
-  // Use order state to determine status
-  switch (order?.state) {
-    case 'PaymentSettled':
-      paymentStatus = 'success';
-      isSuccess = true;
-      break;
-    case 'PaymentAuthorized':
-      paymentStatus = 'pending';
-      isPending = true;
-      break;
-    case 'Cancelled':
-      paymentStatus = 'cancelled';
-      isCancelled = true;
-      break;
-    case 'ArrangingPayment':
-      if (status === 'cancelled') {
+  if (!order) {
+    // Order couldn't be loaded — fall back to URL status param
+    paymentStatus = status || 'success';
+    isSuccess = paymentStatus === 'success';
+    isPending = paymentStatus === 'pending';
+    isFailure = paymentStatus === 'failure';
+    isCancelled = paymentStatus === 'cancelled';
+  } else {
+    // Use order state to determine status
+    switch (order.state) {
+      case 'PaymentSettled':
+        paymentStatus = 'success';
+        isSuccess = true;
+        break;
+      case 'PaymentAuthorized':
+        paymentStatus = 'pending';
+        isPending = true;
+        break;
+      case 'Cancelled':
         paymentStatus = 'cancelled';
         isCancelled = true;
-      } else {
-        paymentStatus = 'failure';
-        isFailure = true;
-      }
-      break;
-    default:
-      paymentStatus = status || 'failure';
-      isSuccess = status === 'success';
-      isPending = status === 'pending';
-      isFailure = status === 'failure';
-      isCancelled = status === 'cancelled';
+        break;
+      case 'ArrangingPayment':
+        if (status === 'cancelled') {
+          paymentStatus = 'cancelled';
+          isCancelled = true;
+        } else {
+          paymentStatus = 'failure';
+          isFailure = true;
+        }
+        break;
+      default:
+        paymentStatus = status || 'failure';
+        isSuccess = status === 'success';
+        isPending = status === 'pending';
+        isFailure = status === 'failure';
+        isCancelled = status === 'cancelled';
+    }
   }
 
   console.log('Payment status determination:', {
@@ -149,6 +151,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
 
   return json({
     order,
+    orderCode,
     status: paymentStatus,
     error,
     announcements: announcements || [],
@@ -156,97 +159,74 @@ export async function loader({ request, params }: DataFunctionArgs) {
 }
 
 export default function Checkout2Confirmation() {
-  const { order, status, error, announcements } =
+  const { order, orderCode, status, error, announcements } =
     useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  // Guard clause - if no order, redirect to home
-  if (!order) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-            Order Not Found
-          </h1>
-          <p className="text-gray-600 mb-6">
-            The order you're looking for could not be found.
-          </p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Debug logging for client-side
-  console.log('=== CONFIRMATION PAGE CLIENT ===');
-  console.log('Loader data received:', {
-    orderCode: order?.code,
-    status,
-    error,
-    orderState: order?.state,
-    orderActive: order?.active,
-    orderPayments: order?.payments,
-    announcementsCount: announcements?.length,
-  });
-  console.log(
-    'Current URL search params:',
-    Object.fromEntries(searchParams.entries()),
-  );
 
   const isSuccess = status === 'success';
   const isPending = status === 'pending';
   const isFailure = status === 'failure';
   const isCancelled = status === 'cancelled';
-  console.log('Payment status determination:', {
-    status,
-    isSuccess,
-    isPending,
-    isFailure,
-    isCancelled,
-    orderState: order?.state,
-    orderActive: order?.active,
-    hasPayments: (order?.payments?.length || 0) > 0,
-    paymentStates: order?.payments?.map((p) => p.state) || [],
-  });
 
+  const displayCode = order?.code || orderCode || '';
 
   // Calculate discount breakdown
-  const offerAmountDetail: {totalDiscount: number; additionalOfferAmount: number; couponOfferAmount: number} = useMemo(() => {
+  const offerAmountDetail: {
+    totalDiscount: number;
+    additionalOfferAmount: number;
+    couponOfferAmount: number;
+  } = useMemo(() => {
+    if (!order)
+      return {
+        totalDiscount: 0,
+        additionalOfferAmount: 0,
+        couponOfferAmount: 0,
+      };
     const discounts = order?.discounts;
     const promotions = order?.promotions;
     if (!discounts || discounts.length === 0) {
-      return {totalDiscount: 0, additionalOfferAmount: 0, couponOfferAmount: 0};
+      return {
+        totalDiscount: 0,
+        additionalOfferAmount: 0,
+        couponOfferAmount: 0,
+      };
     }
     let additionalOfferAmount = 0;
     let couponOfferAmount = 0;
     // Sum all discounts (amounts may be negative, so we take absolute value)
-    const discountSum = discounts.filter((discount: any) => discount.adjustmentSource !== 'PROMOTION:237').reduce((sum: number, discount: any) => {
-      // Handle both Money object (with value property) and direct number
-      let discountAmount = 0;
-      if (discount.amountWithTax !== undefined && discount.amountWithTax !== null) {
-        discountAmount = typeof discount.amountWithTax === 'object' 
-          ? discount.amountWithTax.value || 0 
-          : discount.amountWithTax;
-      } else if (discount.amount !== undefined && discount.amount !== null) {
-        discountAmount = typeof discount.amount === 'object' 
-          ? discount.amount.value || 0 
-          : discount.amount;
-      }
-      const promotion = promotions?.find((promotion: any) => "PROMOTION:"+ promotion.id === discount.adjustmentSource);
-      if (promotion?.couponCode) {
-        couponOfferAmount = couponOfferAmount + Math.abs(discountAmount);
-      } else {
-        additionalOfferAmount = additionalOfferAmount + Math.abs(discountAmount);
-      }
-      // Take absolute value since discounts are typically negative
-      return sum + Math.abs(discountAmount);
-    }, 0);
+    const discountSum = discounts
+      .filter((discount: any) => discount.adjustmentSource !== 'PROMOTION:237')
+      .reduce((sum: number, discount: any) => {
+        // Handle both Money object (with value property) and direct number
+        let discountAmount = 0;
+        if (
+          discount.amountWithTax !== undefined &&
+          discount.amountWithTax !== null
+        ) {
+          discountAmount =
+            typeof discount.amountWithTax === 'object'
+              ? discount.amountWithTax.value || 0
+              : discount.amountWithTax;
+        } else if (discount.amount !== undefined && discount.amount !== null) {
+          discountAmount =
+            typeof discount.amount === 'object'
+              ? discount.amount.value || 0
+              : discount.amount;
+        }
+        const promotion = promotions?.find(
+          (promotion: any) =>
+            'PROMOTION:' + promotion.id === discount.adjustmentSource,
+        );
+        if (promotion?.couponCode) {
+          couponOfferAmount = couponOfferAmount + Math.abs(discountAmount);
+        } else {
+          additionalOfferAmount =
+            additionalOfferAmount + Math.abs(discountAmount);
+        }
+        // Take absolute value since discounts are typically negative
+        return sum + Math.abs(discountAmount);
+      }, 0);
     return {
       totalDiscount: discountSum,
       additionalOfferAmount,
@@ -269,35 +249,38 @@ export default function Checkout2Confirmation() {
   useEffect(() => {
     // Only execute once per order code, even if effect runs multiple times (React StrictMode)
     if (
-      order && 
-      order.state === 'PaymentSettled' && 
+      order &&
+      order.state === 'PaymentSettled' &&
       order.code &&
       purchaseEventSentRef.current !== order.code
     ) {
       // Mark this order as processed
       purchaseEventSentRef.current = order.code;
-      
+
       pushToDataLayer({
-        'event': 'purchase',
-        'ecommerce': {
-          'transaction_id': order.code,
-          'value': order.totalWithTax / 100,
-          'currency': 'INR',
-          'items': order.lines.map(line => ({
-            'item_id': line.productVariant.sku,
-            'item_name': line.customFields?.additionalInformation ? JSON.parse(line.customFields?.additionalInformation).sellerSku || null : null,
-            'price': line.unitPriceWithTax / 100,
-            'quantity': line.quantity,
-          }))
-        }
+        event: 'purchase',
+        ecommerce: {
+          transaction_id: order.code,
+          value: order.totalWithTax / 100,
+          currency: 'INR',
+          items: order.lines.map((line) => ({
+            item_id: line.productVariant.sku,
+            item_name: line.customFields?.additionalInformation
+              ? JSON.parse(line.customFields?.additionalInformation)
+                  .sellerSku || null
+              : null,
+            price: line.unitPriceWithTax / 100,
+            quantity: line.quantity,
+          })),
+        },
       });
     }
   }, [order?.state, order?.code]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className={`grid grid-cols-1 ${order ? 'lg:grid-cols-3' : ''} gap-8`}>
       {/* Main Content */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className={`${order ? 'lg:col-span-2' : ''} space-y-6`}>
         {/* Header */}
         <div className="text-center mb-8">
           <div
@@ -355,54 +338,49 @@ export default function Checkout2Confirmation() {
                     Order Number
                   </label>
                   <p className="text-sm text-gray-900 font-mono">
-                    {order.code}
+                    {displayCode}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Order Date
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {new Date(order.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Total Amount
-                  </label>
-                  <p className="text-sm text-gray-900 font-semibold">
-                    {formatPrice(order.totalWithTax, order.currencyCode)}
-                  </p>
-                </div>
+                {order?.createdAt && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Order Date
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {new Date(order.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                )}
+                {order?.totalWithTax != null && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Total Amount
+                    </label>
+                    <p className="text-sm text-gray-900 font-semibold">
+                      {formatPrice(order.totalWithTax, order.currencyCode)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Order Items */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-900 mb-4">
-                  Items Ordered
-                </h3>
-                <div className="space-y-3">
-                  {order.lines.map((line: any) => (
+              {order?.lines && order.lines.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-md font-medium text-gray-900 mb-4">
+                    Items Ordered
+                  </h3>
+                  <div className="space-y-3">
+                    {order.lines.map((line: any) => (
                       <div
                         key={line.id}
                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                       >
-                        {/* {line.featuredAsset?.preview && (
-                          <img
-                            src={line.featuredAsset.preview}
-                            alt={
-                              line.productVariant.product?.name ||
-                              line.productVariant.name
-                            }
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        )} */}
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">
                             {line.productVariant.product?.name ||
@@ -415,13 +393,14 @@ export default function Checkout2Confirmation() {
                         <p className="text-sm font-medium text-gray-900">
                           {formatPrice(
                             line.linePriceWithTax,
-                            order.currencyCode
+                            order.currencyCode,
                           )}
                         </p>
                       </div>
                     ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Next Steps */}
               <div className="bg-indigo-50 rounded-lg p-4">
@@ -451,7 +430,7 @@ export default function Checkout2Confirmation() {
                     Order Number
                   </label>
                   <p className="text-sm text-gray-900 font-mono">
-                    {order.code}
+                    {displayCode}
                   </p>
                 </div>
                 <div>
@@ -493,37 +472,34 @@ export default function Checkout2Confirmation() {
                 </h3>
                 <div className="space-y-3">
                   {order.lines.map((line: any) => (
-                      <div
-                        key={line.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        {line.featuredAsset?.preview && (
-                          <img
-                            src={line.featuredAsset.preview}
-                            alt={
-                              line.productVariant.product?.name ||
-                              line.productVariant.name
-                            }
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {line.productVariant.product?.name ||
-                              line.productVariant.name}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Quantity: {line.quantity}
-                          </p>
-                        </div>
+                    <div
+                      key={line.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    >
+                      {line.featuredAsset?.preview && (
+                        <img
+                          src={line.featuredAsset.preview}
+                          alt={
+                            line.productVariant.product?.name ||
+                            line.productVariant.name
+                          }
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">
-                          {formatPrice(
-                            line.linePriceWithTax,
-                            order.currencyCode
-                          )}
+                          {line.productVariant.product?.name ||
+                            line.productVariant.name}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Quantity: {line.quantity}
                         </p>
                       </div>
-                    ))}
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatPrice(line.linePriceWithTax, order.currencyCode)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -642,98 +618,79 @@ export default function Checkout2Confirmation() {
             </>
           )}
 
-          {/* Quick Actions - Dynamic based on payment status */}
-          <div className="bg-white mt-6 rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <>
-                <button
-                  onClick={handleViewAccount}
-                  className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <FileTextIcon className="w-4 h-4" />
-                  View My Account
-                </button>
-                <button
-                  onClick={handleContinueShopping}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                  <ShoppingBagIcon className="w-4 h-4" />
-                  Continue Shopping
-                </button>
-              </>
-            </div>
+          {/* Quick Actions */}
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={handleViewAccount}
+              className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              <FileTextIcon className="w-4 h-4" />
+              View My Account
+            </button>
+            <button
+              onClick={handleContinueShopping}
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-[#3A6BFC] text-white font-medium rounded-xl hover:bg-[#2d5ae0] transition-colors"
+            >
+              <ShoppingBagIcon className="w-4 h-4" />
+              Continue Shopping
+            </button>
           </div>
         </div>
       </div>
 
       {/* Sidebar */}
-      <div className="lg:col-span-1">
-        <div className="sticky top-4 space-y-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-          {/* Order Summary */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Order Summary
-            </h3>
+      {order && (
+        <div className="lg:col-span-1">
+          <div className="sticky top-4 space-y-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Order Summary
+              </h3>
 
-            {/* Order Info */}
-            <div className="mb-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Order Code</span>
-                <span className="text-gray-900 font-mono">{order.code}</span>
-              </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-600">Date</span>
-                <span className="text-gray-900">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-600">Status</span>
-                <span
-                  className={`font-medium ${
-                    isSuccess
-                      ? 'text-green-600'
+              <div className="mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Order Code</span>
+                  <span className="text-gray-900 font-mono">{displayCode}</span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Date</span>
+                  <span className="text-gray-900">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Status</span>
+                  <span
+                    className={`font-medium ${
+                      isSuccess
+                        ? 'text-green-600'
+                        : isPending
+                        ? 'text-yellow-600'
+                        : isCancelled
+                        ? 'text-orange-600'
+                        : 'text-red-600'
+                    }`}
+                  >
+                    {isSuccess
+                      ? 'Confirmed'
                       : isPending
-                      ? 'text-yellow-600'
+                      ? 'Processing'
                       : isCancelled
-                      ? 'text-orange-600'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {isSuccess
-                    ? 'Confirmed'
-                    : isPending
-                    ? 'Processing'
-                    : isCancelled
-                    ? 'Cancelled'
-                    : 'Failed'}
-                </span>
+                      ? 'Cancelled'
+                      : 'Failed'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Amount</span>
+                  <span className="text-gray-900 font-semibold">
+                    {formatPrice(order.totalWithTax, order.currencyCode)}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-600">Amount</span>
-                <span className="text-gray-900 font-semibold">
-                  {formatPrice(order.totalWithTax, order.currencyCode)}
-                </span>
-              </div>
-            </div>
 
-            {/* Order Items */}
-            <div className="space-y-3 mb-6">
-              {order.lines.map((line: any) => (
+              <div className="space-y-3 mb-6">
+                {order.lines.map((line: any) => (
                   <div key={line.id} className="flex items-center gap-3">
-                    {/* {line.featuredAsset?.preview && (
-                      <img
-                        src={line.featuredAsset.preview}
-                        alt={
-                          line.productVariant.product?.name ||
-                          line.productVariant.name
-                        }
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
-                    )} */}
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
                         {line.productVariant.product?.name ||
@@ -748,126 +705,103 @@ export default function Checkout2Confirmation() {
                     </p>
                   </div>
                 ))}
-            </div>
+              </div>
 
-            {/* Totals Breakdown */}
-            <div className="border-t border-gray-200 pt-4 space-y-2 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-900">
-                  {formatPrice((order.subTotalWithTax || 0) + (offerAmountDetail?.totalDiscount || 0), order.currencyCode)}
-                </span>
-              </div>
-              {offerAmountDetail && offerAmountDetail.additionalOfferAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Additional Offer Applied</span>
-                  <span className="font-medium">
-                    -{formatPrice(offerAmountDetail.additionalOfferAmount, order.currencyCode)}
+              <div className="border-t border-gray-200 pt-4 space-y-2 mb-6">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-900">
+                    {formatPrice(
+                      (order.subTotalWithTax || 0) +
+                        (offerAmountDetail?.totalDiscount || 0),
+                      order.currencyCode,
+                    )}
                   </span>
                 </div>
-              )}
-              {offerAmountDetail && offerAmountDetail.couponOfferAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Coupon Offer</span>
-                  <span className="font-medium">
-                    -{formatPrice(offerAmountDetail.couponOfferAmount, order.currencyCode)}
+                {offerAmountDetail &&
+                  offerAmountDetail.additionalOfferAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Additional Offer Applied</span>
+                      <span className="font-medium">
+                        -
+                        {formatPrice(
+                          offerAmountDetail.additionalOfferAmount,
+                          order.currencyCode,
+                        )}
+                      </span>
+                    </div>
+                  )}
+                {offerAmountDetail &&
+                  offerAmountDetail.couponOfferAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Coupon Offer</span>
+                      <span className="font-medium">
+                        -
+                        {formatPrice(
+                          offerAmountDetail.couponOfferAmount,
+                          order.currencyCode,
+                        )}
+                      </span>
+                    </div>
+                  )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-900">
+                    {order.shippingWithTax > 0
+                      ? formatPrice(order.shippingWithTax, order.currencyCode)
+                      : 'Free'}
                   </span>
                 </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Shipping</span>
-                <span className="text-gray-900">
-                  {order.shippingWithTax > 0
-                    ? formatPrice(order.shippingWithTax, order.currencyCode)
-                    : 'Free'}
-                </span>
-              </div>
-              <div className="border-t border-gray-200 pt-2">
-                <div className="flex justify-between">
-                  <span className="text-base font-semibold text-gray-900">
-                    Total
-                  </span>
-                  <span className="text-base font-semibold text-gray-900">
-                    {formatPrice(order.totalWithTax, order.currencyCode)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pending Status Note */}
-            {isPending && (
-              <div className="pt-6 border-t border-gray-200">
-                <div className="flex items-start gap-2">
-                  <ClockIcon className="w-4 h-4 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-medium text-yellow-900">
-                      Payment Processing
-                    </h4>
-                    <p className="text-sm text-yellow-800 mt-1">
-                      Your payment is being verified. You'll receive an email
-                      confirmation once it's confirmed.
-                    </p>
+                <div className="border-t border-gray-200 pt-2">
+                  <div className="flex justify-between">
+                    <span className="text-base font-semibold text-gray-900">
+                      Total
+                    </span>
+                    <span className="text-base font-semibold text-gray-900">
+                      {formatPrice(order.totalWithTax, order.currencyCode)}
+                    </span>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Customer Info */}
-            {order.customer && (
-              <div className="pt-6 border-t border-gray-200">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  Customer
-                </h4>
-                <p className="text-sm text-gray-600">
-                  {order.customer.firstName} {order.customer.lastName}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {order.customer.emailAddress}
-                </p>
-              </div>
-            )}
-          </div>
+              {isPending && (
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="flex items-start gap-2">
+                    <ClockIcon className="w-4 h-4 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-yellow-900">
+                        Payment Processing
+                      </h4>
+                      <p className="text-sm text-yellow-800 mt-1">
+                        Your payment is being verified. You'll receive an email
+                        confirmation once it's confirmed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-          {/* Customer & Shipping Info - Only show on success */}
-          {isSuccess && (
-            <>
-              {/* Customer Info */}
               {order.customer && (
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Customer Information
-                  </h3>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Name
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {order.customer.firstName} {order.customer.lastName}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Email
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {order.customer.emailAddress}
-                      </p>
-                    </div>
-                  </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                    Customer
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {order.customer.firstName} {order.customer.lastName}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {order.customer.emailAddress}
+                  </p>
                 </div>
               )}
 
-              {/* Shipping Address */}
-              {order.shippingAddress && (
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {isSuccess && order.shippingAddress && (
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
                     Shipping Address
-                  </h3>
-                  <div className="text-sm text-gray-900">
-                    <p className="font-medium">
-                      {order.shippingAddress.fullName}
-                    </p>
+                  </h4>
+                  <div className="text-sm text-gray-600">
+                    <p>{order.shippingAddress.fullName}</p>
                     <p>{order.shippingAddress.streetLine1}</p>
                     {order.shippingAddress.streetLine2 && (
                       <p>{order.shippingAddress.streetLine2}</p>
@@ -877,19 +811,18 @@ export default function Checkout2Confirmation() {
                       {order.shippingAddress.province}{' '}
                       {order.shippingAddress.postalCode}
                     </p>
-                    <p>{order.shippingAddress.countryCode}</p>
                     {order.shippingAddress.phoneNumber && (
-                      <p className="mt-2">
+                      <p className="mt-1">
                         Phone: {order.shippingAddress.phoneNumber}
                       </p>
                     )}
                   </div>
                 </div>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

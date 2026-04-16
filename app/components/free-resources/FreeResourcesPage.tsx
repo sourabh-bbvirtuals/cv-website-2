@@ -1,813 +1,690 @@
-import React, {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal } from 'react-dom';
-import { Link } from '@remix-run/react';
-import { Calculator, ChevronDown, Download, Eye, Play, X } from 'lucide-react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from '@remix-run/react';
+import { ChevronDown, Play, ServerOff, X } from 'lucide-react';
+import { PillSelect } from '../ui/PillSelect';
+import { ContentCardItem } from './ContentCard';
+import { LimitReachedOverlay } from './LimitReachedOverlay';
+import type { TabContentResponse } from '~/utils/bbServer';
 import {
-  MetaLineWithBullets,
-  metaSepCharClass,
-  metaSepDotClass,
-} from './metaShared';
-import { QUIZ_LIST, type QuizDifficulty } from './quiz/quizData';
-import { QuizListingCard } from './quiz/QuizListingCard';
+  MockTestsIcon,
+  FreeVideosIcon,
+  PastPapersIcon,
+  QuizzesIcon,
+  StudyNotesIcon,
+} from '../new-homepage/Icons';
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
-const IMG_TAB_MOCK =
-  'https://www.figma.com/api/mcp/asset/5973916e-f28b-47c7-a8d8-cdaff74f9475';
-const IMG_TAB_NOTES =
-  'https://www.figma.com/api/mcp/asset/17fd8be8-1b2e-4d91-ae41-fb040dd6e42a';
-const IMG_TAB_PAPERS =
-  'https://www.figma.com/api/mcp/asset/df469be0-e92a-4469-81ba-2dd40eed6f33';
-const IMG_TAB_QUIZZES =
-  'https://www.figma.com/api/mcp/asset/e2110efc-35ce-4abe-bcad-14838e10c3ab';
-const IMG_TAB_VIDEOS =
-  'https://www.figma.com/api/mcp/asset/7206f8f3-c2a3-4930-bfe8-fc4f5d672467';
-/** Figma 1:4995 — video card thumbnail */
-const IMG_FREE_VIDEO_THUMB =
-  'https://www.figma.com/api/mcp/asset/b353da9b-34c2-4e9f-8683-1284119d1c73';
+// ── Tab config ─────────────────────────────────────────────────
 
-const CarouselArrow = ({
-  dir,
-  className,
-}: {
-  dir: 'left' | 'right';
-  className?: string;
-}) => (
-  <svg
-    className={`${className ?? ''} ${dir === 'right' ? 'rotate-180' : ''}`}
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path
-      d="M15.2651 19.2349C15.3355 19.3053 15.375 19.4007 15.375 19.5002C15.375 19.5997 15.3355 19.6952 15.2651 19.7655C15.1948 19.8359 15.0993 19.8754 14.9998 19.8754C14.9003 19.8754 14.8049 19.8359 14.7345 19.7655L7.23449 12.2655C7.19963 12.2307 7.17197 12.1893 7.1531 12.1438C7.13422 12.0983 7.12451 12.0495 7.12451 12.0002C7.12451 11.9509 7.13422 11.9021 7.1531 11.8566C7.17197 11.8111 7.19963 11.7697 7.23449 11.7349L14.7345 4.2349C14.7693 4.20005 14.8107 4.17242 14.8562 4.15356C14.9017 4.1347 14.9505 4.125 14.9998 4.125C15.0491 4.125 15.0979 4.1347 15.1434 4.15356C15.1889 4.17242 15.2303 4.20005 15.2651 4.2349C15.3 4.26974 15.3276 4.3111 15.3465 4.35662C15.3653 4.40214 15.375 4.45094 15.375 4.50021C15.375 4.54948 15.3653 4.59827 15.3465 4.64379C15.3276 4.68932 15.3 4.73068 15.2651 4.76552L8.03043 12.0002L15.2651 19.2349Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
-const TapExpandArrow = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    width="20"
-    height="20"
-    viewBox="0 0 20 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path
-      d="M7.27866 16.0291C7.22002 16.0877 7.18708 16.1672 7.18708 16.2502C7.18708 16.3331 7.22002 16.4126 7.27866 16.4713C7.3373 16.5299 7.41683 16.5628 7.49975 16.5628C7.58268 16.5628 7.66221 16.5299 7.72085 16.4713L13.9708 10.2213C13.9999 10.1922 14.023 10.1578 14.0387 10.1198C14.0544 10.0819 14.0625 10.0412 14.0625 10.0002C14.0625 9.95911 14.0544 9.91844 14.0387 9.88051C14.023 9.84257 13.9999 9.8081 13.9708 9.77908L7.72085 3.52908C7.69181 3.50005 7.65734 3.47701 7.61941 3.4613C7.58147 3.44559 7.54082 3.4375 7.49975 3.4375C7.45869 3.4375 7.41803 3.44559 7.3801 3.4613C7.34216 3.47701 7.30769 3.50005 7.27866 3.52908C7.24963 3.55811 7.22659 3.59258 7.21088 3.63052C7.19517 3.66845 7.18708 3.70911 7.18708 3.75017C7.18708 3.79123 7.19517 3.83189 7.21088 3.86983C7.22659 3.90776 7.24963 3.94223 7.27866 3.97127L13.3076 10.0002L7.27866 16.0291Z"
-      fill="#3A6BFC"
-    />
-  </svg>
-);
-
-export type TabId =
-  | 'mock'
-  | 'formula'
-  | 'notes'
-  | 'papers'
-  | 'quizzes'
-  | 'videos';
-
-const TAB_PATH_BY_ID: Record<TabId, string> = {
-  mock: '/free-resources/mock-tests',
-  formula: '/free-resources/formula-cards',
-  notes: '/free-resources/study-notes',
-  papers: '/free-resources/past-papers',
-  quizzes: '/free-resources/quizzes',
-  videos: '/free-resources/free-videos',
+const TAB_SEGMENT_BY_NAME: Record<string, string> = {
+  'Mock Tests': 'mock-tests',
+  'Study Notes': 'study-notes',
+  'Past Papers': 'past-papers',
+  Quizzes: 'quizzes',
+  'Free Videos': 'free-videos',
 };
 
-const TABS: Array<{
-  id: TabId;
-  label: string;
-  count: number;
-  borderActive: string;
-  iconWrap: string;
-  icon: React.ReactNode;
-}> = [
-  {
-    id: 'mock',
-    label: 'Mock Tests',
-    count: 230,
+const TAB_META: Record<
+  string,
+  { borderActive: string; iconWrap: string; icon: React.ReactNode }
+> = {
+  'Mock Tests': {
     borderActive: 'border-[#f5a0ad]',
     iconWrap: 'bg-[#ffeef8]',
-    icon: (
-      <img
-        src={IMG_TAB_MOCK}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: <MockTestsIcon />,
   },
-  {
-    id: 'formula',
-    label: 'Formula Cards',
-    count: 120,
-    borderActive: 'border-[#b794d4]',
-    iconWrap: 'bg-[#faeeff]',
-    icon: <Calculator className="size-7 text-[#b794d4]" strokeWidth={1.75} />,
-  },
-  {
-    id: 'notes',
-    label: 'Study Notes',
-    count: 42,
-    borderActive: 'border-[#9caaf0]',
+  'Study Notes': {
+    borderActive: 'border-[#B9C9FF]',
     iconWrap: 'bg-[#eef2ff]',
-    icon: (
-      <img
-        src={IMG_TAB_NOTES}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: <StudyNotesIcon classname="max-w-6" />,
   },
-  {
-    id: 'papers',
-    label: 'Past Papers',
-    count: 120,
+  'Past Papers': {
     borderActive: 'border-[#7ec8ee]',
     iconWrap: 'bg-[#edf9ff]',
-    icon: (
-      <img
-        src={IMG_TAB_PAPERS}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: <PastPapersIcon />,
   },
-  {
-    id: 'quizzes',
-    label: 'Quizzes',
-    count: 50,
+  Quizzes: {
     borderActive: 'border-[#f0a090]',
     iconWrap: 'bg-[#fff1ee]',
-    icon: (
-      <img
-        src={IMG_TAB_QUIZZES}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: <QuizzesIcon />,
   },
-  {
-    id: 'videos',
-    label: 'Free Videos',
-    count: 500,
+  'Free Videos': {
     borderActive: 'border-[#8aadd4]',
     iconWrap: 'bg-[#eef0ff]',
-    icon: (
-      <img
-        src={IMG_TAB_VIDEOS}
-        alt=""
-        className="size-[46px] object-contain"
-        width={46}
-        height={46}
-      />
-    ),
+    icon: <FreeVideosIcon />,
   },
-];
-
-type SubjectPill = {
-  label: string;
-  dot: string;
-  bg: string;
-  border: string;
-  text: string;
 };
 
-type ResourceCard = {
-  subject: SubjectPill;
-  board: string;
-  title: string;
-  /** Past Papers / mock listing — one line, bullets (Figma) */
-  meta: string;
+type SeoEntry = { heading: string; subtext: string };
+type BoardSeoMap = Record<string, SeoEntry>;
+
+const TAB_SEO_CONTENT: Record<
+  string,
+  { default: SeoEntry; byBoard: BoardSeoMap }
+> = {
+  'Mock Tests': {
+    default: {
+      heading: 'Full-Length Mock Tests — Board-Pattern, Subject-Wise',
+      subtext:
+        'Practice the way you\u2019ll be examined. Our mock tests mirror the exact CBSE and Maharashtra HSC paper patterns — structured full-length tests with proper marking schemes.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Full-Length CBSE Mock Tests — Board-Pattern, Subject-Wise',
+        subtext:
+          'Practice the way you\u2019ll be examined. Our mock tests mirror the exact CBSE paper pattern — structured full-length tests with proper marking schemes.',
+      },
+      mh: {
+        heading:
+          'Full-Length Maharashtra HSC Mock Tests — Board-Pattern, Subject-Wise',
+        subtext:
+          'Practice the way you\u2019ll be examined. Our mock tests mirror the exact Maharashtra HSC paper pattern — structured full-length tests with proper marking schemes.',
+      },
+      cuet: {
+        heading: 'Full-Length CUET-UG Mock Tests — Domain & General Test',
+        subtext:
+          'Practice the way you\u2019ll be examined. Full-length CUET mock tests covering Accountancy, BST, Economics, English and General Test — with proper marking schemes.',
+      },
+    },
+  },
+  Quizzes: {
+    default: {
+      heading: 'Topic-Wise MCQ Quizzes — CBSE, HSC & CUET Ready',
+      subtext:
+        'Nail the concepts before the exam does. Bite-sized MCQ quizzes across every chapter — with instant feedback and explanations.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Topic-Wise MCQ Quizzes — CBSE Commerce',
+        subtext:
+          'Bite-sized MCQ quizzes aligned to the CBSE syllabus — from Partnership Accounts to Consumer Protection — with instant feedback and explanations.',
+      },
+      mh: {
+        heading: 'Topic-Wise MCQ Quizzes — Maharashtra HSC Commerce',
+        subtext:
+          'Bite-sized MCQ quizzes aligned to the Maharashtra HSC syllabus — BK, OCM, Economics and SP — with instant feedback and explanations.',
+      },
+      cuet: {
+        heading: 'Topic-Wise MCQ Quizzes — CUET-UG Commerce',
+        subtext:
+          'Bite-sized MCQ quizzes for CUET domain subjects — Accountancy, BST, Economics, Entrepreneurship — with instant feedback and explanations.',
+      },
+    },
+  },
+  'Past Papers': {
+    default: {
+      heading: 'Previous Year Question Papers — CBSE & Maharashtra Board',
+      subtext:
+        'Explore past papers from CBSE and Maharashtra HSC board exams — with answer keys — so you know exactly what the examiner is looking for.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Previous Year Question Papers — CBSE Commerce',
+        subtext:
+          'Explore CBSE past papers with answer keys — so you know exactly what the examiner is looking for.',
+      },
+      mh: {
+        heading: 'Previous Year Question Papers — Maharashtra HSC Commerce',
+        subtext:
+          'Explore Maharashtra HSC past papers with answer keys — so you know exactly what the examiner is looking for.',
+      },
+      cuet: {
+        heading: 'Previous Year Question Papers — CUET-UG',
+        subtext:
+          'Explore CUET-UG past papers with answer keys — so you know exactly what the examiner is looking for.',
+      },
+    },
+  },
+  'Free Videos': {
+    default: {
+      heading: 'Free Concept Videos — Commerce-Only, Clutter-Free',
+      subtext:
+        'No science detours. No engineering tangents. Every video is made for commerce students, by commerce-focused educators.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Free CBSE Commerce Concept Videos',
+        subtext:
+          'Every video is aligned to the CBSE commerce syllabus — start with the chapters that confuse you most.',
+      },
+      mh: {
+        heading: 'Free Maharashtra HSC Commerce Concept Videos',
+        subtext:
+          'Every video is aligned to the Maharashtra HSC commerce syllabus — start with the chapters that confuse you most.',
+      },
+      cuet: {
+        heading: 'Free CUET-UG Commerce Concept Videos',
+        subtext:
+          'Every video is built for CUET-UG domain prep — start with the subjects that confuse you most.',
+      },
+    },
+  },
+  'Study Notes': {
+    default: {
+      heading: 'Exam-Ready Study Notes — CBSE & Maharashtra HSC',
+      subtext:
+        'Crisp, syllabus-aligned notes that cut the fluff and keep the marks. Download chapter summaries, formula sheets, and revision notes.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Exam-Ready CBSE Commerce Study Notes',
+        subtext:
+          'Crisp, CBSE syllabus-aligned notes — chapter summaries, formula sheets, and revision notes for Accountancy, BST, and Economics.',
+      },
+      mh: {
+        heading: 'Exam-Ready Maharashtra HSC Commerce Study Notes',
+        subtext:
+          'Crisp, Maharashtra HSC syllabus-aligned notes — chapter summaries, formula sheets, and revision notes for BK, OCM, Economics and SP.',
+      },
+      cuet: {
+        heading: 'CUET-UG Commerce Study Notes',
+        subtext:
+          'Crisp, CUET-aligned notes — chapter summaries and revision notes for Accountancy, BST, Economics, and Entrepreneurship.',
+      },
+    },
+  },
 };
 
-type StudyNoteCard = {
-  subject: SubjectPill;
-  board: string;
-  title: string;
-  metaLeft: string;
-  metaRight: string;
-  year: string;
+const HERO_CONTENT: Record<string, { title: string; subtitle: string }> = {
+  cbse: {
+    title: 'Free CBSE Commerce Study Resources',
+    subtitle:
+      'Hand-picked, exam-ready resources built exclusively for CBSE commerce students. No login required. No catch. Just results.',
+  },
+  mh: {
+    title: 'Free Maharashtra HSC Commerce Study Resources',
+    subtitle:
+      'Hand-picked, exam-ready resources built exclusively for Maharashtra Board (HSC) commerce students. No login required. No catch. Just results.',
+  },
+  cuet: {
+    title: 'Free CUET-UG Commerce Study Resources',
+    subtitle:
+      'Hand-picked, exam-ready resources for CUET-UG commerce preparation. No login required. No catch. Just results.',
+  },
 };
 
-type FormulaCard = {
-  subject: SubjectPill;
-  board: string;
-  title: string;
-  formula: string;
-  gradient: string;
-  detail?: string;
-};
-
-const RESOURCE_CARDS: ResourceCard[] = [
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'MH Board',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'MH Board',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'Business Studies',
-      dot: 'bg-[#ba7517]',
-      bg: 'bg-[rgba(186,117,23,0.05)]',
-      border: 'border-[rgba(186,117,23,0.1)]',
-      text: 'text-[#ba7517]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'Economics',
-      dot: 'bg-[#0baf7e]',
-      bg: 'bg-[rgba(11,175,126,0.05)]',
-      border: 'border-[rgba(11,175,126,0.1)]',
-      text: 'text-[#0baf7e]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'OCM',
-      dot: 'bg-[#7b36ec]',
-      bg: 'bg-[rgba(123,54,236,0.05)]',
-      border: 'border-[rgba(123,54,236,0.1)]',
-      text: 'text-[#7b36ec]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'Maths',
-      dot: 'bg-[#4a6fa5]',
-      bg: 'bg-[rgba(74,111,165,0.05)]',
-      border: 'border-[rgba(74,111,165,0.1)]',
-      text: 'text-[#4a6fa5]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-  {
-    subject: {
-      label: 'SP & Marketing',
-      dot: 'bg-[#e04848]',
-      bg: 'bg-[rgba(224,72,72,0.05)]',
-      border: 'border-[rgba(224,72,72,0.1)]',
-      text: 'text-[#e04848]',
-    },
-    board: 'CBSE',
-    title: '2025 Set 1 (651/1)',
-    meta: '32 Questions • 80 Marks • 180 Minutes',
-  },
-];
-
-const FORMULA_CARDS: FormulaCard[] = [
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title: 'Gross Profit Ratio',
-    formula: 'GP Ratio =\n(Gross Profit/Net Sales) X 100',
-    gradient: 'bg-[#1764d4]',
-    detail:
-      'Net Profit (after tax)\n\nAdd: Depreciation, Goodwill w/off\nAdd: Non-operating losses\nLess: Non-operating gains\n= Operating Profit before WC changes\n\nAdd: Decrease in CA / Increase in CL\nLess: Increase in CA / Decrease in CL\n= Cash from Operations\n\nLess: Tax Paid\n= Cash Flow from Operating Activities',
-  },
-  {
-    subject: {
-      label: 'Economics',
-      dot: 'bg-[#0baf7e]',
-      bg: 'bg-[rgba(11,175,126,0.05)]',
-      border: 'border-[rgba(11,175,126,0.1)]',
-      text: 'text-[#0baf7e]',
-    },
-    board: 'CBSE',
-    title: 'Net Profit Ratio',
-    formula: 'NP Ratio =\n(Net Profit/Net Sales) X 100',
-    gradient:
-      'bg-[linear-gradient(107deg,#17c994_0.41%,#0e9a70_49.93%,#17c994_99.46%)]',
-    detail:
-      'Net Profit (after tax)\n\nAdd: Depreciation, Goodwill w/off\nAdd: Non-operating losses\nLess: Non-operating gains\n= Operating Profit before WC changes',
-  },
-  {
-    subject: {
-      label: 'Maths',
-      dot: 'bg-[#4a6fa5]',
-      bg: 'bg-[rgba(74,111,165,0.05)]',
-      border: 'border-[rgba(74,111,165,0.1)]',
-      text: 'text-[#4a6fa5]',
-    },
-    board: 'CBSE',
-    title: 'GDP at Market Price',
-    formula: 'GP Ratio =\n(Gross Profit/Net Sales) X 100',
-    gradient:
-      'bg-[linear-gradient(107deg,#5c80b6_0.41%,#4a6fa5_49.93%,#5c80b6_99.46%)]',
-    detail:
-      'Net Profit (after tax)\n\nAdd: Depreciation, Goodwill w/off\nAdd: Non-operating losses\nLess: Non-operating gains\n= Operating Profit before WC changes',
-  },
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title: 'Return on Investment',
-    formula: 'ROI =\n(Net Profit/Cost of Investment) X 100',
-    gradient:
-      'bg-[linear-gradient(107deg,#3677e0_0.41%,#1764d4_49.93%,#3677e0_99.46%)]',
-    detail:
-      'ROI = (Net Profit / Cost of Investment) X 100\n\nUse this to evaluate business performance against capital deployed.',
-  },
-  {
-    subject: {
-      label: 'Economics',
-      dot: 'bg-[#0baf7e]',
-      bg: 'bg-[rgba(11,175,126,0.05)]',
-      border: 'border-[rgba(11,175,126,0.1)]',
-      text: 'text-[#0baf7e]',
-    },
-    board: 'CBSE',
-    title: 'Standard Deviation',
-    formula: 'SD = √(Σ(Xi - μ)²/N)',
-    gradient:
-      'bg-[linear-gradient(107deg,#17c994_0.41%,#0e9a70_49.93%,#17c994_99.46%)]',
-    detail:
-      'SD = √(Σ(Xi - μ)²/N)\n\nStandard deviation measures spread of values around mean.',
-  },
-  {
-    subject: {
-      label: 'Maths',
-      dot: 'bg-[#4a6fa5]',
-      bg: 'bg-[rgba(74,111,165,0.05)]',
-      border: 'border-[rgba(74,111,165,0.1)]',
-      text: 'text-[#4a6fa5]',
-    },
-    board: 'CBSE',
-    title: 'GDP at Market Price',
-    formula: 'GP Ratio =\n(Gross Profit/Net Sales) X 100',
-    gradient:
-      'bg-[linear-gradient(107deg,#5c80b6_0.41%,#4a6fa5_49.93%,#5c80b6_99.46%)]',
-    detail:
-      'GDP at MP = Private Consumption + Gross Investment + Govt. Spending + (Exports - Imports)',
-  },
-];
-
-const STUDY_NOTES_CARDS: StudyNoteCard[] = [
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title: 'CBSE 2023 — Accountancy',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Chapter notes · PDF',
-    year: '2023',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'MH Board',
-    title: 'CBSE 2024 — Economics',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: '24 pages · PDF',
-    year: '2024',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'MH Board',
-    title: 'MH Board 2024 — Book-keeping & Acc.',
-    metaLeft: 'Full syllabus',
-    metaRight: 'Compartment Paper',
-    year: '2024',
-  },
-  {
-    subject: {
-      label: 'Business Studies',
-      dot: 'bg-[#ba7517]',
-      bg: 'bg-[rgba(186,117,23,0.05)]',
-      border: 'border-[rgba(186,117,23,0.1)]',
-      text: 'text-[#ba7517]',
-    },
-    board: 'CBSE',
-    title: 'CBSE 2024 — Business Studies',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2024',
-  },
-  {
-    subject: {
-      label: 'Economics',
-      dot: 'bg-[#0baf7e]',
-      bg: 'bg-[rgba(11,175,126,0.05)]',
-      border: 'border-[rgba(11,175,126,0.1)]',
-      text: 'text-[#0baf7e]',
-    },
-    board: 'CBSE',
-    title: 'CBSE 2023 — Economics',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2023',
-  },
-  {
-    subject: {
-      label: 'OCM',
-      dot: 'bg-[#7b36ec]',
-      bg: 'bg-[rgba(123,54,236,0.05)]',
-      border: 'border-[rgba(123,54,236,0.1)]',
-      text: 'text-[#7b36ec]',
-    },
-    board: 'CBSE',
-    title: 'OCM 2025 — Ratio Analysis',
-    metaLeft: '18 pages',
-    metaRight: 'PDF',
-    year: '2025',
-  },
-];
-
-/** Figma 1:4649 — `2_Free Resources_Past papers` (View + Download, split meta, outlined board chip) */
-const PAST_PAPER_CARDS: StudyNoteCard[] = [
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title: 'CBSE 2024 — Accountancy',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2024',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'MH Board',
-    title: 'CBSE 2023 — Accountancy',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2023',
-  },
-  {
-    subject: {
-      label: 'English',
-      dot: 'bg-[#6b7c5e]',
-      bg: 'bg-[rgba(107,124,94,0.05)]',
-      border: 'border-[rgba(107,124,94,0.1)]',
-      text: 'text-[#6b7c5e]',
-    },
-    board: 'MH Board',
-    title: 'CBSE 2024 — Economics',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2024',
-  },
-  {
-    subject: {
-      label: 'Business Studies',
-      dot: 'bg-[#ba7517]',
-      bg: 'bg-[rgba(186,117,23,0.05)]',
-      border: 'border-[rgba(186,117,23,0.1)]',
-      text: 'text-[#ba7517]',
-    },
-    board: 'CBSE',
-    title: 'CBSE 2023 — Economics',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2023',
-  },
-  {
-    subject: {
-      label: 'Economics',
-      dot: 'bg-[#0baf7e]',
-      bg: 'bg-[rgba(11,175,126,0.05)]',
-      border: 'border-[rgba(11,175,126,0.1)]',
-      text: 'text-[#0baf7e]',
-    },
-    board: 'CBSE',
-    title: 'CBSE 2024 — Business Studies',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2024',
-  },
-  {
-    subject: {
-      label: 'OCM',
-      dot: 'bg-[#7b36ec]',
-      bg: 'bg-[rgba(123,54,236,0.05)]',
-      border: 'border-[rgba(123,54,236,0.1)]',
-      text: 'text-[#7b36ec]',
-    },
-    board: 'CBSE',
-    title: 'MH Board 2024 — Book-keeping & Acc.',
-    metaLeft: 'Set 1 (65/1/1)',
-    metaRight: 'Compartment Paper',
-    year: '2024',
-  },
-];
-
-/** Primary demo embed — [YouTube](https://youtu.be/LDQT1lvwn_c) */
-const DEMO_YOUTUBE_VIDEO_ID = 'LDQT1lvwn_c';
-const DEMO_VIDEO_HANDOUT_PATH = '/free-resources/video-handout-sample.txt';
-
-/** Figma 1:4995 — Free Videos listing */
-type FreeVideoCard = {
-  subject: SubjectPill;
-  board: string;
-  title: string;
-  durationLabel: string;
-  durationMinutes: number;
-  year: string;
-  thumb?: string;
-  /** Opens Figma `1:5375` player modal with YouTube embed */
-  youtubeId?: string;
-  /** Same-origin path or absolute URL for Download (filename used when same-origin). */
-  downloadUrl?: string;
-  downloadFilename?: string;
-};
-
-function triggerBrowserDownload(url: string, filename: string) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+function resolveBoardKey(
+  selectedSlug: string,
+  boardOptions: { slug: string; board: string }[],
+): string | null {
+  if (!selectedSlug) return null;
+  const selected = boardOptions.find((o) => o.slug === selectedSlug);
+  if (!selected) return null;
+  const raw = selected.board.toLowerCase().replace(/\s+/g, '');
+  if (raw.includes('cuet')) return 'cuet';
+  if (raw.includes('mh') || raw.includes('maharashtra')) return 'mh';
+  if (raw.includes('cbse')) return 'cbse';
+  return null;
 }
 
-function youtubePosterUrl(videoId: string) {
-  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+// ── Props ──────────────────────────────────────────────────────
+
+interface FreeResourcesPageProps {
+  tabNames: string[];
+  activeTab: string;
+  content: TabContentResponse | null;
+  limitReached: boolean;
 }
 
-function freeVideoThumbSrc(card: FreeVideoCard) {
-  if (card.thumb) return card.thumb;
-  if (card.youtubeId) return youtubePosterUrl(card.youtubeId);
-  return IMG_FREE_VIDEO_THUMB;
-}
+// ── Component ──────────────────────────────────────────────────
 
-const SUBJ_MATHEMATICS: SubjectPill = {
-  label: 'Mathematics',
-  dot: 'bg-[#1764d4]',
-  bg: 'bg-[rgba(23,100,212,0.05)]',
-  border: 'border-[rgba(23,100,212,0.1)]',
-  text: 'text-[#1764d4]',
-};
+export default function FreeResourcesPage({
+  tabNames,
+  activeTab,
+  content,
+  limitReached,
+}: FreeResourcesPageProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const filterScrollRef = useRef<HTMLDivElement>(null);
+  const filtersContainerRef = useRef<HTMLDivElement>(null);
+  const [closeAllPillSelectsSignal, setCloseAllPillSelectsSignal] = useState(0);
+  const [videoPlayer, setVideoPlayer] = useState<{
+    videoId: string;
+    title: string;
+  } | null>(null);
 
-const SUBJ_PHYSICS: SubjectPill = {
-  label: 'Physics',
-  dot: 'bg-[#4a6fa5]',
-  bg: 'bg-[rgba(74,111,165,0.05)]',
-  border: 'border-[rgba(74,111,165,0.1)]',
-  text: 'text-[#4a6fa5]',
-};
+  const {
+    selectedSlug,
+    boardOptions: ctxBoardOptions,
+    setSelectedBoard,
+  } = useBoardSelection();
+  const boardKey = useMemo(
+    () => resolveBoardKey(selectedSlug, ctxBoardOptions),
+    [selectedSlug, ctxBoardOptions],
+  );
+  const selected = ctxBoardOptions.find((o) => o.slug === selectedSlug);
+  const classLabel = selected?.class || '';
 
-const FREE_VIDEO_CARDS: FreeVideoCard[] = [
-  {
-    subject: SUBJ_MATHEMATICS,
-    board: 'ICSE',
-    title:
-      'ICSE Class 10 Mathematics — Complete Revision: Algebra, Geometry & Statistics',
-    durationLabel: '45:30',
-    durationMinutes: 45.5,
-    year: '2024',
-    youtubeId: DEMO_YOUTUBE_VIDEO_ID,
-    downloadUrl: DEMO_VIDEO_HANDOUT_PATH,
-    downloadFilename: 'icse-maths-handout.txt',
-  },
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title:
-      'Past Year Board Papers — Accountancy (Set-wise solutions walkthrough)',
-    durationLabel: '30:20',
-    durationMinutes: 30.33,
-    year: '2024',
-    youtubeId: DEMO_YOUTUBE_VIDEO_ID,
-    downloadUrl: DEMO_VIDEO_HANDOUT_PATH,
-    downloadFilename: 'accountancy-handout.txt',
-  },
-  {
-    subject: {
-      label: 'Accountancy',
-      dot: 'bg-[#1764d4]',
-      bg: 'bg-[rgba(23,100,212,0.05)]',
-      border: 'border-[rgba(23,100,212,0.1)]',
-      text: 'text-[#1764d4]',
-    },
-    board: 'CBSE',
-    title: 'Partnership Accounts — Admission of a Partner (Numericals)',
-    durationLabel: '28:10',
-    durationMinutes: 28.17,
-    year: '2025',
-    youtubeId: DEMO_YOUTUBE_VIDEO_ID,
-    downloadUrl: DEMO_VIDEO_HANDOUT_PATH,
-    downloadFilename: 'partnership-accounts-handout.txt',
-  },
-  {
-    subject: SUBJ_PHYSICS,
-    board: 'IB',
-    title: 'IB Physics — Practice Papers & Marking Scheme Overview',
-    durationLabel: '50:15',
-    durationMinutes: 50.25,
-    year: '2024',
-    youtubeId: DEMO_YOUTUBE_VIDEO_ID,
-    downloadUrl: DEMO_VIDEO_HANDOUT_PATH,
-    downloadFilename: 'ib-physics-handout.txt',
-  },
-  {
-    subject: SUBJ_MATHEMATICS,
-    board: 'CBSE',
-    title: 'CBSE Class 12 — Calculus: Application of Derivatives (PYQs)',
-    durationLabel: '62:00',
-    durationMinutes: 62,
-    year: '2023',
-    youtubeId: DEMO_YOUTUBE_VIDEO_ID,
-    downloadUrl: DEMO_VIDEO_HANDOUT_PATH,
-    downloadFilename: 'calculus-handout.txt',
-  },
-  {
-    subject: {
-      label: 'Economics',
-      dot: 'bg-[#0baf7e]',
-      bg: 'bg-[rgba(11,175,126,0.05)]',
-      border: 'border-[rgba(11,175,126,0.1)]',
-      text: 'text-[#0baf7e]',
-    },
-    board: 'CBSE',
-    title: 'National Income & Related Aggregates — One-shot revision',
-    durationLabel: '38:45',
-    durationMinutes: 38.75,
-    year: '2025',
-    youtubeId: DEMO_YOUTUBE_VIDEO_ID,
-    downloadUrl: DEMO_VIDEO_HANDOUT_PATH,
-    downloadFilename: 'economics-handout.txt',
-  },
-];
+  const heroTitle = boardKey
+    ? `${HERO_CONTENT[boardKey].title}${classLabel ? ` — ${classLabel}` : ''}`
+    : 'Free Commerce Study Resources for Class 11 & 12';
+  const heroSubtitle = boardKey
+    ? HERO_CONTENT[boardKey].subtitle
+    : 'Hand-picked, exam-ready resources — built exclusively for CBSE and Maharashtra Board (HSC) commerce students. No login required. No catch. Just results.';
 
-function durationMatchesFilter(
-  minutes: number,
-  filter: (typeof DURATION_OPTIONS)[number],
-): boolean {
-  switch (filter) {
-    case 'All Duration':
-      return true;
-    case 'Under 30 min':
-      return minutes < 30;
-    case '30–45 min':
-      return minutes >= 30 && minutes < 45;
-    case '45–60 min':
-      return minutes >= 45 && minutes < 60;
-    case '60+ min':
-      return minutes >= 60;
-    default:
-      return true;
+  useEffect(() => {
+    if (!videoPlayer) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [videoPlayer]);
+
+  useEffect(() => {
+    if (!videoPlayer) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setVideoPlayer(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [videoPlayer]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (closeAllPillSelectsSignal && filtersContainerRef.current) {
+        const target = event.target as Node;
+        if (!filtersContainerRef.current.contains(target)) {
+          setCloseAllPillSelectsSignal(0);
+        }
+      }
+    }
+    if (closeAllPillSelectsSignal) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [closeAllPillSelectsSignal]);
+
+  useEffect(() => {
+    function handleScroll() {
+      if (closeAllPillSelectsSignal) {
+        setCloseAllPillSelectsSignal(0);
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [closeAllPillSelectsSignal]);
+
+  useEffect(() => {
+    const filterContainer = filterScrollRef.current;
+    if (!filterContainer) return;
+    function handleHorizontalScroll() {
+      if (closeAllPillSelectsSignal) {
+        setCloseAllPillSelectsSignal(0);
+      }
+    }
+    filterContainer.addEventListener('scroll', handleHorizontalScroll, {
+      passive: true,
+    });
+    return () =>
+      filterContainer.removeEventListener('scroll', handleHorizontalScroll);
+  }, [closeAllPillSelectsSignal]);
+
+  const handleCloseAllPillSelects = () => {
+    setCloseAllPillSelectsSignal((prev) => prev + 1);
+  };
+
+  const tabStripRef = useRef<HTMLDivElement>(null);
+
+  function navigateToTab(tabName: string) {
+    const segment = TAB_SEGMENT_BY_NAME[tabName];
+    if (!segment) return;
+    navigate(`/free-resources/${segment}`, {
+      preventScrollReset: true,
+    });
+    setTimeout(() => {
+      tabStripRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'start',
+      });
+    }, 50);
   }
+
+  function navigateWithParams(overrides: Record<string, string | undefined>) {
+    const params = new URLSearchParams(searchParams);
+    params.delete('boardId');
+    params.delete('classId');
+    for (const [k, v] of Object.entries(overrides)) {
+      if (v === undefined || v === '') {
+        params.delete(k);
+      } else {
+        params.set(k, v);
+      }
+    }
+    if (!('page' in overrides)) params.delete('page');
+
+    const segment = TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+    const qs = params.toString();
+    navigate(`/free-resources/${segment}${qs ? `?${qs}` : ''}`, {
+      preventScrollReset: true,
+    });
+  }
+
+  // Current filter values from URL
+  const currentSubjectId = searchParams.get('subjectId') ?? '';
+  const currentChapterNames = searchParams.get('chapterNames') ?? '';
+  const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
+  const currentQ = searchParams.get('q') ?? '';
+
+  // Subject filter options from API
+  const subjectOptions = [
+    'All Subjects',
+    ...(content?.availableSubjects?.map((s) => s.name) ?? []),
+  ];
+  const selectedSubjectName =
+    content?.availableSubjects?.find((s) => s.id === currentSubjectId)?.name ??
+    'All Subjects';
+
+  // Chapter filter options from API
+  const chapterOptions = ['All Chapters', ...(content?.chapterNames ?? [])];
+  const selectedChapter = currentChapterNames || 'All Chapters';
+
+  // Flatten items from grouped subjects response
+  const allItems =
+    content?.subjects?.flatMap((sg) =>
+      sg.items.map((item) => ({ ...item, _subjectName: sg.name })),
+    ) ?? [];
+
+  return (
+    <div className="bg-[#f7f8ff] md:pb-4 lg:pb-8 4xl:pb-16!">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-[#edecfd] pt-14 md:pt-36 xl:pt-40">
+        <div
+          className="pointer-events-none absolute top-0 z-0 h-[min(420px,48vh)] min-h-[220px] opacity-40 sm:min-h-[260px] sm:h-[397px] w-full lg:h-[420px]"
+          aria-hidden
+        >
+          <FreeResourcesHeroSlantSvg />
+        </div>
+        <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
+          <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
+            <div className="space-y-3 md:space-y-4 text-lightgray">
+              <h1 className="section-heading">{heroTitle}</h1>
+              <p className="max-w-[1280px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
+                {heroSubtitle}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tab strip */}
+      <div
+        ref={tabStripRef}
+        className="sticky top-0 z-10 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md"
+      >
+        <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
+          <div className="scrollbar-hide flex min-h-14 px-4 sm:px-0 sm:min-h-18 w-full flex-1 overflow-x-auto">
+            {tabNames.map((tabName) => {
+              const meta = TAB_META[tabName];
+              if (!meta) return null;
+              const isActive = tabName === activeTab;
+              return (
+                <button
+                  key={tabName}
+                  onClick={() => navigateToTab(tabName)}
+                  type="button"
+                  className={`flex flex-row items-center justify-center gap-2 sm:gap-4 border-b-[3px] pb-1 sm:pb-2 sm:pb-4 py-2 sm:py-4 px-2 transition-colors w-auto sm:w-52 flex-shrink-0 ${
+                    isActive
+                      ? `${meta.borderActive} bg-white`
+                      : 'border-transparent bg-white hover:bg-[#fafbff]'
+                  }`}
+                >
+                  <div
+                    className={`flex size-7 sm:size-12 items-center justify-center overflow-hidden rounded-lg ${meta.iconWrap}`}
+                  >
+                    {meta.icon}
+                  </div>
+                  <span
+                    className={`inline text-center text-sm font-medium leading-[125%] lg:text-base lg:leading-[125%] xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
+                      isActive
+                        ? 'sm:font-semibold text-black'
+                        : 'font-medium text-lightgray'
+                    }`}
+                  >
+                    {tabName}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Tab-specific SEO heading */}
+      {activeTab &&
+        TAB_SEO_CONTENT[activeTab] &&
+        (() => {
+          const tabSeo = TAB_SEO_CONTENT[activeTab];
+          const seo = (boardKey && tabSeo.byBoard[boardKey]) || tabSeo.default;
+          return (
+            <div className="bg-[#f7f8ff] pt-6 pb-2 sm:pt-8 sm:pb-3 lg:pt-10 lg:pb-4">
+              <div className="custom-container space-y-2 sm:space-y-3">
+                <h2 className="text-xl font-semibold leading-[130%] tracking-tight text-[#081627] sm:text-2xl lg:text-3xl">
+                  {seo.heading}
+                </h2>
+                <p className="max-w-[960px] text-sm leading-[160%] text-lightgray sm:text-base lg:text-lg">
+                  {seo.subtext}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+      {/* Subject pills bar (mobile) */}
+      {content && content.availableSubjects.length > 0 && (
+        <div className="md:hidden sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl">
+          <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="scrollbar-hide overflow-x-auto sm:overflow-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap">
+              {content.availableSubjects.map((subj) => {
+                const isActive = subj.id === currentSubjectId;
+                return (
+                  <button
+                    key={subj.id}
+                    onClick={() =>
+                      navigateWithParams({
+                        subjectId: isActive ? undefined : subj.id,
+                      })
+                    }
+                    type="button"
+                    className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap border flex items-center gap-1 ${
+                      isActive
+                        ? 'bg-[#3a6bfc] border-[#3a6bfc] text-white'
+                        : 'bg-[rgba(8,22,39,0.06)] border-[rgba(8,22,39,0.1)] text-lightgray hover:bg-[rgba(8,22,39,0.1)]'
+                    }`}
+                  >
+                    <span>{subj.name}</span>
+                    {isActive && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateWithParams({ subjectId: undefined });
+                        }}
+                        type="button"
+                        className="flex items-center justify-center hover:opacity-70 transition-opacity"
+                        aria-label={`Remove ${subj.name} filter`}
+                      >
+                        <svg
+                          className="size-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter bar */}
+      <div
+        ref={filtersContainerRef}
+        className="sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl"
+      >
+        <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <p className="hidden md:inline text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px] whitespace-nowrap">
+              {activeTab}
+              {content && ` (${content.totalCount})`}
+            </p>
+          </div>
+          <div
+            ref={filterScrollRef}
+            data-pill-wrapper
+            className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+          >
+            {/* Board Selector */}
+            {ctxBoardOptions.length > 0 && (
+              <PillSelect
+                value={
+                  selected
+                    ? `${selected.class} · ${selected.board}`
+                    : 'All Boards'
+                }
+                options={[
+                  'All Boards',
+                  ...ctxBoardOptions.map((o) => `${o.class} · ${o.board}`),
+                ]}
+                onChange={(val) => {
+                  if (val === 'All Boards') {
+                    setSelectedBoard('');
+                  } else {
+                    const match = ctxBoardOptions.find(
+                      (o) => `${o.class} · ${o.board}` === val,
+                    );
+                    if (match) setSelectedBoard(match.slug);
+                  }
+                }}
+                closeAllPillSelects={handleCloseAllPillSelects}
+              />
+            )}
+            <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">
+              Filter by:
+            </span>
+
+            {/* Subject selector (desktop) */}
+            <div className="md:block hidden">
+              <PillSelect
+                value={selectedSubjectName}
+                options={subjectOptions}
+                onChange={(val) => {
+                  if (val === 'All Subjects') {
+                    navigateWithParams({ subjectId: undefined });
+                  } else {
+                    const subj = content?.availableSubjects?.find(
+                      (s) => s.name === val,
+                    );
+                    if (subj) navigateWithParams({ subjectId: subj.id });
+                  }
+                }}
+                closeAllPillSelects={handleCloseAllPillSelects}
+              />
+            </div>
+
+            {/* Chapter/Year selector */}
+            {chapterOptions.length > 1 && (
+              <PillSelect
+                value={
+                  activeTab === 'Past Papers'
+                    ? currentChapterNames || 'All Years'
+                    : selectedChapter
+                }
+                options={
+                  activeTab === 'Past Papers'
+                    ? [
+                        'All Years',
+                        ...chapterOptions.filter((o) => o !== 'All Chapters'),
+                      ]
+                    : chapterOptions
+                }
+                onChange={(val) => {
+                  if (val === 'All Chapters' || val === 'All Years') {
+                    navigateWithParams({ chapterNames: undefined });
+                  } else {
+                    navigateWithParams({ chapterNames: val });
+                  }
+                }}
+                closeAllPillSelects={handleCloseAllPillSelects}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Content grid */}
+      <div className="custom-container py-10 md:py-12">
+        {limitReached ? (
+          <LimitReachedOverlay />
+        ) : allItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-[#F0F2F7] rounded-full p-4 mb-1">
+              <ServerOff className="text-lightgray/50" />
+            </div>
+            <p className="text-lg font-medium text-lightgray">
+              No Resources Found
+            </p>
+            <p className="mt-2 text-base text-lightgray/60">
+              Try changing your filters or selecting a different tab.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {allItems.map((item) => (
+                <ContentCardItem
+                  key={item.id}
+                  item={item}
+                  subjectName={item._subjectName}
+                  onWatchVideo={(videoId, title) =>
+                    setVideoPlayer({ videoId, title })
+                  }
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {content?.hasNextPage && (
+              <div className="mt-10 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigateWithParams({
+                      page: String(currentPage + 1),
+                    })
+                  }
+                  className="flex h-11 items-center justify-center gap-2 rounded-full border border-[rgba(58,107,252,0.2)] bg-white px-8 text-base font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)]"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Video player modal */}
+      {videoPlayer && (
+        <FreeVideoPlayerModal
+          videoId={videoPlayer.videoId}
+          title={videoPlayer.title}
+          onClose={() => setVideoPlayer(null)}
+        />
+      )}
+    </div>
+  );
 }
 
-const SUBJECT_OPTIONS = [
-  'All Subjects',
-  'Accountancy',
-  'English',
-  'Economics',
-  'Business Studies',
-  'Maths',
-  'Mathematics',
-  'OCM',
-  'Physics',
-];
-const CHAPTER_OPTIONS = [
-  'All Chapters',
-  'Chapter 1',
-  'Chapter 2',
-  'Chapter 3',
-  'Full syllabus',
-];
+// ── Preserved helper components ────────────────────────────────
 
-const YEAR_OPTIONS = ['All Years', '2023', '2024', '2025'];
-
-const DURATION_OPTIONS = [
-  'All Duration',
-  'Under 30 min',
-  '30–45 min',
-  '45–60 min',
-  '60+ min',
-] as const;
-
-const DIFFICULTY_OPTIONS = [
-  'All Difficulties',
-  'Easy',
-  'Medium',
-  'Hard',
-] as const;
-
-/** Figma — skewed bar hero (viewBox 1920×397, bars 460×463 + matrix skew) */
 function FreeResourcesHeroSlantSvg() {
   const rawId = useId();
   const gid = `fr-hero-grad-${rawId.replace(/:/g, '')}`;
@@ -847,17 +724,16 @@ function FreeResourcesHeroSlantSvg() {
   );
 }
 
-/** Figma 1:5375 — centered player modal (gradient shell, shadow, close, YouTube iframe). */
 function FreeVideoPlayerModal({
-  youtubeId,
+  videoId,
   title,
   onClose,
 }: {
-  youtubeId: string;
+  videoId: string;
   title: string;
   onClose: () => void;
 }) {
-  const src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
   return (
     <div
       className="fixed inset-0 z-200 flex items-center justify-center bg-[rgba(8,22,39,0.55)] px-3 py-6 sm:px-6"
@@ -893,824 +769,6 @@ function FreeVideoPlayerModal({
           />
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Figma 1:4995 — Free Videos card (16:9 thumb, play, duration chip, Watch / Download). */
-function FreeVideoListingCard({
-  subject,
-  board,
-  title,
-  durationLabel,
-  thumbSrc,
-  youtubeId,
-  onWatch,
-  downloadUrl,
-  downloadFilename,
-}: {
-  subject: SubjectPill;
-  board: string;
-  title: string;
-  durationLabel: string;
-  thumbSrc: string;
-  youtubeId?: string;
-  onWatch?: () => void;
-  downloadUrl?: string;
-  downloadFilename?: string;
-}) {
-  const canWatch = Boolean(youtubeId && onWatch);
-  const canDownload = Boolean(downloadUrl);
-
-  return (
-    <article className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ring-1 ring-[rgba(8,22,39,0.06)]">
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#081627]">
-        <button
-          type="button"
-          disabled={!canWatch}
-          onClick={() => canWatch && onWatch?.()}
-          className={`relative block size-full text-left ${
-            canWatch ? 'cursor-pointer' : 'cursor-default'
-          }`}
-          aria-label={canWatch ? `Play video: ${title}` : undefined}
-        >
-          <img
-            src={thumbSrc}
-            alt=""
-            className="absolute inset-0 size-full object-cover opacity-90"
-          />
-          <div className="absolute inset-0 bg-[#081627]/25" aria-hidden />
-          <div className="absolute left-1/2 top-1/2 flex size-[62px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[1.73px] border-white bg-[rgba(8,22,39,0.12)] backdrop-blur-[9px]">
-            <Play
-              className="ml-0.5 size-7 shrink-0 fill-white text-white"
-              strokeWidth={0}
-              aria-hidden
-            />
-          </div>
-          <div className="pointer-events-none absolute bottom-2.5 right-2.5 rounded-full border border-white/15 bg-white/15 px-2.5 py-1 text-sm font-medium leading-[150%] text-white backdrop-blur-[17px] sm:text-base sm:leading-[150%]">
-            {durationLabel}
-          </div>
-        </button>
-      </div>
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
-          <div
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
-          >
-            <span className={`size-2 shrink-0 rounded-full ${subject.dot}`} />
-            {subject.label}
-          </div>
-          <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
-            {board}
-          </div>
-        </div>
-        <h2 className="line-clamp-2 text-xl font-medium leading-[150%] tracking-[-0.24px] text-lightgray lg:text-2xl lg:leading-[150%]">
-          {title}
-        </h2>
-      </div>
-      <div className="mt-auto flex w-full gap-3">
-        <button
-          type="button"
-          disabled={!canWatch}
-          onClick={() => canWatch && onWatch?.()}
-          className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
-            canWatch
-              ? 'hover:bg-[rgba(58,107,252,0.06)]'
-              : 'cursor-not-allowed opacity-50'
-          }`}
-        >
-          <Play className="size-5 shrink-0 fill-current" strokeWidth={0} />
-          Watch Now
-        </button>
-        <button
-          type="button"
-          disabled={!canDownload}
-          onClick={() =>
-            downloadUrl &&
-            triggerBrowserDownload(downloadUrl, downloadFilename ?? 'download')
-          }
-          className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors lg:text-base lg:leading-[150%] ${
-            canDownload
-              ? 'hover:bg-[rgba(58,107,252,0.06)]'
-              : 'cursor-not-allowed opacity-50'
-          }`}
-        >
-          <Download className="size-5 shrink-0" />
-          Download
-        </button>
-      </div>
-    </article>
-  );
-}
-
-/** Tag row matches Formula Cards grid: subject `rounded-full`, board `rounded` + border, `text-sm lg:text-base`. */
-function FigmaListingCard({
-  subject,
-  board,
-  title,
-  metaLine,
-  metaLeft,
-  metaRight,
-  footer,
-}: {
-  subject: SubjectPill;
-  board: string;
-  title: string;
-  footer: React.ReactNode;
-  /** Mock / Quizzes / Free Videos — one line (not used on Past Papers tab; see PAST_PAPER_CARDS). */
-  metaLine?: string;
-  /** Figma cards — two segments with centre dot */
-  metaLeft?: string;
-  metaRight?: string;
-}) {
-  const metaBlock =
-    metaLine != null ? (
-      <MetaLineWithBullets
-        text={metaLine}
-        className="line-clamp-2 text-sm font-normal leading-[150%] text-lightgray/70 lg:text-base lg:leading-[150%]"
-      />
-    ) : (
-      <div className="flex min-w-0 items-center gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
-        <span className="min-w-0 truncate font-normal leading-[150%] text-lightgray/80">
-          {metaLeft!}
-        </span>
-        <span className={metaSepDotClass} aria-hidden />
-        <span className="min-w-0 truncate font-normal leading-[150%] text-lightgray/80">
-          {metaRight!}
-        </span>
-      </div>
-    );
-
-  return (
-    <article className="flex h-[260px] flex-col justify-between overflow-hidden rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ring-1 ring-[rgba(8,22,39,0.06)]">
-      <div className="flex w-full min-w-0 flex-col gap-5">
-        <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
-          <div
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${subject.bg} ${subject.border} ${subject.text}`}
-          >
-            <span className={`size-2 shrink-0 rounded-full ${subject.dot}`} />
-            {subject.label}
-          </div>
-          <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
-            {board}
-          </div>
-        </div>
-        <div className="flex w-full min-w-0 flex-col gap-3">
-          <h2 className="line-clamp-1 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:text-2xl lg:leading-[150%]">
-            {title}
-          </h2>
-          {metaBlock}
-        </div>
-      </div>
-      {footer}
-    </article>
-  );
-}
-
-function PillSelect({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [menuRect, setMenuRect] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
-
-  const updateMenuRect = () => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setMenuRect({ top: r.bottom + 6, left: r.left });
-  };
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    updateMenuRect();
-    const onReposition = () => updateMenuRect();
-    window.addEventListener('resize', onReposition);
-    window.addEventListener('scroll', onReposition, true);
-    return () => {
-      window.removeEventListener('resize', onReposition);
-      window.removeEventListener('scroll', onReposition, true);
-    };
-  }, [open]);
-
-  const portal =
-    open &&
-    menuRect &&
-    typeof document !== 'undefined' &&
-    createPortal(
-      <>
-        <button
-          type="button"
-          aria-label="Close"
-          className="fixed inset-0 z-1000 cursor-default bg-transparent"
-          onClick={() => setOpen(false)}
-        />
-        <div
-          role="listbox"
-          className="scrollbar-hide fixed z-1001 flex w-max max-h-60 min-w-0 flex-col overflow-y-auto rounded-xl border border-lightgray/10 bg-white py-2 shadow-lg"
-          style={{
-            top: menuRect.top,
-            left: menuRect.left,
-          }}
-        >
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              role="option"
-              aria-selected={opt === value}
-              className={`w-full whitespace-nowrap px-4 py-2.5 text-left text-sm leading-[150%] ${
-                opt === value
-                  ? 'bg-lightgray/5 font-medium text-lightgray'
-                  : 'text-lightgray/80 hover:bg-lightgray/5'
-              }`}
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </>,
-      document.body,
-    );
-
-  return (
-    <div className="relative" ref={wrapRef}>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-9 items-center gap-2 rounded-full border border-[rgba(8,22,39,0.1)] bg-white px-3 py-2 text-sm font-medium leading-[150%] text-lightgray sm:px-4 sm:text-base sm:leading-[150%]"
-      >
-        <span className="max-w-[140px] truncate">{value}</span>
-        <ChevronDown className="size-4 shrink-0 opacity-60" />
-      </button>
-      {portal}
-    </div>
-  );
-}
-
-export default function FreeResourcesPage({
-  initialTab = 'mock',
-}: {
-  initialTab?: TabId;
-}) {
-  const [tab, setTab] = useState<TabId>(initialTab);
-  const [subject, setSubject] = useState('All Subjects');
-  const [chapter, setChapter] = useState('All Chapters');
-  const [year, setYear] = useState('All Years');
-  const [quizDifficulty, setQuizDifficulty] =
-    useState<string>('All Difficulties');
-  const [videoDuration, setVideoDuration] =
-    useState<(typeof DURATION_OPTIONS)[number]>('All Duration');
-  const [expandedFormula, setExpandedFormula] = useState<FormulaCard | null>(
-    null,
-  );
-  const [videoPlayer, setVideoPlayer] = useState<{
-    youtubeId: string;
-    title: string;
-  } | null>(null);
-  const relatedCarouselRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setTab(initialTab);
-  }, [initialTab]);
-
-  useEffect(() => {
-    const modalOpen = expandedFormula != null || videoPlayer != null;
-    if (!modalOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [expandedFormula, videoPlayer]);
-
-  useEffect(() => {
-    if (!videoPlayer) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setVideoPlayer(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [videoPlayer]);
-
-  const scrollRelated = (dir: 'prev' | 'next') => {
-    const el = relatedCarouselRef.current;
-    if (!el) return;
-    const child = el.querySelector<HTMLElement>('[data-related-card]');
-    const cardWidth = child?.offsetWidth ?? 360;
-    const gap = 16; // gap-4
-    const delta = (cardWidth + gap) * (window.innerWidth < 640 ? 1 : 2);
-    el.scrollBy({ left: dir === 'next' ? delta : -delta, behavior: 'smooth' });
-  };
-
-  const active = useMemo(() => TABS.find((t) => t.id === tab)!, [tab]);
-
-  const filteredCards = useMemo(() => {
-    if (subject === 'All Subjects') return RESOURCE_CARDS;
-    return RESOURCE_CARDS.filter((c) => c.subject.label === subject);
-  }, [subject]);
-
-  const filteredFormulaCards = useMemo(() => {
-    if (subject === 'All Subjects') return FORMULA_CARDS;
-    return FORMULA_CARDS.filter((c) => c.subject.label === subject);
-  }, [subject]);
-
-  const filteredStudyNotesCards = useMemo(() => {
-    let list = STUDY_NOTES_CARDS;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
-    }
-    if (year !== 'All Years') {
-      list = list.filter((c) => c.year === year);
-    }
-    return list;
-  }, [subject, year]);
-
-  const filteredPastPaperCards = useMemo(() => {
-    let list = PAST_PAPER_CARDS;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
-    }
-    if (year !== 'All Years') {
-      list = list.filter((c) => c.year === year);
-    }
-    return list;
-  }, [subject, year]);
-
-  const filteredQuizCards = useMemo(() => {
-    let list = QUIZ_LIST;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
-    }
-    if (quizDifficulty !== 'All Difficulties') {
-      const map: Record<string, QuizDifficulty> = {
-        Easy: 'easy',
-        Medium: 'medium',
-        Hard: 'hard',
-      };
-      const d = map[quizDifficulty];
-      if (d) list = list.filter((c) => c.difficulty === d);
-    }
-    return list;
-  }, [subject, quizDifficulty]);
-
-  const filteredFreeVideos = useMemo(() => {
-    let list = FREE_VIDEO_CARDS;
-    if (subject !== 'All Subjects') {
-      list = list.filter((c) => c.subject.label === subject);
-    }
-    if (year !== 'All Years') {
-      list = list.filter((c) => c.year === year);
-    }
-    list = list.filter((c) =>
-      durationMatchesFilter(c.durationMinutes, videoDuration),
-    );
-    return list;
-  }, [subject, year, videoDuration]);
-
-  return (
-    <div className="bg-[#f7f8ff] md:pb-4 lg:pb-8 4xl:pb-16!">
-      {/* Hero band + tab strip — slant bars SVG (1920×397), responsive height */}
-      <section className="relative overflow-hidden border-b border-[rgba(8,22,39,0.08)] bg-[#edecfd] pt-14 md:pt-36 xl:pt-40">
-        <div
-          className="pointer-events-none absolute -left-24 top-0 z-0 h-[min(420px,48vh)] min-h-[220px]  opacity-40 sm:min-h-[260px] sm:h-[397px] md:left-1/2 md:w-screen  md:-translate-x-1/2 lg:h-[420px]"
-          aria-hidden
-        >
-          <FreeResourcesHeroSlantSvg />
-        </div>
-
-        <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
-          <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
-            <div className="max-w-244 space-y-3 md:space-y-4 text-lightgray">
-              <h1 className="section-heading">Free Resources</h1>
-              <p className="max-w-[1000px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
-                Test your knowledge with code challenges based on real-world
-                technical interviews from companies like Google, Amazon, and
-                Meta. Practice for your job search — or for fun. Don’t worry if
-                you get stuck. We’ll recommend the right courses to help you.
-              </p>
-            </div>
-          </div>
-
-          <div className="sticky top-0 z-30 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
-            <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
-              <div className="scrollbar-hide flex min-h-24 sm:min-h-30 w-full flex-1 overflow-x-auto">
-                {TABS.map((t) => {
-                  const isActive = t.id === tab;
-                  return (
-                    <Link
-                      key={t.id}
-                      to={TAB_PATH_BY_ID[t.id]}
-                      onClick={() => setTab(t.id)}
-                      className={`flex min-w-28 flex-1 flex-col items-center justify-between gap-3 sm:gap-2 border-b-[3px] px-2 pb-2 sm:pb-4 py-4 transition-colors sm:min-w-34 sm:px-4 ${
-                        isActive
-                          ? `${t.borderActive} bg-white`
-                          : 'border-transparent bg-white hover:bg-[#fafbff]'
-                      }`}
-                    >
-                      <div
-                        className={`flex size-12 items-center justify-center overflow-hidden rounded-lg ${t.iconWrap}`}
-                      >
-                        {t.icon}
-                      </div>
-                      <span
-                        className={`text-center text-sm leading-[125%] lg:text-base lg:leading-[125%] xl:text-lg xl:leading-[125%] 4xl:text-xl! 4xl:leading-[125%]! ${
-                          t.id === 'mock' && isActive
-                            ? 'font-semibold text-lightgray'
-                            : 'font-medium text-lightgray'
-                        }`}
-                      >
-                        {t.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="border-b border-[rgba(8,22,39,0.08)] bg-[rgba(255,255,255,0.75)] py-4 backdrop-blur-md">
-        <div className="custom-container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xl font-medium leading-[150%] tracking-tight text-lightgray md:text-2xl md:leading-[150%] md:tracking-[-0.24px]">
-            {active.label} ({active.count})
-          </p>
-          <div className="flex flex-wrap items-center gap-3 md:gap-3">
-            <span className="text-base font-medium leading-[150%] text-lightgray/50 sm:text-lg sm:leading-[150%] md:text-xl md:leading-[150%]">
-              Filter by:
-            </span>
-            <PillSelect
-              value={subject}
-              options={SUBJECT_OPTIONS}
-              onChange={setSubject}
-            />
-            {tab === 'notes' || tab === 'papers' ? (
-              <PillSelect
-                value={year}
-                options={YEAR_OPTIONS}
-                onChange={setYear}
-              />
-            ) : tab === 'quizzes' ? (
-              <PillSelect
-                value={quizDifficulty}
-                options={[...DIFFICULTY_OPTIONS]}
-                onChange={setQuizDifficulty}
-              />
-            ) : tab === 'videos' ? (
-              <>
-                <PillSelect
-                  value={year}
-                  options={YEAR_OPTIONS}
-                  onChange={setYear}
-                />
-                <PillSelect
-                  value={videoDuration}
-                  options={[...DURATION_OPTIONS]}
-                  onChange={(v) =>
-                    setVideoDuration(v as (typeof DURATION_OPTIONS)[number])
-                  }
-                />
-              </>
-            ) : (
-              <PillSelect
-                value={chapter}
-                options={CHAPTER_OPTIONS}
-                onChange={setChapter}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="custom-container py-10 md:py-12">
-        {tab === 'formula' ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredFormulaCards.map((card, i) => (
-              <article
-                key={`${card.title}-${card.subject.label}-${i}`}
-                className="rounded-2xl bg-white p-4 sm:p-5 xl:p-6 ring-1 ring-[rgba(8,22,39,0.06)]"
-              >
-                <div className="space-y-5">
-                  <div className="flex flex-wrap gap-2 text-sm lg:text-base">
-                    <div
-                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm lg:text-base font-medium ${card.subject.bg} ${card.subject.border} ${card.subject.text}`}
-                    >
-                      <span
-                        className={`size-2 shrink-0 rounded-full ${card.subject.dot}`}
-                      />
-                      {card.subject.label}
-                    </div>
-                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium text-lightgray/50 text-sm lg:text-base">
-                      {card.board}
-                    </div>
-                  </div>
-                  <h2 className="text-xl lg:text-2xl font-medium tracking-tight text-lightgray">
-                    {card.title}
-                  </h2>
-                  <div
-                    className={`h-[126px] rounded-2xl p-2 ${card.gradient} flex items-center`}
-                  >
-                    <div className="grid h-full w-full grid-cols-[1fr_auto_1fr] gap-2">
-                      <div className="rounded-xl bg-white/25 blur-[2px]" />
-                      <div className="rounded-xl bg-white/30 px-3 py-3 flex items-center">
-                        <p className="text-white/70 text-xs font-semibold leading-[125%] whitespace-pre-line sm:text-sm sm:leading-[125%]">
-                          {card.formula}
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-white/25 blur-[2px]" />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedFormula(card)}
-                    className="flex w-full items-center justify-center gap-1 rounded-full border border-[rgba(58,107,252,0.2)] py-2 text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)]"
-                  >
-                    Tap to Expand <TapExpandArrow className="ml-1" />
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : tab === 'notes' ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredStudyNotesCards.map((card, i) => (
-              <FigmaListingCard
-                key={`${card.title}-${card.subject.label}-${i}`}
-                subject={card.subject}
-                board={card.board}
-                title={card.title}
-                metaLeft={card.metaLeft}
-                metaRight={card.metaRight}
-                footer={
-                  <div className="flex w-full gap-3">
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Eye className="size-5 shrink-0" />
-                      View
-                    </button>
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Download className="size-5 shrink-0" />
-                      Download
-                    </button>
-                  </div>
-                }
-              />
-            ))}
-          </div>
-        ) : tab === 'papers' ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredPastPaperCards.map((card, i) => (
-              <FigmaListingCard
-                key={`${card.title}-${card.subject.label}-${i}`}
-                subject={card.subject}
-                board={card.board}
-                title={card.title}
-                metaLeft={card.metaLeft}
-                metaRight={card.metaRight}
-                footer={
-                  <div className="flex w-full gap-3">
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Eye className="size-5 shrink-0" />
-                      View
-                    </button>
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Download className="size-5 shrink-0" />
-                      Download
-                    </button>
-                  </div>
-                }
-              />
-            ))}
-          </div>
-        ) : tab === 'quizzes' ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredQuizCards.map((card) => (
-              <QuizListingCard key={card.slug} card={card} />
-            ))}
-          </div>
-        ) : tab === 'videos' ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredFreeVideos.map((card, i) => (
-              <FreeVideoListingCard
-                key={`${card.title}-${i}`}
-                subject={card.subject}
-                board={card.board}
-                title={card.title}
-                durationLabel={card.durationLabel}
-                thumbSrc={freeVideoThumbSrc(card)}
-                youtubeId={card.youtubeId}
-                onWatch={
-                  card.youtubeId
-                    ? () =>
-                        setVideoPlayer({
-                          youtubeId: card.youtubeId!,
-                          title: card.title,
-                        })
-                    : undefined
-                }
-                downloadUrl={card.downloadUrl}
-                downloadFilename={card.downloadFilename}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredCards.map((card, i) => (
-              <FigmaListingCard
-                key={`${card.title}-${card.subject.label}-${i}`}
-                subject={card.subject}
-                board={card.board}
-                title={card.title}
-                metaLine={card.meta}
-                footer={
-                  <div className="flex w-full gap-3">
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Download className="size-5 shrink-0" />
-                      Question Paper
-                    </button>
-                    <button
-                      type="button"
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] text-sm font-medium leading-[150%] text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base lg:leading-[150%]"
-                    >
-                      <Download className="size-5 shrink-0" />
-                      Answers
-                    </button>
-                  </div>
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {videoPlayer && (
-        <FreeVideoPlayerModal
-          youtubeId={videoPlayer.youtubeId}
-          title={videoPlayer.title}
-          onClose={() => setVideoPlayer(null)}
-        />
-      )}
-
-      {expandedFormula && (
-        <div
-          className="fixed inset-0 z-120 flex items-center justify-center bg-[rgba(8,22,39,0.4)] px-3 py-4 sm:px-4 sm:py-6"
-          onClick={() => setExpandedFormula(null)}
-        >
-          <div
-            className="w-full max-w-[824px] max-h-[calc(100vh-32px)] overflow-auto rounded-2xl bg-white p-4 sm:p-6 shadow-[0_4px_8px_rgba(0,0,0,0.03),0_15px_15px_rgba(0,0,0,0.02),0_33px_20px_rgba(0,0,0,0.01),0_59px_24px_rgba(0,0,0,0),0_92px_26px_rgba(0,0,0,0)] scrollbar-hide"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-start justify-between">
-              <div className="flex flex-wrap gap-2 text-sm leading-[150%]">
-                <div
-                  className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] ${expandedFormula.subject.bg} ${expandedFormula.subject.border} ${expandedFormula.subject.text}`}
-                >
-                  <span
-                    className={`size-2 shrink-0 rounded-full ${expandedFormula.subject.dot}`}
-                  />
-                  {expandedFormula.subject.label}
-                </div>
-                <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm">
-                  {expandedFormula.board}
-                </div>
-              </div>
-              <button
-                type="button"
-                aria-label="Close formula details"
-                onClick={() => setExpandedFormula(null)}
-                className="flex size-7 items-center justify-center rounded-full border border-[rgba(8,22,39,0.05)] bg-[rgba(8,22,39,0.1)] text-lightgray/40 hover:bg-lightgray/12"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <g opacity="0.5">
-                    <path
-                      d="M12.854 12.1465C12.9005 12.193 12.9373 12.2481 12.9625 12.3088C12.9876 12.3695 13.0006 12.4346 13.0006 12.5003C13.0006 12.566 12.9876 12.631 12.9625 12.6917C12.9373 12.7524 12.9005 12.8076 12.854 12.854C12.8076 12.9005 12.7524 12.9373 12.6917 12.9625C12.631 12.9876 12.566 13.0006 12.5003 13.0006C12.4346 13.0006 12.3695 12.9876 12.3088 12.9625C12.2481 12.9373 12.193 12.9005 12.1465 12.854L8.00028 8.70715L3.85403 12.854C3.76021 12.9478 3.63296 13.0006 3.50028 13.0006C3.3676 13.0006 3.24035 12.9478 3.14653 12.854C3.05271 12.7602 3 12.633 3 12.5003C3 12.3676 3.05271 12.2403 3.14653 12.1465L7.2934 8.00028L3.14653 3.85403C3.05271 3.76021 3 3.63296 3 3.50028C3 3.3676 3.05271 3.24035 3.14653 3.14653C3.24035 3.05271 3.3676 3 3.50028 3C3.63296 3 3.76021 3.05271 3.85403 3.14653L8.00028 7.2934L12.1465 3.14653C12.2403 3.05271 12.3676 3 12.5003 3C12.633 3 12.7602 3.05271 12.854 3.14653C12.9478 3.24035 13.0006 3.3676 13.0006 3.50028C13.0006 3.63296 12.9478 3.76021 12.854 3.85403L8.70715 8.00028L12.854 12.1465Z"
-                      fill="#081627"
-                    />
-                  </g>
-                </svg>
-              </button>
-            </div>
-            <h3 className="text-xl font-semibold leading-[150%] tracking-[-0.24px] text-lightgray sm:text-2xl sm:leading-[150%]">
-              {expandedFormula.title}
-            </h3>
-            <div
-              className={`mt-3 rounded-2xl p-2 ${expandedFormula.gradient} h-[240px] sm:h-[360px] lg:h-[441px]`}
-            >
-              <div className="grid h-full w-full grid-cols-[32px_1fr_32px] sm:grid-cols-[90px_1fr_90px] gap-2 sm:gap-3">
-                <div className="rounded-2xl bg-white/30 blur-[2px]" />
-                <div className="rounded-2xl bg-white/40 p-3 sm:p-4 overflow-y-auto scrollbar-hide">
-                  <p className="whitespace-pre-line text-sm font-medium leading-[150%] text-white/85 sm:text-xl sm:leading-[150%] lg:text-2xl lg:leading-[150%]">
-                    {expandedFormula.detail || expandedFormula.formula}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-white/30 blur-[2px]" />
-              </div>
-            </div>
-            <p className="mt-4 border-b border-[rgba(8,22,39,0.1)] pb-6 text-sm font-normal leading-[150%] text-lightgray/80 sm:text-base sm:leading-[150%]">
-              Test your knowledge with code challenges based on real-world
-              technical interviews from companies like Google, Amazon, and Meta.
-              Practice for your job search - or for fun.
-            </p>
-            <div className="mt-5 flex items-center justify-between">
-              <h4 className="text-lg font-semibold leading-[150%] tracking-[-0.24px] text-lightgray sm:text-2xl sm:leading-[150%]">
-                Related Formulas
-              </h4>
-              <div className="flex items-center gap-2 text-lightgray/40">
-                <button
-                  type="button"
-                  aria-label="Previous related formulas"
-                  onClick={() => scrollRelated('prev')}
-                  className="flex size-9 items-center justify-center rounded-full bg-lightgray/3 border border-lightgray/6 hover:bg-lightgray/6"
-                >
-                  <CarouselArrow dir="left" className="text-lightgray" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next related formulas"
-                  onClick={() => scrollRelated('next')}
-                  className="flex size-9 items-center justify-center rounded-full bg-lightgray/3 border border-lightgray/6 hover:bg-lightgray/6"
-                >
-                  <CarouselArrow dir="right" className="text-lightgray" />
-                </button>
-              </div>
-            </div>
-            <div
-              ref={relatedCarouselRef}
-              className="mt-3 scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1"
-            >
-              {FORMULA_CARDS.map((related) => (
-                <article
-                  key={`related-${related.title}`}
-                  data-related-card
-                  className="snap-start w-[min(100%,420px)] sm:w-[420px] shrink-0 rounded-[20px] border border-[rgba(8,22,39,0.1)] p-4 shadow-xs"
-                >
-                  <div className="flex flex-wrap gap-2 text-sm leading-[150%] lg:text-base lg:leading-[150%]">
-                    <div
-                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium leading-[150%] lg:text-base lg:leading-[150%] ${related.subject.bg} ${related.subject.border} ${related.subject.text}`}
-                    >
-                      <span
-                        className={`size-2 shrink-0 rounded-full ${related.subject.dot}`}
-                      />
-                      {related.subject.label}
-                    </div>
-                    <div className="rounded border border-[rgba(8,22,39,0.1)] px-3 py-1 font-medium leading-[150%] text-lightgray/50 text-sm lg:text-base lg:leading-[150%]">
-                      {related.board}
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xl font-semibold leading-[150%] text-lightgray">
-                    {related.title}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedFormula(related)}
-                    className="mt-3 flex w-full items-center justify-center gap-1 rounded-full border border-[rgba(58,107,252,0.1)] py-2 text-sm font-medium leading-[150%] text-[#3a6bfc] hover:bg-[rgba(58,107,252,0.06)]"
-                  >
-                    View <span className="text-base leading-[150%]">›</span>
-                  </button>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

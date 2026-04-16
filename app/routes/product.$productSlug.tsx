@@ -43,7 +43,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
       name: 'description',
       content: `Learn ${
         data?.product?.title || ''
-      } with expert faculty at Vsmart Academy`,
+      } with expert faculty at Commerce Virtuals`,
     },
   ];
 };
@@ -681,7 +681,7 @@ export default function Course2ProductPage() {
               price: price,
               currency: product.currencyCode || 'INR',
               item_brand:
-                product.facetProperties?.brand?.value || 'Vsmart Academy',
+                product.facetProperties?.brand?.value || 'Commerce Virtuals',
               item_category:
                 product.facetProperties?.category?.value || 'Course',
               quantity: 1,

@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect, RefObject } from 'react';
+import { Link } from '@remix-run/react';
+
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
 // Hook to handle clicking outside of the custom dropdown
 type AnyEvent = MouseEvent | TouchEvent;
@@ -46,16 +49,16 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   useOnClickOutside(ref, () => setIsOpen(false));
 
   return (
-    <div className="mb-3 xl:mb-6 relative" ref={ref}>
-      <label className="block text-xs sm:text-lg 4xl:text-xl! text-lightgray mb-1 xl:mb-3 font-medium opacity-50">
+    <div className="mb-2 xl:mb-4 relative" ref={ref}>
+      <label className="block text-xs sm:text-sm 4xl:text-base! text-lightgray mb-1 xl:mb-1.5 font-medium opacity-50">
         {label}
       </label>
       <div
-        className="flex items-center justify-between w-full border border-[#0816271A] rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white cursor-pointer hover:border-slate-300 transition-colors"
+        className="flex items-center justify-between w-full border border-[#0816271A] rounded-full px-3 sm:px-4 py-1.5 sm:py-2.5 bg-white cursor-pointer hover:border-slate-300 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span
-          className={`text-sm sm:text-base 4xl:text-xl! font-medium leading-[120%] ${
+          className={`text-xs sm:text-sm 4xl:text-base! font-medium leading-[120%] ${
             selected ? 'text-lightgray' : 'text-slate-400'
           }`}
         >
@@ -79,11 +82,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg py-2 max-h-48 overflow-auto">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 max-h-40 overflow-auto">
           {options.map((option) => (
             <div
               key={option}
-              className="px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors font-medium"
+              className="px-3 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors font-medium"
               onClick={() => {
                 onSelect(option);
                 setIsOpen(false);
@@ -102,118 +105,200 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 interface FormDataState {
   class: string;
   board: string;
+  name: string;
   phone: string;
 }
 
 const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
   const [formData, setFormData] = useState<FormDataState>({
-    class: '12th',
+    class: 'XII',
     board: 'CBSE',
+    name: '',
     phone: '',
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  const classOptions: string[] = ['11th', '12th', 'CA Foundation', 'CUET'];
-  const boardOptions: string[] = ['CBSE', 'ICSE', 'State Board'];
+  const formBoardOptions: string[] = ['MH', 'CBSE', 'CUET UG'];
+  const classOptions: string[] =
+    formData.board === 'CUET UG' ? ['XII'] : ['XI', 'XII'];
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const { boardOptions, setSelectedBoard } = useBoardSelection();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Add your form submission logic here
-    console.log(formData);
+
+    setSubmitting(true);
+
+    if (formData.name.trim() && formData.phone.trim()) {
+      fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          board: formData.board,
+          courseInterest: `${formData.board} - ${formData.class}`,
+        }),
+      }).catch(() => {});
+    }
+
+    const classMap: Record<string, string> = { XI: '11', XII: '12' };
+    const classNum = classMap[formData.class] || formData.class;
+    const boardLower = formData.board.toLowerCase().replace(/\s+/g, '');
+
+    const match =
+      boardOptions.find((o) => {
+        const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
+        const oClass = o.class.toLowerCase();
+        const boardMatch =
+          oBoard === boardLower ||
+          oBoard.includes(boardLower) ||
+          boardLower.includes(oBoard);
+        const classMatch = oClass.includes(classNum);
+        return boardMatch && classMatch;
+      }) ||
+      boardOptions.find((o) => {
+        const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
+        return (
+          oBoard === boardLower ||
+          oBoard.includes(boardLower) ||
+          boardLower.includes(oBoard)
+        );
+      });
+
+    if (match) {
+      setSelectedBoard(match.slug);
+    }
+
+    setSubmitting(false);
+    window.location.href = '/sign-in';
+  };
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Remove non-numeric characters
+    value = value.replace(/\D/g, '');
+
+    // Limit to 10 digits
+    value = value.slice(0, 10);
+
+    setFormData({ ...formData, phone: value });
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, phone: e.target.value });
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, name: e.target.value });
   };
 
   return (
     <section className="bg-[url('/assets/images/homepage/hero-bg.png')] bg-no-repeat bg-cover bg-center relative">
-      <div className="custom-container pb-10 lg:pb-12 4xl:pb-28! pt-32.5 md:pt-57.5 xl:pt-65.75 w-full">
+      <div className="custom-container pb-10 lg:pb-12 4xl:pb-28! pt-28.5 md:pt-57.5 xl:pt-65.75 w-full">
         <div className="flex flex-col lg:flex-row gap-8 sm:gap-4">
           {/* Left Column: Content & Stats */}
           <div
-            className={`w-full sm:p-4 xl:p-12 rounded-3xl -rotate-180 max-sm:bg-none! ${
+            className={`w-full sm:p-4 lg:py-9 lg:pr-12 rounded-3xl max-sm:bg-none! flex flex-col ${
               isLoggedIn
-                ? 'lg:max-w-none text-center flex flex-col items-center'
-                : ''
+                ? 'items-center text-center'
+                : 'text-center sm:text-left sm:items-start'
             }`}
             style={{
               background: isLoggedIn
-                ? 'rgba(255, 255, 255, 0.85)'
-                : 'linear-gradient(to right, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%)',
+                ? ''
+                : 'linear-gradient(to left, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%)',
               backdropFilter: isLoggedIn ? 'blur(10px)' : 'none',
-              border: isLoggedIn
-                ? '1px solid rgba(255, 255, 255, 0.3)'
-                : 'none',
+              border: isLoggedIn ? '' : 'none',
             }}
           >
-            <div className="rotate-180">
-              {/* Pill Tag */}
-              <div className="inline-flex items-center gap-2 px-4 leading-[120%] py-1.5 rounded-full bg-[#0816270D] text-xs  sm:text-base font-semibold text-lightgray mb-3 xl:mb-6 border border-[#0816270D]">
-                <span>Class 11 & 12</span>
-                <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                <span>CA Foundation</span>
-                <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                <span>CUET</span>
-              </div>
-
-              {/* Headline */}
-              <h1 className="text-2xl md:text-3xl 4xl:text-[64px]! font-semibold mb-2 sm:mb-4 leading-[100%]">
-                Commerce made <br className="max-sm:hidden" /> clear.
-              </h1>
-
-              {/* Subheadline */}
-              <p className="text-sm sm:text-base xl:text-xl text-lightgray mb-3 sm:mb-8 xl:mb-12 leading-[150%]">
-                Free videos, notes, formula cards, and past papers for Class
-                11-12, CA Foundation, and CUET - all in one place.
-              </p>
-
-              {/* CTA Button */}
-              <button className="flex items-center gap-1 sm:gap-3 bg-white hover:bg-slate-50 text-slate-900 font-semibold px-3 py-2 sm:py-4 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-16! border border-[#0816271A] text-xs sm:text-base lg:text-lg 4xl:text-xl!">
-                <svg
-                  className="max-sm:max-w-4 h-auto"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+            {/* card content */}
+            <div
+              className={`flex flex-col h-full gap-6 md:gap-16 ${
+                isLoggedIn ? 'items-center text-center' : ''
+              }`}
+            >
+              <div
+                className={`flex-1 gap-5 flex flex-col justify-center ${
+                  isLoggedIn
+                    ? 'items-center text-center md:w-[770px] max-w-full'
+                    : 'items-center md:items-start md:text-left md:justify-start'
+                }`}
+              >
+                {/* Pill Tag */}
+                <div className="inline-flex items-center gap-2 px-4 py-1 leading-[120%] rounded-full bg-[#0816270D] text-xs  sm:text-base font-medium text-gray-700 border border-[#0816270D]">
+                  <span>MH Board</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-400"></span>
+                  <span>CBSE</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-400"></span>
+                  <span>CUET</span>
+                </div>
+                {/* Headline */}
+                <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em]">
+                  Commerce Virtuals |<br className="" /> Courses for Class 11 &
+                  12
+                </h1>
+                {/* Subheadline */}
+                <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-full  leading-[150%]">
+                  India's only commerce-exclusive EdTech platform. Structured
+                  courses, test series & mentorship for CBSE, Maharashtra Board
+                  HSC and CUET-UG. Built for Class 11 & 12 commerce students.
+                </p>
+                {/* CTA Button */}
+                <div
+                  className={`flex w-full mt-4 gap-3 sm:gap-4 ${
+                    isLoggedIn
+                      ? 'justify-center'
+                      : 'justify-center sm:justify-start'
+                  }`}
                 >
-                  <path
-                    d="M22.5 12.0005C22.5006 12.2551 22.4353 12.5056 22.3105 12.7275C22.1856 12.9495 22.0055 13.1353 21.7875 13.267L8.28 21.5302C8.05227 21.6696 7.79144 21.7457 7.52445 21.7507C7.25746 21.7556 6.99399 21.6892 6.76125 21.5583C6.53073 21.4294 6.3387 21.2414 6.2049 21.0137C6.07111 20.786 6.00039 20.5268 6 20.2627V3.73828C6.00039 3.47417 6.07111 3.21493 6.2049 2.98722C6.3387 2.75951 6.53073 2.57155 6.76125 2.44266C6.99399 2.31173 7.25746 2.24531 7.52445 2.25026C7.79144 2.2552 8.05227 2.33133 8.28 2.47078L21.7875 10.7339C22.0055 10.8656 22.1856 11.0515 22.3105 11.2734C22.4353 11.4953 22.5006 11.7458 22.5 12.0005Z"
-                    fill="#081627"
-                  />
-                </svg>
-                <span>Watch Free Demo</span>
-              </button>
-
+                  <Link
+                    to="/our-courses"
+                    className="flex items-center gap-1 sm:gap-3 bg-[#3A6BFC] text-white font-medium px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! text-sm sm:text-base lg:text-lg 4xl:text-xl! shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] hover:brightness-110 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                  >
+                    <span>Explore Courses</span>
+                  </Link>
+                  <Link
+                    to="/free-resources"
+                    className="flex items-center gap-1 sm:gap-3 bg-white text-gray-700 font-medium px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-sm sm:text-base lg:text-lg 4xl:text-xl! hover:bg-slate-100 hover:border-slate-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                  >
+                    <span>Explore Free Resources</span>
+                  </Link>
+                </div>
+              </div>
               {/* Stats Row */}
               <div
-                className={`grid grid-cols-2 xl:grid-cols-4 gap-4 whitespace-nowrap ${
+                className={`grid grid-cols-2 xl:grid-cols-4 gap-6 whitespace-nowrap justify-center sm:justify-start ${
                   isLoggedIn ? 'w-full' : ''
                 }`}
               >
                 <div>
-                  <p className="text-base text-lightgray leading-[150%] mb-1 xl:mb-4">
+                  <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Enrolled Students
                   </p>
-                  <p className="score-text">50,000+</p>
+                  <p className="score-text text-lg sm:text-xl md:text-2xl font-semibold text-black">
+                    10,000+
+                  </p>
                 </div>
                 <div>
-                  <p className="text-base text-lightgray leading-[150%] mb-1 xl:mb-4">
+                  <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Free Resources
                   </p>
-                  <p className="score-text">2400+</p>
+                  <p className="score-text text-lg sm:text-xl md:text-2xl font-semibold text-black">
+                    100+
+                  </p>
                 </div>
                 <div>
-                  <p className="text-base text-lightgray leading-[150%] mb-1 xl:mb-4">
+                  <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Average Rating
                   </p>
-                  <p className="score-text">4.9</p>
+                  <p className="score-text text-lg sm:text-xl md:text-2xl font-semibold text-black">
+                    4.9
+                  </p>
                 </div>
                 <div>
-                  <p className="text-base text-lightgray leading-[150%] mb-2 xl:mb-4">
+                  <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Available Courses
                   </p>
-                  <p className="score-text">30+</p>
+                  <p className="score-text text-lg sm:text-xl md:text-2xl font-semibold text-black">
+                    20+
+                  </p>
                 </div>
               </div>
             </div>
@@ -221,11 +306,32 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
 
           {!isLoggedIn && (
             /* Right Column: Lead Form Card */
-            <div className="flex flex-col bg-white rounded-[10px] sm:rounded-[20px] w-full lg:max-w-135 p-4 xl:p-7.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#D4DFFF]">
-              <h3 className="text-[18px] 4xl:text-[30px]! leading-[120%] font-medium text-lightgray mb-4 lg:mb-6 4xl:mb-9!">
+            <div
+              className="flex flex-col bg-white rounded-[10px] sm:rounded-[20px] w-full lg:max-w-135 p-4 xl:p-7.5 border border-[#D4DFFF]"
+              style={{
+                backdropFilter: 'blur(0px)',
+                boxShadow:
+                  '0px 4px 10px 0px #A7B2E236, 0px 18px 18px 0px #A7B2E230, 0px 40px 24px 0px #A7B2E21C, 0px 70px 28px 0px #A7B2E208, 0px 110px 31px 0px #A7B2E200',
+              }}
+            >
+              <h3 className="text-xl md:text-3xl leading-[120%] tracking-[-0.01em] font-medium text-lightgray mb-4 lg:mb-6 4xl:mb-9!">
                 What are you studying?
               </h3>
               <form className="grow flex flex-col" onSubmit={handleSubmit}>
+                <CustomSelect
+                  label="Select Board"
+                  options={formBoardOptions}
+                  selected={formData.board}
+                  onSelect={(val: string) =>
+                    setFormData({
+                      ...formData,
+                      board: val,
+                      ...(val === 'CUET UG' ? { class: 'XII' } : {}),
+                    })
+                  }
+                  placeholder="Choose board"
+                />
+
                 <CustomSelect
                   label="Select Class"
                   options={classOptions}
@@ -236,28 +342,34 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   placeholder="Choose class"
                 />
 
-                <CustomSelect
-                  label="Select Board"
-                  options={boardOptions}
-                  selected={formData.board}
-                  onSelect={(val: string) =>
-                    setFormData({ ...formData, board: val })
-                  }
-                  placeholder="Choose board"
-                />
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-lg 4xl:text-xl! text-lightgray mb-1 xl:mb-2 font-medium opacity-50">
+                    Your Name
+                  </label>
+                  <div className="flex items-center w-full border border-slate-200 rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors">
+                    <input
+                      type="text"
+                      className="w-full text-sm xl:text-xl text-slate-800 placeholder:text-gray-400 font-medium focus-within:outline-0! focus:outline-0! focus:shadow-white! focus-within:shadow-white! bg-transparent outline-0! border-0! py-0! leading-[120%]"
+                      placeholder="Your Full  Name"
+                      value={formData.name}
+                      onChange={handleNameChange}
+                    />
+                  </div>
+                </div>
 
-                <div className="mb-3 sm:mb-8">
-                  <label className="block text-xs sm:text-lg 4xl:text-xl! text-lightgray mb-1 xl:mb-3 font-medium opacity-50">
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-lg 4xl:text-xl! text-lightgray mb-1 xl:mb-2 font-medium opacity-50">
                     Phone Number
                   </label>
                   <div className="flex items-center w-full border border-slate-200 rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors">
-                    <span className="text-sm sm:text-base xl:text-xl font-medium text-lightgray leading-[120%]">
+                    <span className="text-sm mr-2 sm:text-base xl:text-xl font-medium text-lightgray leading-[120%]">
                       +91
                     </span>
                     <input
                       type="tel"
-                      className="w-full text-sm xl:text-xl text-slate-800 font-medium focus-within:outline-0! focus:outline-0! focus:shadow-white! focus-within:shadow-white! bg-transparent placeholder-slate-300 outline-0! border-0! py-0! leading-[120%]"
-                      placeholder=""
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="w-full text-sm xl:text-xl text-slate-800 font-medium bg-transparent outline-none border-0 py-0 leading-[120%]"
                       value={formData.phone}
                       onChange={handlePhoneChange}
                     />
@@ -266,9 +378,10 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 <div className="grow flex items-end">
                   <button
                     type="submit"
-                    className="primary-btn text-sm sm:tex-lg md:text-xl font-medium leading-[120%] py-2 sm:py-4 w-full"
+                    disabled={submitting}
+                    className="primary-btn text-sm sm:tex-lg md:text-xl font-medium leading-[120%] py-2 sm:py-4 w-full disabled:opacity-60"
                   >
-                    Start Learning
+                    {submitting ? 'Please wait...' : 'Start Learning'}
                   </button>
                 </div>
               </form>

@@ -2,13 +2,22 @@ import { useLoaderData, useNavigation, MetaFunction } from '@remix-run/react';
 import { getOrderByCode } from '~/providers/orders/order';
 import type { DataFunctionArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
-import { PackageIcon, CheckCircleIcon, ClockIcon, XCircleIcon, TruckIcon } from 'lucide-react';
+import {
+  PackageIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  XCircleIcon,
+  TruckIcon,
+} from 'lucide-react';
 import Layout from '~/components/Layout';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Track Your Order - VSmart Academy' },
-    { name: 'description', content: 'Track the status of your order and shipment details' },
+    { title: 'Track Your Order - Commerce Virtuals' },
+    {
+      name: 'description',
+      content: 'Track the status of your order and shipment details',
+    },
   ];
 };
 
@@ -18,21 +27,21 @@ export async function loader({ request }: DataFunctionArgs) {
     const orderCode = url.searchParams.get('orderId') || '';
 
     if (!orderCode) {
-      return json({ 
+      return json({
         order: null,
         orderCode: '',
-        error: 'Please provide an order code to track'
+        error: 'Please provide an order code to track',
       });
     }
 
     // Fetch order by code
     const order = await getOrderByCode(orderCode, { request });
-    
+
     if (!order) {
-      return json({ 
+      return json({
         order: null,
         orderCode,
-        error: 'Order not found'
+        error: 'Order not found',
       });
     }
 
@@ -47,18 +56,18 @@ export async function loader({ request }: DataFunctionArgs) {
       trackingDetails = [];
     }
 
-    return json({ 
+    return json({
       order,
       orderCode,
       trackingDetails,
-      error: null
+      error: null,
     });
   } catch (error) {
     console.error('Track order loader error:', error);
-    return json({ 
+    return json({
       order: null,
       orderCode: '',
-      error: 'Failed to fetch order details'
+      error: 'Failed to fetch order details',
     });
   }
 }
@@ -107,17 +116,16 @@ export default function TrackOrdersPage() {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
   const formatCurrency = (amount: number, currencyCode: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currencyCode || 'USD'
+      currency: currencyCode || 'USD',
     }).format(amount / 100);
   };
-
 
   // Show loading state while navigating
   if (navigation.state === 'loading') {
@@ -136,10 +144,13 @@ export default function TrackOrdersPage() {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight mb-2">Track Your Order</h1>
-          <p className="text-gray-600">Monitor the status of your order and shipment details</p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight mb-2">
+            Track Your Order
+          </h1>
+          <p className="text-gray-600">
+            Monitor the status of your order and shipment details
+          </p>
         </div>
-
 
         {/* Error State */}
         {loaderData.error && (
@@ -149,7 +160,7 @@ export default function TrackOrdersPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Error</h3>
               <p className="text-gray-600">{loaderData.error}</p>
             </div>
-                            </div>
+          </div>
         )}
 
         {/* Order Details */}
@@ -157,80 +168,111 @@ export default function TrackOrdersPage() {
           <div className="space-y-6">
             {/* Order Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Details</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Order Details
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Order Number</p>
-                  <p className="text-lg font-medium text-gray-900">#{loaderData.order.id}</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    #{loaderData.order.id}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Order Date</p>
                   <p className="text-lg font-medium text-gray-900">
-                    {loaderData.order.createdAt ? formatDate(loaderData.order.createdAt) : 'N/A'}
+                    {loaderData.order.createdAt
+                      ? formatDate(loaderData.order.createdAt)
+                      : 'N/A'}
                   </p>
-                          </div>
+                </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Amount</p>
                   <p className="text-lg font-medium text-gray-900">
-                    {formatCurrency(loaderData.order.totalWithTax, loaderData.order.currencyCode)}
+                    {formatCurrency(
+                      loaderData.order.totalWithTax,
+                      loaderData.order.currencyCode,
+                    )}
                   </p>
-                          </div>
+                </div>
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
                   <div className="flex items-center mt-1">
                     {getStatusIcon(loaderData.order.state)}
-                    <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(loaderData.order.state)}`}>
+                    <span
+                      className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                        loaderData.order.state,
+                      )}`}
+                    >
                       {loaderData.order.state}
-                            </span>
-                          </div>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Tracking Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Tracking Details</h2>
-              
-              {loaderData.trackingDetails && loaderData.trackingDetails.length > 0 ? (
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Tracking Details
+              </h2>
+
+              {loaderData.trackingDetails &&
+              loaderData.trackingDetails.length > 0 ? (
                 <div className="space-y-4">
-                  {loaderData.trackingDetails.map((tracking: any, index: number) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          <TruckIcon className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <p className="text-sm text-gray-600">Product</p>
-                              <p className="text-lg font-medium text-gray-900">{tracking.product || 'N/A'}</p>
-                  </div>
-                    <div>
-                              <p className="text-sm text-gray-600">Tracking ID</p>
-                              <p className="text-lg font-medium text-blue-600">{tracking.trackingID || 'N/A'}</p>
-                    </div>
-                    <div>
-                              <p className="text-sm text-gray-600">Courier</p>
-                              <p className="text-lg font-medium text-gray-900">{tracking.courier || 'N/A'}</p>
+                  {loaderData.trackingDetails.map(
+                    (tracking: any, index: number) => (
+                      <div
+                        key={index}
+                        className="border border-gray-200 rounded-lg p-4"
+                      >
+                        <div className="flex items-start space-x-4">
+                          <div className="flex-shrink-0">
+                            <TruckIcon className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <p className="text-sm text-gray-600">Product</p>
+                                <p className="text-lg font-medium text-gray-900">
+                                  {tracking.product || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-600">
+                                  Tracking ID
+                                </p>
+                                <p className="text-lg font-medium text-blue-600">
+                                  {tracking.trackingID || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-600">Courier</p>
+                                <p className="text-lg font-medium text-gray-900">
+                                  {tracking.courier || 'N/A'}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  </div>
+                    ),
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <PackageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Tracking Details Will Update Soon</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Tracking Details Will Update Soon
+                  </h3>
                   <p className="text-gray-600">
-                    Your tracking information is being processed and will be available shortly.
+                    Your tracking information is being processed and will be
+                    available shortly.
                   </p>
                 </div>
               )}
             </div>
-
-        </div>
+          </div>
         )}
 
         {/* No Order State */}
@@ -238,9 +280,12 @@ export default function TrackOrdersPage() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="text-center py-12">
               <PackageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Order Found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Order Found
+              </h3>
               <p className="text-gray-600">
-                Please provide a valid order code in the URL to view tracking information.
+                Please provide a valid order code in the URL to view tracking
+                information.
               </p>
             </div>
           </div>

@@ -1,10 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useFetcher, Link } from '@remix-run/react';
+import {
+  useLoaderData,
+  useFetcher,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { API_URL } from '~/constants';
 import { getSessionStorage } from '~/sessions';
-import { Loader2, Trash2, ShoppingCart, AlertCircle } from 'lucide-react';
+import {
+  Loader2,
+  Trash2,
+  ShoppingCart,
+  AlertCircle,
+  Tag,
+  X,
+} from 'lucide-react';
 
 const ACTIVE_ORDER_QUERY = `
   query {
@@ -16,6 +29,7 @@ const ACTIVE_ORDER_QUERY = `
       subTotalWithTax
       totalWithTax
       currencyCode
+      couponCodes
       discounts { amount description }
       lines {
         id
@@ -32,7 +46,35 @@ const ACTIVE_ORDER_QUERY = `
 `;
 
 const CUSTOMER_QUERY = `
-  query { activeCustomer { id firstName lastName emailAddress phoneNumber } }
+  query { activeCustomer { id firstName lastName emailAddress phoneNumber customFields { contactEmail } } }
+`;
+
+const CUSTOMER_ADDRESSES_QUERY = `
+  query {
+    activeCustomer {
+      addresses {
+        id fullName streetLine1 streetLine2 city province postalCode
+        countryCode phoneNumber defaultShippingAddress defaultBillingAddress
+      }
+    }
+  }
+`;
+
+const APPLY_COUPON = `
+  mutation ApplyCoupon($couponCode: String!) {
+    applyCouponCode(couponCode: $couponCode) {
+      ... on Order { id code couponCodes totalWithTax subTotalWithTax discounts { amount description } }
+      ... on ErrorResult { errorCode message }
+    }
+  }
+`;
+
+const REMOVE_COUPON = `
+  mutation RemoveCoupon($couponCode: String!) {
+    removeCouponCode(couponCode: $couponCode) {
+      id code couponCodes totalWithTax subTotalWithTax discounts { amount description }
+    }
+  }
 `;
 
 const ELIGIBLE_SHIPPING_QUERY = `
@@ -85,30 +127,7 @@ const TRANSITION_ORDER = `
   }
 `;
 
-const SET_CUSTOMER_FOR_ORDER = `
-  mutation SetCustomerForOrder($input: CreateCustomerInput!) {
-    setCustomerForOrder(input: $input) {
-      ... on Order { id code state }
-      ... on AlreadyLoggedInError { errorCode message }
-      ... on ErrorResult { errorCode message }
-    }
-  }
-`;
-
 const NEXT_STATES_QUERY = `query { nextOrderStates }`;
-
-const ADD_PAYMENT = `
-  mutation AddPayment($input: PaymentInput!) {
-    addPaymentToOrder(input: $input) {
-      ... on Order {
-        id code state
-        payments { id state method amount metadata customFields }
-      }
-      ... on ErrorResult { errorCode message }
-      ... on PaymentFailedError { errorCode message paymentErrorMessage }
-    }
-  }
-`;
 
 async function gqlFetch(
   query: string,
@@ -137,26 +156,50 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let authToken: string | undefined = session.get('authToken');
 
   try {
-    const [orderRes, customerRes, shippingRes] = await Promise.all([
+    const [orderRes, customerRes, shippingRes, addressRes] = await Promise.all([
       gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken),
       gqlFetch(CUSTOMER_QUERY, undefined, authToken),
       gqlFetch(ELIGIBLE_SHIPPING_QUERY, undefined, authToken),
+      gqlFetch(CUSTOMER_ADDRESSES_QUERY, undefined, authToken),
     ]);
 
-    for (const r of [orderRes, customerRes, shippingRes]) {
+    for (const r of [orderRes, customerRes, shippingRes, addressRes]) {
       if (r.newToken) {
         authToken = r.newToken;
         session.set('authToken', r.newToken);
       }
     }
 
-    const activeOrder = orderRes.body?.data?.activeOrder || null;
+    let activeOrder = orderRes.body?.data?.activeOrder || null;
     const customer = customerRes.body?.data?.activeCustomer || null;
     const shippingMethods =
       shippingRes.body?.data?.eligibleShippingMethods || [];
+    const addresses = addressRes.body?.data?.activeCustomer?.addresses || [];
+
+    if (activeOrder?.state && activeOrder.state !== 'AddingItems') {
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
+      if (tr.newToken) {
+        authToken = tr.newToken;
+        session.set('authToken', tr.newToken);
+      }
+      const refreshed = await gqlFetch(
+        ACTIVE_ORDER_QUERY,
+        undefined,
+        authToken,
+      );
+      if (refreshed.newToken) {
+        authToken = refreshed.newToken;
+        session.set('authToken', refreshed.newToken);
+      }
+      activeOrder = refreshed.body?.data?.activeOrder || activeOrder;
+    }
 
     return json(
-      { activeOrder, customer, shippingMethods, error: null },
+      { activeOrder, customer, shippingMethods, addresses, error: null },
       {
         headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
       },
@@ -167,6 +210,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       activeOrder: null,
       customer: null,
       shippingMethods: [],
+      addresses: [],
       error: err.message,
     });
   }
@@ -196,6 +240,17 @@ export async function action({ request }: LoaderFunctionArgs) {
   if (formAction === 'removeItem') {
     const lineId = body.get('lineId')?.toString();
     if (!lineId) return json({ error: 'Missing lineId' });
+    const orderCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+    updateToken(orderCheck.newToken);
+    const state = orderCheck.body?.data?.activeOrder?.state;
+    if (state && state !== 'AddingItems') {
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
+      updateToken(tr.newToken);
+    }
     const { body: res, newToken } = await gqlFetch(
       REMOVE_LINE_MUTATION,
       { orderLineId: lineId },
@@ -205,11 +260,79 @@ export async function action({ request }: LoaderFunctionArgs) {
     return json({ ok: true }, await commit());
   }
 
+  if (formAction === 'applyCoupon') {
+    const couponCode = body.get('couponCode')?.toString() || '';
+    if (!couponCode)
+      return json({ error: 'Coupon code is required' }, await commit());
+    const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+    updateToken(oCheck.newToken);
+    if (
+      oCheck.body?.data?.activeOrder?.state &&
+      oCheck.body.data.activeOrder.state !== 'AddingItems'
+    ) {
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
+      updateToken(tr.newToken);
+    }
+    const res = await gqlFetch(APPLY_COUPON, { couponCode }, authToken);
+    updateToken(res.newToken);
+    const result = res.body?.data?.applyCouponCode;
+    if (result?.errorCode) {
+      return json(
+        { couponError: result.message || 'Invalid coupon code' },
+        await commit(),
+      );
+    }
+    return json({ couponSuccess: true, order: result }, await commit());
+  }
+
+  if (formAction === 'removeCoupon') {
+    const couponCode = body.get('couponCode')?.toString() || '';
+    if (!couponCode)
+      return json({ error: 'Missing coupon code' }, await commit());
+    const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+    updateToken(oCheck.newToken);
+    if (
+      oCheck.body?.data?.activeOrder?.state &&
+      oCheck.body.data.activeOrder.state !== 'AddingItems'
+    ) {
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
+      updateToken(tr.newToken);
+    }
+    const res = await gqlFetch(REMOVE_COUPON, { couponCode }, authToken);
+    updateToken(res.newToken);
+    return json(
+      { couponRemoved: true, order: res.body?.data?.removeCouponCode },
+      await commit(),
+    );
+  }
+
   if (formAction === 'buyNow') {
+    const customerRes = await gqlFetch(CUSTOMER_QUERY, undefined, authToken);
+    updateToken(customerRes.newToken);
+    const loggedInCustomer = customerRes.body?.data?.activeCustomer;
+    if (!loggedInCustomer) {
+      return redirect('/sign-in?redirectTo=/cart');
+    }
+    const email =
+      body.get('email')?.toString() ||
+      loggedInCustomer.customFields?.contactEmail ||
+      (loggedInCustomer.emailAddress?.endsWith('@bbvirtuals.tech')
+        ? ''
+        : loggedInCustomer.emailAddress) ||
+      '';
+
     const fullName = body.get('fullName')?.toString() || '';
-    const email = body.get('email')?.toString() || '';
     const phone = body.get('phone')?.toString() || '';
     const streetLine1 = body.get('streetLine1')?.toString() || '';
+    const streetLine2 = body.get('streetLine2')?.toString() || '';
     const city = body.get('city')?.toString() || '';
     const province = body.get('province')?.toString() || '';
     const postalCode = body.get('postalCode')?.toString() || '';
@@ -218,6 +341,7 @@ export async function action({ request }: LoaderFunctionArgs) {
     const addressInput = {
       fullName,
       streetLine1,
+      streetLine2,
       city,
       province,
       postalCode,
@@ -226,6 +350,77 @@ export async function action({ request }: LoaderFunctionArgs) {
     };
 
     try {
+      // 0. If the order is stuck in ArrangingPayment from a previous attempt, transition back
+      const currentOrder = await gqlFetch(
+        ACTIVE_ORDER_QUERY,
+        undefined,
+        authToken,
+      );
+      updateToken(currentOrder.newToken);
+      const orderState = currentOrder.body?.data?.activeOrder?.state;
+      console.log('[BuyNow] Current order state:', orderState);
+      if (orderState && orderState !== 'AddingItems') {
+        console.log('[BuyNow] Transitioning order back to AddingItems…');
+        const back = await gqlFetch(
+          TRANSITION_ORDER,
+          { state: 'AddingItems' },
+          authToken,
+        );
+        updateToken(back.newToken);
+        const backResult = back.body?.data?.transitionOrderToState;
+        if (backResult?.errorCode) {
+          console.error(
+            '[BuyNow] Failed to reset order state:',
+            JSON.stringify(backResult),
+          );
+        } else {
+          console.log('[BuyNow] Order reset to AddingItems');
+        }
+      }
+
+      // 0.5 Re-apply coupon codes if provided
+      const couponsStr = body.get('coupons')?.toString() || '[]';
+      console.log('[BuyNow] Coupons from form:', couponsStr);
+      let couponsToApply: string[] = [];
+      try {
+        couponsToApply = JSON.parse(couponsStr);
+      } catch {}
+      console.log('[BuyNow] Parsed coupons to apply:', couponsToApply);
+      if (couponsToApply.length > 0) {
+        // Check which coupons are already on the order
+        const activeOrd = await gqlFetch(
+          ACTIVE_ORDER_QUERY,
+          undefined,
+          authToken,
+        );
+        updateToken(activeOrd.newToken);
+        const existingCoupons: string[] =
+          activeOrd.body?.data?.activeOrder?.couponCodes || [];
+        for (const coupon of couponsToApply) {
+          if (!existingCoupons.includes(coupon)) {
+            console.log('[BuyNow] Applying coupon:', coupon);
+            const cr = await gqlFetch(
+              APPLY_COUPON,
+              { couponCode: coupon },
+              authToken,
+            );
+            updateToken(cr.newToken);
+            const crResult = cr.body?.data?.applyCouponCode;
+            if (crResult?.errorCode) {
+              console.error(
+                '[BuyNow] Coupon apply failed:',
+                coupon,
+                crResult.message,
+              );
+            } else {
+              console.log('[BuyNow] Coupon applied:', coupon);
+            }
+          } else {
+            console.log('[BuyNow] Coupon already on order:', coupon);
+          }
+        }
+      }
+
       // 1. Set shipping address
       console.log('[BuyNow] Setting shipping address…');
       const ship = await gqlFetch(
@@ -252,32 +447,9 @@ export async function action({ request }: LoaderFunctionArgs) {
         );
       }
 
-      // 1b. Set customer for order (handles guest checkout; silently ignored if already logged in)
-      console.log('[BuyNow] Setting customer for order…');
-      const custInput = {
-        firstName: fullName.split(' ')[0] || fullName,
-        lastName: fullName.split(' ').slice(1).join(' ') || '',
-        emailAddress: email,
-        phoneNumber: phone,
-      };
-      const custRes = await gqlFetch(
-        SET_CUSTOMER_FOR_ORDER,
-        { input: custInput },
-        authToken,
+      console.log(
+        '[BuyNow] Customer already logged in, skipping setCustomerForOrder',
       );
-      updateToken(custRes.newToken);
-      const custResult = custRes.body?.data?.setCustomerForOrder;
-      if (
-        custResult?.errorCode &&
-        custResult.errorCode !== 'ALREADY_LOGGED_IN_ERROR'
-      ) {
-        console.error('[BuyNow] Set customer error:', custResult);
-        return json(
-          { error: `Customer: ${custResult.message}` },
-          await commit(),
-        );
-      }
-      console.log('[BuyNow] Customer set (or already logged in)');
 
       // 2. Set billing address (same as shipping)
       console.log('[BuyNow] Setting billing address…');
@@ -310,6 +482,10 @@ export async function action({ request }: LoaderFunctionArgs) {
           authToken,
         );
         updateToken(sm.newToken);
+        console.log(
+          '[BuyNow] Shipping method response:',
+          JSON.stringify(sm.body),
+        );
         if (sm.body?.errors?.length) {
           console.error('[BuyNow] Shipping method errors:', sm.body.errors);
           return json(
@@ -322,6 +498,10 @@ export async function action({ request }: LoaderFunctionArgs) {
         }
         const smResult = sm.body?.data?.setOrderShippingMethod;
         if (smResult?.errorCode) {
+          console.error(
+            '[BuyNow] Shipping method error result:',
+            JSON.stringify(smResult),
+          );
           return json(
             { error: `Shipping method: ${smResult.message}` },
             await commit(),
@@ -329,7 +509,11 @@ export async function action({ request }: LoaderFunctionArgs) {
         }
         console.log('[BuyNow] Shipping method set successfully');
       } else {
-        console.warn('[BuyNow] No eligible shipping methods found');
+        console.error('[BuyNow] No eligible shipping methods found');
+        return json(
+          { error: 'No shipping methods available. Please contact support.' },
+          await commit(),
+        );
       }
 
       // 4. Transition to ArrangingPayment
@@ -375,63 +559,111 @@ export async function action({ request }: LoaderFunctionArgs) {
         );
       }
 
-      // 5. Add Easebuzz payment
+      // 5. Initiate Easebuzz payment session
       const orderRes = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
       updateToken(orderRes.newToken);
       const order = orderRes.body?.data?.activeOrder;
 
-      const paymentInput = {
-        method: 'easebuzz',
-        metadata: {
-          orderId: order?.code,
-          amount: order?.totalWithTax,
-          customerName: fullName,
-          customerEmail: email,
-          customerPhone: phone,
-          productInfo: `Order ${order?.code}`,
-        },
-      };
-
-      const pay = await gqlFetch(
-        ADD_PAYMENT,
-        { input: paymentInput },
-        authToken,
-      );
-      updateToken(pay.newToken);
-      const payResult = pay.body?.data?.addPaymentToOrder;
-
-      if (payResult?.errorCode || payResult?.paymentErrorMessage) {
-        const errMsg =
-          payResult.paymentErrorMessage ||
-          payResult.message ||
-          'Payment failed';
-        return json({ error: errMsg }, await commit());
+      if (!order) {
+        return json({ error: 'Order not found' }, await commit());
       }
 
-      if (payResult?.payments?.length) {
-        const payment = payResult.payments.find(
-          (p: any) => p.method === 'easebuzz' && p.state === 'Authorized',
+      const ebKey = process.env.EASEBUZZ_KEY || '';
+      const ebSalt = process.env.EASEBUZZ_SALT || '';
+      if (!ebKey || !ebSalt) {
+        console.error('[BuyNow] EASEBUZZ_KEY or EASEBUZZ_SALT not configured');
+        return json(
+          { error: 'Payment gateway not configured' },
+          await commit(),
         );
-        const paymentUrl = payment?.customFields?.paymentPageUrl;
-        if (paymentUrl) {
-          return json(
-            { redirectUrl: paymentUrl, orderCode: payResult.code },
-            await commit(),
-          );
-        }
       }
 
+      const amountInRupees = (order.totalWithTax / 100).toFixed(2);
+      const txnid = `${order.code}_${Date.now().toString(36)}`;
+      const productinfo = `Order ${order.code}`;
+      console.log(
+        '[BuyNow] Order total:',
+        order.totalWithTax,
+        'couponCodes:',
+        order.couponCodes,
+        'amountInRupees:',
+        amountInRupees,
+      );
+
+      const { createHash } = await import('crypto');
+      const hashString = `${ebKey}|${txnid}|${amountInRupees}|${productinfo}|${fullName}|${email}|||||||||||${ebSalt}`;
+      const hash = createHash('sha512').update(hashString).digest('hex');
+
+      const ebEnv = process.env.EASEBUZZ_ENV || 'test';
+      const ebBaseUrl =
+        ebEnv === 'prod'
+          ? 'https://pay.easebuzz.in'
+          : 'https://testpay.easebuzz.in';
+
+      const url = new URL(request.url);
+      const forwardedHost = request.headers.get('X-Forwarded-Host') || url.host;
+      const forwardedProto =
+        request.headers.get('X-Forwarded-Proto') ||
+        url.protocol.replace(':', '');
+      const origin = `${forwardedProto}://${forwardedHost}`;
+      const siteUrl = forwardedHost.includes('localhost')
+        ? 'http://localhost:8080'
+        : origin;
+
+      const initiateBody = new URLSearchParams({
+        key: ebKey,
+        txnid,
+        amount: amountInRupees,
+        productinfo,
+        firstname: fullName,
+        email,
+        phone,
+        surl: `${siteUrl}/api/easebuzz-callback`,
+        furl: `${siteUrl}/api/easebuzz-callback`,
+        hash,
+      });
+
+      console.log(
+        '[BuyNow] Initiating Easebuzz payment, txnid:',
+        txnid,
+        'amount:',
+        amountInRupees,
+      );
+      const ebRes = await fetch(`${ebBaseUrl}/payment/initiateLink`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: initiateBody.toString(),
+      });
+      const ebJson = (await ebRes.json()) as any;
+      console.log(
+        '[BuyNow] Easebuzz initiate response:',
+        JSON.stringify(ebJson),
+      );
+
+      if (ebJson.status === 1 && ebJson.data) {
+        const accessKey = ebJson.data;
+        return json(
+          {
+            redirectUrl: `${ebBaseUrl}/pay/${accessKey}`,
+            orderCode: order.code,
+          },
+          await commit(),
+        );
+      }
+
+      console.error(
+        '[BuyNow] Easebuzz initiate failed:',
+        JSON.stringify(ebJson),
+      );
       return json(
         {
-          redirectUrl: `/checkout2/confirmation/${
-            payResult?.code || 'unknown'
-          }?status=success`,
-          orderCode: payResult?.code,
+          error:
+            ebJson.error_desc || ebJson.data || 'Failed to initiate payment',
         },
         await commit(),
       );
     } catch (err: any) {
-      console.error('Buy now error:', err);
+      console.error('[BuyNow] CATCH error:', err?.message, err?.stack);
       return json(
         { error: err.message || 'Something went wrong' },
         await commit(),
@@ -473,10 +705,10 @@ const ShieldIcon = () => (
 );
 
 export default function CartPage() {
-  const { activeOrder, customer, shippingMethods } =
-    useLoaderData<typeof loader>();
+  const { activeOrder, customer, addresses } = useLoaderData<typeof loader>();
   const removeFetcher = useFetcher();
   const buyFetcher = useFetcher();
+  const couponFetcher = useFetcher();
 
   const lines = activeOrder?.lines || [];
   const isEmpty = lines.length === 0;
@@ -487,21 +719,88 @@ export default function CartPage() {
     0,
   );
 
+  const defaultAddr =
+    (addresses as any[])?.find((a: any) => a.defaultShippingAddress) ||
+    (addresses as any[])?.[0] ||
+    null;
+
   const [fullName, setFullName] = useState(
-    customer
-      ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
-      : '',
+    defaultAddr?.fullName ||
+      (customer
+        ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
+        : ''),
   );
-  const [email, setEmail] = useState(customer?.emailAddress || '');
-  const [phone, setPhone] = useState(customer?.phoneNumber || '');
-  const [streetLine1, setStreetLine1] = useState('');
-  const [city, setCity] = useState('');
-  const [province, setProvince] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [formError, setFormError] = useState('');
+  const [email, setEmail] = useState(
+    customer?.customFields?.contactEmail ||
+      (customer?.emailAddress?.endsWith('@bbvirtuals.tech')
+        ? ''
+        : customer?.emailAddress || ''),
+  );
+  const [phone, setPhone] = useState(() => {
+    const digits = (
+      defaultAddr?.phoneNumber ||
+      customer?.phoneNumber ||
+      ''
+    ).replace(/\D/g, '');
+    return digits.slice(-10);
+  });
+  const [streetLine1, setStreetLine1] = useState(
+    defaultAddr?.streetLine1 || '',
+  );
+  const [streetLine2, setStreetLine2] = useState(
+    defaultAddr?.streetLine2 || '',
+  );
+  const [postalCode, setPostalCode] = useState(defaultAddr?.postalCode || '');
+  const [city, setCity] = useState(defaultAddr?.city || '');
+  const [province, setProvince] = useState(defaultAddr?.province || '');
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [appliedCoupons, setAppliedCoupons] = useState<string[]>(
+    activeOrder?.couponCodes || [],
+  );
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const paymentErrorFromUrl = searchParams.get('paymentError');
+  const autoBuy = searchParams.get('autoBuy') === 'true';
+  const [formError, setFormError] = useState(paymentErrorFromUrl || '');
+  const [autoBuyTriggered, setAutoBuyTriggered] = useState(false);
 
   const isSubmitting = buyFetcher.state !== 'idle';
   const buyData = buyFetcher.data as any;
+
+  // Restore billing info from sessionStorage after login redirect
+  const [restoredFromSession, setRestoredFromSession] = useState(false);
+  const [savedCouponsForServer, setSavedCouponsForServer] = useState<string[]>(
+    [],
+  );
+
+  useEffect(() => {
+    if (autoBuy && !restoredFromSession) {
+      setRestoredFromSession(true);
+      try {
+        const saved = sessionStorage.getItem('cartBillingInfo');
+        if (saved) {
+          const info = JSON.parse(saved);
+          if (info.fullName) setFullName(info.fullName);
+          if (info.email) setEmail(info.email);
+          if (info.phone) setPhone(info.phone);
+          if (info.streetLine1) setStreetLine1(info.streetLine1);
+          if (info.streetLine2) setStreetLine2(info.streetLine2);
+          if (info.postalCode) setPostalCode(info.postalCode);
+          if (info.city) setCity(info.city);
+          if (info.province) setProvince(info.province);
+          const savedCoupons = (info.coupons || []) as string[];
+          if (savedCoupons.length > 0) {
+            setAppliedCoupons(savedCoupons);
+            setSavedCouponsForServer(savedCoupons);
+          }
+          sessionStorage.removeItem('cartBillingInfo');
+        }
+      } catch {}
+    }
+  }, [autoBuy, restoredFromSession]);
 
   useEffect(() => {
     if (buyFetcher.state === 'idle' && buyData) {
@@ -513,18 +812,170 @@ export default function CartPage() {
     }
   }, [buyFetcher.state, buyData]);
 
+  // Auto-submit after login redirect if all fields are filled
+  useEffect(() => {
+    if (
+      autoBuy &&
+      restoredFromSession &&
+      !autoBuyTriggered &&
+      customer &&
+      !isEmpty &&
+      fullName.trim() &&
+      phone.trim() &&
+      streetLine1.trim() &&
+      postalCode.trim() &&
+      city.trim()
+    ) {
+      setAutoBuyTriggered(true);
+      setSearchParams(
+        (prev) => {
+          prev.delete('autoBuy');
+          return prev;
+        },
+        { replace: true },
+      );
+      const couponsToSend =
+        savedCouponsForServer.length > 0
+          ? savedCouponsForServer
+          : appliedCoupons;
+      buyFetcher.submit(
+        {
+          _action: 'buyNow',
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          streetLine1: streetLine1.trim(),
+          streetLine2: streetLine2.trim(),
+          city: city.trim(),
+          province: province.trim(),
+          postalCode: postalCode.trim(),
+          countryCode: 'IN',
+          coupons: JSON.stringify(couponsToSend),
+        },
+        { method: 'post' },
+      );
+    }
+  }, [
+    autoBuy,
+    restoredFromSession,
+    autoBuyTriggered,
+    customer,
+    isEmpty,
+    fullName,
+    email,
+    phone,
+    streetLine1,
+    postalCode,
+    city,
+    savedCouponsForServer,
+    appliedCoupons,
+  ]);
+
+  const couponData = couponFetcher.data as any;
+  useEffect(() => {
+    if (couponFetcher.state === 'idle' && couponData) {
+      if (couponData.couponError) {
+        setCouponError(couponData.couponError);
+      } else if (couponData.couponSuccess) {
+        setCouponCode('');
+        setCouponError('');
+        if (couponData.order?.couponCodes) {
+          setAppliedCoupons(couponData.order.couponCodes);
+        }
+      } else if (couponData.couponRemoved) {
+        if (couponData.order?.couponCodes) {
+          setAppliedCoupons(couponData.order.couponCodes);
+        }
+      }
+    }
+  }, [couponFetcher.state, couponData]);
+
+  const lookupPincode = useCallback(async (pin: string) => {
+    if (pin.length !== 6) return;
+    setPincodeLoading(true);
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const data = (await res.json()) as any[];
+      if (data?.[0]?.Status === 'Success' && data[0].PostOffice?.length > 0) {
+        const po = data[0].PostOffice[0];
+        setCity(po.District || po.Name || '');
+        setProvince(po.State || '');
+      }
+    } catch {
+      // Silently fail, user can fill manually
+    } finally {
+      setPincodeLoading(false);
+    }
+  }, []);
+
+  const handlePincodeChange = useCallback(
+    (val: string) => {
+      const digits = val.replace(/\D/g, '').slice(0, 6);
+      setPostalCode(digits);
+      if (digits.length === 6) {
+        lookupPincode(digits);
+      }
+    },
+    [lookupPincode],
+  );
+
   const handleRemove = (lineId: string) => {
     removeFetcher.submit({ _action: 'removeItem', lineId }, { method: 'post' });
   };
 
+  const handleApplyCoupon = useCallback(() => {
+    if (!couponCode.trim()) return;
+    setCouponError('');
+    couponFetcher.submit(
+      { _action: 'applyCoupon', couponCode: couponCode.trim() },
+      { method: 'post' },
+    );
+  }, [couponCode, couponFetcher]);
+
+  const handleRemoveCoupon = useCallback(
+    (code: string) => {
+      couponFetcher.submit(
+        { _action: 'removeCoupon', couponCode: code },
+        { method: 'post' },
+      );
+    },
+    [couponFetcher],
+  );
+
+  const navigate = useNavigate();
+
   const handleBuyNow = useCallback(() => {
     setFormError('');
+
+    if (!customer) {
+      try {
+        sessionStorage.setItem(
+          'cartBillingInfo',
+          JSON.stringify({
+            fullName,
+            email,
+            phone,
+            streetLine1,
+            streetLine2,
+            postalCode,
+            city,
+            province,
+            coupons: appliedCoupons,
+          }),
+        );
+      } catch {}
+      navigate(
+        '/sign-in?redirectTo=' + encodeURIComponent('/cart?autoBuy=true'),
+      );
+      return;
+    }
+
     if (!fullName.trim()) {
       setFormError('Full name is required');
       return;
     }
-    if (!email.trim()) {
-      setFormError('Email is required');
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email.trim())) {
+      setFormError('Valid email address is required');
       return;
     }
     if (!phone.trim()) {
@@ -532,15 +983,15 @@ export default function CartPage() {
       return;
     }
     if (!streetLine1.trim()) {
-      setFormError('Address is required');
+      setFormError('Address line 1 is required');
+      return;
+    }
+    if (!postalCode.trim()) {
+      setFormError('Pincode is required');
       return;
     }
     if (!city.trim()) {
       setFormError('City is required');
-      return;
-    }
-    if (!postalCode.trim()) {
-      setFormError('Postal code is required');
       return;
     }
 
@@ -551,18 +1002,22 @@ export default function CartPage() {
         email: email.trim(),
         phone: phone.trim(),
         streetLine1: streetLine1.trim(),
+        streetLine2: streetLine2.trim(),
         city: city.trim(),
         province: province.trim(),
         postalCode: postalCode.trim(),
         countryCode: 'IN',
+        coupons: JSON.stringify(appliedCoupons),
       },
       { method: 'post' },
     );
   }, [
+    customer,
+    navigate,
     fullName,
-    email,
     phone,
     streetLine1,
+    streetLine2,
     city,
     province,
     postalCode,
@@ -621,11 +1076,11 @@ export default function CartPage() {
                           <div className="flex gap-3 sm:gap-5 items-center min-w-0">
                             <Link
                               to={`/our-courses/${product?.slug || ''}`}
-                              className="w-16 sm:w-20 h-10 sm:h-13 bg-gray-100 rounded-lg overflow-hidden shrink-0"
+                              className="w-16 sm:w-20 h-16 sm:h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0"
                             >
                               {product?.featuredAsset?.preview ? (
                                 <img
-                                  src={`${product.featuredAsset.preview}?w=160&h=104`}
+                                  src={`${product.featuredAsset.preview}?w=160&h=160`}
                                   alt={product?.name}
                                   className="w-full h-full object-cover"
                                 />
@@ -698,17 +1153,6 @@ export default function CartPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
                         Phone *
                       </label>
                       <input
@@ -719,21 +1163,62 @@ export default function CartPage() {
                             e.target.value.replace(/\D/g, '').slice(0, 10),
                           )
                         }
-                        placeholder="9876543210"
+                        placeholder="9999999999"
+                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
                         className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
                       />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
-                        Address *
+                        Address Line 1 *
                       </label>
                       <input
                         type="text"
                         value={streetLine1}
                         onChange={(e) => setStreetLine1(e.target.value)}
-                        placeholder="Street address"
+                        placeholder="House / flat no., building name"
                         className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
                       />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
+                        Address Line 2
+                      </label>
+                      <input
+                        type="text"
+                        value={streetLine2}
+                        onChange={(e) => setStreetLine2(e.target.value)}
+                        placeholder="Street, area, landmark"
+                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
+                        Pincode *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={postalCode}
+                          onChange={(e) => handlePincodeChange(e.target.value)}
+                          placeholder="400001"
+                          className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
+                        />
+                        {pincodeLoading && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 animate-spin text-[#3A6BFC]" />
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
@@ -754,18 +1239,6 @@ export default function CartPage() {
                         type="text"
                         value={province}
                         onChange={(e) => setProvince(e.target.value)}
-                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
-                        Postal Code *
-                      </label>
-                      <input
-                        type="text"
-                        value={postalCode}
-                        onChange={(e) => setPostalCode(e.target.value)}
-                        placeholder="400001"
                         className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
                       />
                     </div>
@@ -826,6 +1299,68 @@ export default function CartPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Coupon Code */}
+                  <div className="bg-white rounded-xl sm:rounded-3xl border border-[#0816271A] shadow-[0px_4px_8px_0px_#00000008,0px_15px_15px_0px_#00000005,0px_33px_20px_0px_#00000003,0px_59px_24px_0px_#00000000,0px_92px_26px_0px_#00000000] p-3 sm:p-4 xl:p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Tag className="size-4 text-[#3A6BFC]" />
+                      <span className="text-sm font-semibold text-lightgray">
+                        Have a coupon?
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError('');
+                        }}
+                        placeholder="Enter coupon code"
+                        className="flex-1 h-10 px-3 rounded-lg border border-[#0816271A] text-lightgray text-sm focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
+                        disabled={couponFetcher.state !== 'idle'}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={
+                          couponFetcher.state !== 'idle' || !couponCode.trim()
+                        }
+                        className="px-4 h-10 bg-[#3A6BFC] text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                      >
+                        {couponFetcher.state !== 'idle' ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          'Apply'
+                        )}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="mt-2 text-xs text-red-600">{couponError}</p>
+                    )}
+                    {appliedCoupons.length > 0 && (
+                      <div className="mt-3 space-y-1.5">
+                        {appliedCoupons.map((code) => (
+                          <div
+                            key={code}
+                            className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-1.5"
+                          >
+                            <span className="text-xs font-medium text-green-700">
+                              {code}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCoupon(code)}
+                              className="text-green-600 hover:text-red-500 transition-colors"
+                              title="Remove coupon"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <button
