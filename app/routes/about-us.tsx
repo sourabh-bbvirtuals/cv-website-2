@@ -353,7 +353,7 @@ export default function AboutUsRoute() {
                 href="tel:+916291040600"
                 className="text-[#3A6BFC] font-semibold hover:underline"
               >
-                +91 62910 40 600 (Admissions & Sales)
+                +91 6291 040 600 (Admissions & Sales)
               </a>{' '}
               |{' '}
               <a

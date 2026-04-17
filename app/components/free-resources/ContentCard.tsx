@@ -159,22 +159,41 @@ function NoteCard({
         </>
       }
     >
+      {/* Subject badge */}
       <div className="flex flex-wrap gap-2 px-3 md:px-6">
         <SubjectBadge name={subjectName} />
       </div>
+
+      {/* Chapter label */}
       <div className="px-3 md:px-6">
         <ChapterLabel name={item.chapterName} />
       </div>
+
+      {/* Title */}
       <div className="px-3 md:px-6">
         <h2 className="line-clamp-2 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
           {item.name}
         </h2>
       </div>
+
+      {/* Short description — only shown when the API returns a non-empty subtitle */}
       {item.subtitle && (
         <div className="px-3 md:px-6">
-          <p className="text-sm font-medium leading-[150%] text-lightgray/50 lg:text-base lg:leading-[150%]">
+          <p className="line-clamp-2 text-sm font-medium leading-[150%] text-lightgray/50 lg:text-base lg:leading-[150%]">
             {item.subtitle}
           </p>
+        </div>
+      )}
+
+      {/* Page count — only shown when the API returns a positive number */}
+      {item.pageCount != null && item.pageCount > 0 && (
+        <div className="px-3 md:px-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(8,22,39,0.08)] bg-[rgba(8,22,39,0.03)] px-3 py-1">
+            <FileText className="size-3.5 shrink-0 text-lightgray/40" />
+            <span className="text-sm font-medium text-lightgray/50">
+              {item.pageCount} {item.pageCount === 1 ? 'page' : 'pages'}
+            </span>
+          </div>
         </div>
       )}
     </CardShell>

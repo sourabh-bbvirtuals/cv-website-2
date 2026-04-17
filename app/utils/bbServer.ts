@@ -56,6 +56,7 @@ export interface ContentItem {
   subtitle?: string;
   thumbnailUrl?: string;
   isDownloadable?: boolean;
+  pageCount?: number | null;
 
   // video
   provider?: string;

@@ -145,10 +145,6 @@ export default function BlogListingPage() {
             <h1 className="text-center text-slate-900 text-5xl font-semibold font-['Geist'] leading-[48px]">
               Blog
             </h1>
-            <p className="text-center text-slate-900 text-base font-normal font-['Geist'] leading-6">
-              Our news and our take on the things shaping the human-media
-              experience.
-            </p>
           </div>
         </div>
       </section>

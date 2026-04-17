@@ -95,7 +95,7 @@ const Footer = () => {
             className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[340px] md:w-[420px] h-[52px] md:h-[64px] font-medium py-4 px-8 md:text-xl leading-[120%]!"
           >
             <Phone size={20} fill="currentColor" />
-            Call Now (+91 62910 40 600)
+            Call Now (+91 6291 040 600)
           </a>
         </div>
 
@@ -214,7 +214,7 @@ const Footer = () => {
                   <p>
                     Admissions & Sales -{' '}
                     <a href="tel:+916291040600" className="hover:underline">
-                      +91 62910 40 600
+                      +91 6291 040 600
                     </a>
                   </p>
                   <p>

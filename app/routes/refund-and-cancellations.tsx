@@ -422,7 +422,7 @@ export default function RefundAndCancellationsRoute() {
                 href="tel:+916291040600"
                 className="text-emerald-600 font-semibold hover:underline"
               >
-                +91 62910 40 600 (Admissions & Sales)
+                +91 6291 040 600 (Admissions & Sales)
               </a>
             </p>
             <p className="mt-4">

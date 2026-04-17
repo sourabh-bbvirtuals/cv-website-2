@@ -89,7 +89,7 @@ const TopHeader = () => {
             className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
           >
             <Phone size={14} className="text-lightgray" />
-            <span className="text-base">+91 62910 40 600</span>
+            <span className="text-base">+91 6291 040 600</span>
           </a>
 
           <a

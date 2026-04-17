@@ -358,7 +358,7 @@ export default function TermsAndConditionsRoute() {
                         href="tel:+916291040600"
                         className="text-[#3A6BFC] hover:underline"
                       >
-                        +91 62910 40 600
+                        +91 6291 040 600
                       </a>
                       <br />
                       <strong>Email:</strong>{' '}

@@ -18,7 +18,7 @@ const SUPPORT_CARDS = [
     title: 'Admissions & Sales',
     description: 'Course enquiries, pricing, and enrollment help.',
     email: 'support@commercevirtuals.com',
-    phone: '+91 62910 40 600',
+    phone: '+91 6291 040 600',
     phoneHref: 'tel:+916291040600',
     accent: 'bg-blue-50 border-blue-100',
     iconBg: 'bg-blue-50 text-blue-500',

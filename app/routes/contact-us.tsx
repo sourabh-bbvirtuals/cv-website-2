@@ -9,7 +9,7 @@ export const meta: MetaFunction = () => {
     {
       name: 'description',
       content:
-        'Contact Commerce Virtuals - CBSE, Maharashtra Board, and CUET coaching support. Call +91 62910 40 600 or email support@commercevirtuals.com',
+        'Contact Commerce Virtuals - CBSE, Maharashtra Board, and CUET coaching support. Call +91 6291 040 600 or email support@commercevirtuals.com',
     },
   ];
 };
@@ -111,7 +111,7 @@ export default function ContactUsRoute() {
                     href="tel:+916291040600"
                     className="text-[#3A6BFC] font-semibold text-lg hover:underline"
                   >
-                    +91 62910 40 600
+                    +91 6291 040 600
                   </a>
                 </div>
                 <span className="inline-block bg-white text-[#3A6BFC] px-3 py-1 rounded-full text-xs font-semibold">
