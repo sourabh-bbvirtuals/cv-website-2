@@ -296,30 +296,9 @@ export default function FreeResourcesPage({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [closeAllPillSelectsSignal]);
 
-  useEffect(() => {
-    function handleScroll() {
-      if (closeAllPillSelectsSignal) {
-        setCloseAllPillSelectsSignal(0);
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [closeAllPillSelectsSignal]);
+  // Dropdown close handling updated to ignore scroll events
 
-  useEffect(() => {
-    const filterContainer = filterScrollRef.current;
-    if (!filterContainer) return;
-    function handleHorizontalScroll() {
-      if (closeAllPillSelectsSignal) {
-        setCloseAllPillSelectsSignal(0);
-      }
-    }
-    filterContainer.addEventListener('scroll', handleHorizontalScroll, {
-      passive: true,
-    });
-    return () =>
-      filterContainer.removeEventListener('scroll', handleHorizontalScroll);
-  }, [closeAllPillSelectsSignal]);
+  // Horizontal scroll handling updated to ignore scroll events
 
   const handleCloseAllPillSelects = () => {
     setCloseAllPillSelectsSignal((prev) => prev + 1);
@@ -540,7 +519,7 @@ export default function FreeResourcesPage({
           <div
             ref={filterScrollRef}
             data-pill-wrapper
-            className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+            className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
           >
             {/* Board Selector */}
             {ctxBoardOptions.length > 0 && (

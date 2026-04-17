@@ -352,34 +352,7 @@ export default function CourseListings({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeModal]);
 
-  // Close dropdown on scroll
-  useEffect(() => {
-    function handleScroll() {
-      if (activeModal) {
-        setActiveModal(null);
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeModal]);
-
-  // Close dropdown on horizontal filter scroll
-  useEffect(() => {
-    const filterContainer = filterScrollRef.current;
-    if (!filterContainer) return;
-
-    function handleHorizontalScroll() {
-      if (activeModal) {
-        setActiveModal(null);
-      }
-    }
-
-    filterContainer.addEventListener('scroll', handleHorizontalScroll, {
-      passive: true,
-    });
-    return () =>
-      filterContainer.removeEventListener('scroll', handleHorizontalScroll);
-  }, [activeModal]);
+  // Dropdowns remain open on scroll to stay anchored to the respective filters
 
   const handleResetFilters = () => {
     setSelectedSort('Relevant');
@@ -485,6 +458,21 @@ export default function CourseListings({
         : 'bg-white text-lightgray border-lightgray/10 hover:bg-lightgray/5'
     }`;
 
+  // Close any open dropdown when clicking outside the filter bar
+  useEffect(() => {
+    if (!activeModal) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        filterScrollRef.current &&
+        !filterScrollRef.current.contains(e.target as Node)
+      ) {
+        setActiveModal(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeModal]);
+
   return (
     <section className="w-full bg-white py-10 lg:py-12 4xl:py-16!">
       <div className="custom-container">
@@ -521,12 +509,12 @@ export default function CourseListings({
             </div>
 
             <div
-              className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+              className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
               ref={filterScrollRef}
             >
               {/* Board Selector — visible for guests */}
               {!isLoggedIn && boardOptions.length > 0 && (
-                <div className="relative h-fit shrink-0">
+                <div className="relative shrink-0">
                   <button
                     onClick={() =>
                       setActiveModal(activeModal === 'board' ? null : 'board')
@@ -541,11 +529,7 @@ export default function CourseListings({
                     <ChevronDown isOpen={activeModal === 'board'} />
                   </button>
                   {activeModal === 'board' && (
-                    <div
-                      style={isMobile ? { top: '90px', left: '10px' } : {}}
-                      className="fixed z-[9999] w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                       <button
                         onClick={() => {
                           setSelectedBoard('');
@@ -583,7 +567,7 @@ export default function CourseListings({
                 </div>
               )}
               {/* SortBy Dropdown */}
-              <div className="relative h-fit shrink-0">
+              <div className="relative shrink-0">
                 <button
                   onClick={() =>
                     setActiveModal(activeModal === 'sort' ? null : 'sort')
@@ -597,18 +581,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'sort'} />
                 </button>
                 {activeModal === 'sort' && (
-                  <div
-                    style={
-                      isMobile
-                        ? {
-                            top: `90px`,
-                            left: `10px`,
-                          }
-                        : {}
-                    }
-                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     {[
                       'Relevant',
                       'Most Popular',
@@ -621,7 +594,7 @@ export default function CourseListings({
                           setSelectedSort(opt);
                           setActiveModal(null);
                         }}
-                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium  transition-colors ${
+                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors ${
                           selectedSort === opt
                             ? 'bg-lightgray/5 text-lightgray font-medium'
                             : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
@@ -635,7 +608,7 @@ export default function CourseListings({
               </div>
 
               {/* Subjects Dropdown */}
-              <div className="relative h-fit shrink-0">
+              <div className="relative shrink-0">
                 <button
                   onClick={() =>
                     setActiveModal(
@@ -654,24 +627,13 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'subjects'} />
                 </button>
                 {activeModal === 'subjects' && (
-                  <div
-                    style={
-                      isMobile
-                        ? {
-                            top: `90px`,
-                            left: `10px`,
-                          }
-                        : {}
-                    }
-                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => {
                         setSelectedSubjects('');
                         setActiveModal(null);
                       }}
-                      className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium  transition-colors flex items-center justify-between ${
+                      className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
                         !selectedSubjects
                           ? 'bg-lightgray/5 text-lightgray font-medium'
                           : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
@@ -688,7 +650,7 @@ export default function CourseListings({
                           setSelectedSubjects(subject);
                           setActiveModal(null);
                         }}
-                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium  transition-colors flex items-center justify-between ${
+                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
                           selectedSubjects === subject
                             ? 'bg-lightgray/5 text-lightgray font-medium'
                             : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
@@ -703,7 +665,7 @@ export default function CourseListings({
               </div>
 
               {/* Faculty Dropdown */}
-              <div className="relative h-fit shrink-0">
+              <div className="relative shrink-0">
                 <button
                   onClick={() =>
                     setActiveModal(activeModal === 'faculty' ? null : 'faculty')
@@ -714,31 +676,17 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'faculty'} />
                 </button>
                 {activeModal === 'faculty' && (
-                  <div
-                    style={
-                      isMobile
-                        ? {
-                            top: `90px`,
-                            left: `10px`,
-                          }
-                        : {}
-                    }
-                    className="fixed z-[9999] w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* "All" Option */}
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
-                      onClick={() => {
-                        setSelectedFaculties([]);
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm lg:text-base font-medium  transition-colors flex items-center gap-3 ${
+                      onClick={() => setSelectedFaculties([])}
+                      className={`w-full text-left px-4 py-3 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
                         selectedFaculties.length === 0
                           ? 'bg-lightgray/5 text-lightgray font-medium'
                           : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
                       }`}
                     >
                       <div
-                        className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border border-gray-100 flex items-center justify-center ${
+                        className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center ${
                           selectedFaculties.length === 0
                             ? 'bg-blue-500 border-blue-500'
                             : 'border-lightgray/30 bg-white'
@@ -748,28 +696,25 @@ export default function CourseListings({
                       </div>
                       <span>All</span>
                     </button>
-
-                    {/* Divider */}
                     <div className="border-t border-lightgray/10" />
-
                     {facultyOptions.map((faculty, idx) => (
                       <button
                         key={faculty}
-                        onClick={() => {
+                        onClick={() =>
                           setSelectedFaculties((prev) =>
                             prev.includes(faculty)
                               ? prev.filter((f) => f !== faculty)
                               : [...prev, faculty],
-                          );
-                        }}
-                        className={`w-full text-left px-4 py-2 text-xs sm:text-sm lg:text-base font-medium  transition-colors flex items-center gap-3 ${
+                          )
+                        }
+                        className={`w-full text-left px-4 py-2 text-xs sm:text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
                           selectedFaculties.includes(faculty)
                             ? 'bg-lightgray/5 text-lightgray font-medium'
                             : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
                         }`}
                       >
                         <div
-                          className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border border-gray-100 flex items-center justify-center flex-shrink-0 ${
+                          className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 ${
                             selectedFaculties.includes(faculty)
                               ? 'bg-blue-500 border-blue-500'
                               : 'border-lightgray/30 bg-white'
@@ -798,7 +743,7 @@ export default function CourseListings({
               </div>
 
               {/* Language Dropdown */}
-              <div className="relative h-fit shrink-0">
+              <div className="relative shrink-0">
                 <button
                   onClick={() =>
                     setActiveModal(
@@ -826,31 +771,17 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'language'} />
                 </button>
                 {activeModal === 'language' && (
-                  <div
-                    style={
-                      isMobile
-                        ? {
-                            top: `90px`,
-                            left: `10px`,
-                          }
-                        : {}
-                    }
-                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* "All" Option */}
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
-                      onClick={() => {
-                        setSelectedLanguage([]);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm lg:text-base font-medium  transition-colors flex items-center gap-3 ${
+                      onClick={() => setSelectedLanguage([])}
+                      className={`w-full text-left px-4 py-2 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
                         selectedLanguage.length === 0
                           ? 'bg-lightgray/5 text-lightgray font-medium'
                           : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
                       }`}
                     >
                       <div
-                        className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border border-gray-100 flex items-center justify-center ${
+                        className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center ${
                           selectedLanguage.length === 0
                             ? 'bg-blue-500 border-blue-500'
                             : 'border-lightgray/30 bg-white'
@@ -860,28 +791,25 @@ export default function CourseListings({
                       </div>
                       <span>All</span>
                     </button>
-
-                    {/* Divider */}
                     <div className="border-t border-lightgray/10" />
-
                     {languageOptions.map((lang) => (
                       <button
                         key={lang}
-                        onClick={() => {
+                        onClick={() =>
                           setSelectedLanguage((prev) =>
                             prev.includes(lang)
                               ? prev.filter((l) => l !== lang)
                               : [...prev, lang],
-                          );
-                        }}
-                        className={`w-full text-left px-4 py-2 text-xs sm:text-sm lg:text-base font-medium  transition-colors flex items-center gap-3 ${
+                          )
+                        }
+                        className={`w-full text-left px-4 py-2 text-xs sm:text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
                           selectedLanguage.includes(lang)
                             ? 'bg-lightgray/5 text-lightgray font-medium'
                             : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
                         }`}
                       >
                         <div
-                          className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border border-gray-100 flex items-center justify-center flex-shrink-0 ${
+                          className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 ${
                             selectedLanguage.includes(lang)
                               ? 'bg-blue-500 border-blue-500'
                               : 'border-lightgray/30 bg-white'
@@ -897,7 +825,7 @@ export default function CourseListings({
               </div>
 
               {/* Pricing Dropdown */}
-              <div className="relative h-fit shrink-0">
+              <div className="relative shrink-0">
                 <button
                   onClick={() =>
                     setActiveModal(activeModal === 'pricing' ? null : 'pricing')
@@ -910,18 +838,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'pricing'} />
                 </button>
                 {activeModal === 'pricing' && (
-                  <div
-                    className="fixed z-[9999]  w-80 md:w-70 mt-2 rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-                    style={
-                      isMobile
-                        ? {
-                            top: `90px`,
-                            left: `10px`,
-                          }
-                        : {}
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[120px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     {['All', 'Free', 'Paid'].map((price) => (
                       <button
                         key={price}
@@ -929,7 +846,7 @@ export default function CourseListings({
                           setSelectedPricing(price);
                           setActiveModal(null);
                         }}
-                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium  transition-colors ${
+                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors ${
                           selectedPricing === price
                             ? 'bg-lightgray/5 text-lightgray font-medium'
                             : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
