@@ -235,14 +235,14 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   12
                 </h1>
                 {/* Subheadline */}
-                <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-full  leading-[150%]">
+                <p className="text-[13px] sm:text-base xl:text-xl text-lightgray w-[275px] sm:w-[345px] md:w-full  leading-[150%]">
                   India's only commerce-exclusive EdTech platform. Structured
                   courses, test series & mentorship for CBSE, Maharashtra Board
                   HSC and CUET-UG. Built for Class 11 & 12 commerce students.
                 </p>
                 {/* CTA Button */}
                 <div
-                  className={`flex w-full mt-4 gap-3 sm:gap-4 ${
+                  className={`flex w-full mt-4 gap-[3px] sm:gap-4 ${
                     isLoggedIn
                       ? 'justify-center'
                       : 'justify-center sm:justify-start'
@@ -250,13 +250,13 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 >
                   <Link
                     to="/our-courses"
-                    className="flex items-center gap-1 sm:gap-3 bg-[#3A6BFC] text-white font-medium px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! text-sm sm:text-base lg:text-lg 4xl:text-xl! shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] hover:brightness-110 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                    className="flex items-center gap-1 sm:gap-3 bg-[#3A6BFC] text-white font-medium px-2 sm:px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! text-[12px] sm:text-base lg:text-lg 4xl:text-xl! shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] hover:brightness-110 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                   >
                     <span>Explore Courses</span>
                   </Link>
                   <Link
                     to="/free-resources"
-                    className="flex items-center gap-1 sm:gap-3 bg-white text-gray-700 font-medium px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-sm sm:text-base lg:text-lg 4xl:text-xl! hover:bg-slate-100 hover:border-slate-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                    className="flex items-center gap-1 sm:gap-3 bg-white text-gray-700 font-medium px-2 sm:px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-[12px] sm:text-base lg:text-lg 4xl:text-xl! hover:bg-slate-100 hover:border-slate-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                   >
                     <span>Explore Free Resources</span>
                   </Link>

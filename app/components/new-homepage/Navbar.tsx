@@ -50,7 +50,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
   return (
     <nav
-      className={`w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
+      className={`w-[290px] max-sm:-ml-[10px]  sm:w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
         isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
       } , ${isOurCoursesDetailPage ? 'hidden md:block' : ''} `}
     >
@@ -92,7 +92,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
         </div>
 
         {/* Right Side: Actions */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           {/* 1. Desktop Board Dropdown (Pill UI) */}
           {showBoardDropdown && (
             <div className="hidden lg:block">
@@ -164,7 +164,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
           ) : (
             <Link
               to="/sign-in"
-              className="primary-btn text-sm sm:text-base font-medium leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75"
+              className="primary-btn text-xs sm:text-base font-medium leading-3 sm:leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75"
             >
               Start For Free
             </Link>
@@ -172,7 +172,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
           {/* Mobile Menu Toggle */}
           <button
-            className="xl:hidden p-2 text-lightgray hover:bg-gray-50 rounded-full"
+            className="xl:hidden p-0 sm:p-2 text-lightgray hover:bg-gray-50 rounded-full "
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X size={28} /> : <Menu size={28} />}
