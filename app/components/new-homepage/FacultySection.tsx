@@ -38,7 +38,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     },
     {
       id: '3',
-      name: 'CA Bhushan Gosal',
+      name: 'CA Bhushan Gosar',
       designation: 'CA, MCom',
       experience: '15+ Years Experience',
       image:
@@ -47,7 +47,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     {
       id: '4',
       name: 'CA Mayur Sanghavi',
-      designation: 'FCA, CFA, FRM, Rank 1 CA Finals',
+      designation: 'CA, CFA, FRM, Rank 1 CA Finals',
       experience: '10+ Years Experience',
       image:
         'https://bbvendure.appwallah.com/assets/preview/87/ca-mayur-sanghvi__preview.png',
@@ -55,7 +55,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     {
       id: '5',
       name: 'CA Payal Sanghavi',
-      designation: 'CA, CFA III',
+      designation: 'CA, CFA II',
       experience: '5+ Years Experience',
       image:
         'https://bbvendure.appwallah.com/assets/preview/96/ca-payal-sanghvi__preview.png',
@@ -80,7 +80,7 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
       id: '8',
       name: 'CA Shubham Sanghavi',
 
-      designation: 'CA, CFA, State Topper SSC&HSC',
+      designation: 'CA, CFA, CFA III, State Topper SSC&HSC',
       experience: '14+ Years Experience',
       image:
         'https://bbvendure.appwallah.com/assets/preview/bc/ca-shubham-sanghvi__preview.png',
@@ -146,8 +146,8 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     {
       id: '7',
       name: 'Mahak Gandhi',
-      designation: 'CA Finalist',
-      experience: '1 Year Experience',
+      designation: '100/100 in BST',
+      experience: '2+ Years Experience',
       image:
         'https://bbvendure.appwallah.com/assets/preview/8f/mahak-gandhi__preview.png',
     },
@@ -156,8 +156,8 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
     {
       id: '1',
       name: 'Mahak Gandhi',
-      designation: 'CA Finalist',
-      experience: '1 Year Experience',
+      designation: '100/100 in BST',
+      experience: '2+ Years Experience',
       image:
         'https://bbvendure.appwallah.com/assets/preview/8f/mahak-gandhi__preview.png',
     },
