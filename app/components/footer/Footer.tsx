@@ -220,7 +220,7 @@ const Footer = () => {
                   <p>
                     Support -{' '}
                     <a href="tel:+916291050600" className="hover:underline">
-                      +91 62910 50 600
+                      +91 6291 050 600
                     </a>
                   </p>
                   <p>
