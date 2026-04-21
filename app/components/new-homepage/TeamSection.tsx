@@ -20,10 +20,17 @@ export interface TeamSectionProps {
   hasExplicitBoard?: boolean;
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFaculties, hasExplicitBoard }) => {
+const TeamSection: React.FC<TeamSectionProps> = ({
+  title,
+  members,
+  boardFaculties,
+  hasExplicitBoard,
+}) => {
   const { selectedSlug, boardOptions } = useBoardSelection();
   const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
-  const boardKey = hasExplicitBoard ? (selectedBoard?.board.toLowerCase() || '') : '';
+  const boardKey = hasExplicitBoard
+    ? selectedBoard?.board.toLowerCase() || ''
+    : '';
 
   const allBoardFaculties = boardFaculties
     ? Object.values(boardFaculties).flat().filter(Boolean)
@@ -35,12 +42,12 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
     vendureBoardMembers && vendureBoardMembers.length > 0
       ? vendureBoardMembers
       : boardKey && FACULTIES_BY_BOARD[boardKey]?.length > 0
-        ? FACULTIES_BY_BOARD[boardKey]
-        : allBoardFaculties.length > 0
-          ? allBoardFaculties
-          : members.length > 0
-            ? members
-            : allFallbackFaculties;
+      ? FACULTIES_BY_BOARD[boardKey]
+      : allBoardFaculties.length > 0
+      ? allBoardFaculties
+      : members.length > 0
+      ? members
+      : allFallbackFaculties;
 
   const uniqueFaculties = faculties.filter(
     (f, i, arr) => arr.findIndex((x) => x.name === f.name) === i,

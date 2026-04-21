@@ -355,7 +355,13 @@ function VideoCarousel({
 function FacultiesCarousel({
   items,
 }: {
-  items: Array<{ name: string; image: string; description: string; designation?: string; experience?: string }>;
+  items: Array<{
+    name: string;
+    image: string;
+    description: string;
+    designation?: string;
+    experience?: string;
+  }>;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -439,10 +445,14 @@ function FacultiesCarousel({
                     {faculty.name}
                   </h3>
                   {faculty.designation && (
-                    <p className="text-sm text-gray-500">{faculty.designation}</p>
+                    <p className="text-sm text-gray-500">
+                      {faculty.designation}
+                    </p>
                   )}
                   {faculty.experience && (
-                    <p className="text-sm text-gray-400">{faculty.experience}</p>
+                    <p className="text-sm text-gray-400">
+                      {faculty.experience}
+                    </p>
                   )}
                 </div>
               </div>
@@ -451,7 +461,9 @@ function FacultiesCarousel({
               <div className="flex flex-col gap-2 w-full text-base text-lightgray/50 leading-relaxed flex-1">
                 {isExpanded ? (
                   <>
-                    <div dangerouslySetInnerHTML={{ __html: faculty.description }} />
+                    <div
+                      dangerouslySetInnerHTML={{ __html: faculty.description }}
+                    />
                     <button
                       onClick={() => setExpandedIdx(null)}
                       className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
@@ -579,14 +591,29 @@ function CompositeBlock({
 }
 
 function hasRenderableContent(item: SpecItem): boolean {
-  if (item.type === 'table' && item.table && Object.keys(item.table).length > 0) return true;
+  if (item.type === 'table' && item.table && Object.keys(item.table).length > 0)
+    return true;
   if (item.type === 'list' && item.list && item.list.length > 0) return true;
-  if ((item.type === 'html' || item.type === 'text' || item.type === 'html_text') && item.text) return true;
+  if (
+    (item.type === 'html' ||
+      item.type === 'text' ||
+      item.type === 'html_text') &&
+    item.text
+  )
+    return true;
   if (item.type === 'video' && item.text) return true;
-  if (item.type === 'faq' && item.faqItems && item.faqItems.length > 0) return true;
-  if (item.type === 'video_carousel' && item.videoItems && item.videoItems.length > 0) return true;
-  if (item.type === 'stat_items' && item.statItems && item.statItems.length > 0) return true;
-  if (item.type === 'composite' && item.data) return item.data.some(hasRenderableContent);
+  if (item.type === 'faq' && item.faqItems && item.faqItems.length > 0)
+    return true;
+  if (
+    item.type === 'video_carousel' &&
+    item.videoItems &&
+    item.videoItems.length > 0
+  )
+    return true;
+  if (item.type === 'stat_items' && item.statItems && item.statItems.length > 0)
+    return true;
+  if (item.type === 'composite' && item.data)
+    return item.data.some(hasRenderableContent);
   return false;
 }
 
@@ -643,7 +670,9 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
   if (!featuresSpec) return null;
 
   const whatsIncluded = featuresSpec.data?.find((d) => d.type === 'table');
-  const courseHighlightsList = featuresSpec.data?.find((d) => d.type === 'list');
+  const courseHighlightsList = featuresSpec.data?.find(
+    (d) => d.type === 'list',
+  );
   const courseHighlightsIcons = featuresSpec.data?.find(
     (d) => d.type === 'icon_with_text' && d.iconWithTextItems?.length,
   );
@@ -844,8 +873,12 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
               >
                 <button
                   type="button"
-                  className={`w-full flex items-center justify-between gap-4 text-left transition-colors ${!hasExpandableContent ? 'cursor-default' : ''}`}
-                  onClick={() => hasExpandableContent && setOpenAccordion(open ? null : idx)}
+                  className={`w-full flex items-center justify-between gap-4 text-left transition-colors ${
+                    !hasExpandableContent ? 'cursor-default' : ''
+                  }`}
+                  onClick={() =>
+                    hasExpandableContent && setOpenAccordion(open ? null : idx)
+                  }
                 >
                   {/* LEFT CONTENT */}
                   <div className="flex flex-col gap-2">

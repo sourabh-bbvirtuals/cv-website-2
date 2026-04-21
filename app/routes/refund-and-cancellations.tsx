@@ -131,9 +131,7 @@ export default function RefundAndCancellationsRoute() {
               <li>
                 You haven&apos;t consumed more than 20% of the course content
               </li>
-              <li>
-                You haven&apos;t completed more than 50% of assessments
-              </li>
+              <li>You haven&apos;t completed more than 50% of assessments</li>
               <li>Your account is in good standing</li>
             </ul>
 
@@ -161,7 +159,8 @@ export default function RefundAndCancellationsRoute() {
                   &#10007; Downloadable study materials (after downloading)
                 </li>
                 <li>
-                  &#10007; Completed assessments (test scores cannot be reversed)
+                  &#10007; Completed assessments (test scores cannot be
+                  reversed)
                 </li>
                 <li>&#10007; Requests after 7 days from purchase</li>
               </ul>
@@ -423,7 +422,7 @@ export default function RefundAndCancellationsRoute() {
                 href="tel:+916291040600"
                 className="text-emerald-600 font-semibold hover:underline"
               >
-                +91 62910 40 600 (Admissions & Sales)
+                +91 6291 040 600 (Admissions & Sales)
               </a>
             </p>
             <p className="mt-4">
@@ -433,7 +432,9 @@ export default function RefundAndCancellationsRoute() {
 
           <div className="text-center py-6 text-slate-500 text-sm">
             <p>
-              <strong>Commerce Virtuals &copy; 2026. All rights reserved.</strong>
+              <strong>
+                Commerce Virtuals &copy; 2026. All rights reserved.
+              </strong>
             </p>
           </div>
         </div>

@@ -65,7 +65,13 @@ export type ProductData = {
   price: string;
   priceWithTax: number;
   featuredAsset?: { preview: string } | null;
-  faculties?: Array<{ name: string; image: string; description: string; designation?: string; experience?: string }>;
+  faculties?: Array<{
+    name: string;
+    image: string;
+    description: string;
+    designation?: string;
+    experience?: string;
+  }>;
   facetValues?: Array<{ name: string; facet: { name: string } }>;
   customFields?: {
     customData?: string | null;

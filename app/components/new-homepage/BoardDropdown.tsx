@@ -5,15 +5,28 @@ import {
   type BoardOption,
 } from '~/context/BoardSelectionContext';
 
-const BoardDropdown = ({ isMobile = false, showAll = false }: { isMobile?: boolean; showAll?: boolean }) => {
+const BoardDropdown = ({
+  isMobile = false,
+  showAll = false,
+}: {
+  isMobile?: boolean;
+  showAll?: boolean;
+}) => {
   const { selectedSlug, boardOptions, setSelectedBoard } = useBoardSelection();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selected = showAll
-    ? (selectedSlug ? boardOptions.find((o) => o.slug === selectedSlug) : null)
-    : (boardOptions.find((o) => o.slug === selectedSlug) ||
-       boardOptions[0] || { class: 'Class 12', board: 'MH', slug: '', label: '' });
+    ? selectedSlug
+      ? boardOptions.find((o) => o.slug === selectedSlug)
+      : null
+    : boardOptions.find((o) => o.slug === selectedSlug) ||
+      boardOptions[0] || {
+        class: 'Class 12',
+        board: 'MH',
+        slug: '',
+        label: '',
+      };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -68,7 +81,9 @@ const BoardDropdown = ({ isMobile = false, showAll = false }: { isMobile?: boole
               SELECTED BOARD
             </span>
             <span className="font-bold text-[#081627] text-lg">
-              {selected ? `${selected.class} \u2022 ${selected.board} Board` : 'All Boards'}
+              {selected
+                ? `${selected.class} \u2022 ${selected.board} Board`
+                : 'All Boards'}
             </span>
           </div>
           <ChevronDown size={20} className="text-blue-600" />
@@ -86,7 +101,10 @@ const BoardDropdown = ({ isMobile = false, showAll = false }: { isMobile?: boole
           </div>
           {showAll && (
             <button
-              onClick={() => { setSelectedBoard(''); setIsOpen(false); }}
+              onClick={() => {
+                setSelectedBoard('');
+                setIsOpen(false);
+              }}
               className="w-full text-left px-5 py-3 hover:bg-blue-50 transition-colors flex items-center justify-between group"
             >
               <span className="font-semibold text-[#081627]">All Boards</span>

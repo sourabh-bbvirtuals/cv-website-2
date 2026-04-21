@@ -165,7 +165,10 @@ const FeaturedCourses: React.FC<{ courses?: FeaturedCourse[] }> = ({
 
         {/* Swiper Slider with Bleed Logic */}
         <div className="relative">
-          <div ref={scrollRef} className={`flex overflow-x-auto scrollbar-hide py-3 gap-4 `}>
+          <div
+            ref={scrollRef}
+            className={`flex overflow-x-auto scrollbar-hide py-3 gap-4 `}
+          >
             {displayCourses.map((course, index) => (
               <div key={`${course.id}-${index}`} className="">
                 <CourseCard course={course} isAlternate={index % 2 === 1} />

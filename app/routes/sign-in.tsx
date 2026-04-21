@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  MetaFunction,
-  useFetcher,
-  useSearchParams,
-} from '@remix-run/react';
+import { MetaFunction, useFetcher, useSearchParams } from '@remix-run/react';
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { API_URL } from '~/constants';
@@ -69,7 +65,10 @@ export async function action({ request }: ActionFunctionArgs) {
       { status: 400 },
     );
   } catch {
-    return json({ error: 'Failed to send OTP. Please try again.' }, { status: 500 });
+    return json(
+      { error: 'Failed to send OTP. Please try again.' },
+      { status: 500 },
+    );
   }
 }
 
@@ -283,7 +282,11 @@ export default function SignInPage() {
                         inputMode="numeric"
                         maxLength={10}
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onChange={(e) =>
+                          setPhoneNumber(
+                            e.target.value.replace(/\D/g, '').slice(0, 10),
+                          )
+                        }
                         placeholder="00000-00000"
                         className="bg-transparent w-full text-lightgray text-base sm:text-lg lg:text-xl font-medium font-geist border-none outline-none"
                       />
@@ -369,11 +372,17 @@ export default function SignInPage() {
         </p>
 
         <div className="flex justify-center gap-1">
-          <a href="/terms-and-conditions" className="underline opacity-50 hover:text-[#3A6BFC]">
+          <a
+            href="/terms-and-conditions"
+            className="underline opacity-50 hover:text-[#3A6BFC]"
+          >
             Terms of Service
           </a>
           <span className="opacity-50">and</span>
-          <a href="/privacy-and-terms" className="underline opacity-50 hover:text-[#3A6BFC]">
+          <a
+            href="/privacy-and-terms"
+            className="underline opacity-50 hover:text-[#3A6BFC]"
+          >
             Privacy Policy
           </a>
         </div>

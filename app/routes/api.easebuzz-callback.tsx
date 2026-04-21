@@ -113,19 +113,32 @@ export async function action({ request }: ActionFunctionArgs) {
   const easepayid = formData.get('easepayid')?.toString() || '';
   const responseHash = formData.get('hash')?.toString() || '';
 
-  console.log('[EasebuzzCallback] Received:', { status, txnid, amount, easepayid });
+  console.log('[EasebuzzCallback] Received:', {
+    status,
+    txnid,
+    amount,
+    easepayid,
+  });
 
   const ebSalt = process.env.EASEBUZZ_SALT || '';
 
   // Verify hash (reverse hash for response verification)
-  const reverseHashString = `${ebSalt}|${status}|||||||||||${email}|${firstname}|${productinfo}|${amount}|${txnid}|${process.env.EASEBUZZ_KEY || ''}`;
-  const expectedHash = createHash('sha512').update(reverseHashString).digest('hex');
+  const reverseHashString = `${ebSalt}|${status}|||||||||||${email}|${firstname}|${productinfo}|${amount}|${txnid}|${
+    process.env.EASEBUZZ_KEY || ''
+  }`;
+  const expectedHash = createHash('sha512')
+    .update(reverseHashString)
+    .digest('hex');
   const hashValid = expectedHash === responseHash;
   console.log('[EasebuzzCallback] Hash valid:', hashValid);
 
   if (status !== 'success' || !hashValid) {
     console.error('[EasebuzzCallback] Payment failed or hash mismatch');
-    return redirect(`/cart?paymentError=${encodeURIComponent('Payment was not successful. Please try again.')}`);
+    return redirect(
+      `/cart?paymentError=${encodeURIComponent(
+        'Payment was not successful. Please try again.',
+      )}`,
+    );
   }
 
   // Payment succeeded — settle the order via Vendure
@@ -135,7 +148,10 @@ export async function action({ request }: ActionFunctionArgs) {
   );
   let authToken: string | undefined = session.get('authToken');
   console.log('[EasebuzzCallback] Auth token present:', !!authToken);
-  console.log('[EasebuzzCallback] Cookie header present:', !!request.headers.get('Cookie'));
+  console.log(
+    '[EasebuzzCallback] Cookie header present:',
+    !!request.headers.get('Cookie'),
+  );
 
   try {
     // Check order state — it should be in ArrangingPayment
@@ -146,11 +162,22 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     const activeOrder = orderRes.body?.data?.activeOrder;
     const orderState = activeOrder?.state;
-    console.log('[EasebuzzCallback] Order state:', orderState, 'order code:', activeOrder?.code);
+    console.log(
+      '[EasebuzzCallback] Order state:',
+      orderState,
+      'order code:',
+      activeOrder?.code,
+    );
 
     if (orderState !== 'ArrangingPayment') {
-      console.log('[EasebuzzCallback] Order not in ArrangingPayment, transitioning...');
-      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'ArrangingPayment' }, authToken);
+      console.log(
+        '[EasebuzzCallback] Order not in ArrangingPayment, transitioning...',
+      );
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'ArrangingPayment' },
+        authToken,
+      );
       if (tr.newToken) {
         authToken = tr.newToken;
         session.set('authToken', tr.newToken);
@@ -179,21 +206,40 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const payResult = pay.body?.data?.addPaymentToOrder;
-    console.log('[EasebuzzCallback] Payment result:', JSON.stringify(payResult));
+    console.log(
+      '[EasebuzzCallback] Payment result:',
+      JSON.stringify(payResult),
+    );
 
     if (payResult?.errorCode) {
       console.error('[EasebuzzCallback] Payment error:', payResult.message);
-      return redirect(`/cart?paymentError=${encodeURIComponent(payResult.message || 'Payment settlement failed')}`, {
-        headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-      });
+      return redirect(
+        `/cart?paymentError=${encodeURIComponent(
+          payResult.message || 'Payment settlement failed',
+        )}`,
+        {
+          headers: {
+            'Set-Cookie': await sessionStorage.commitSession(session),
+          },
+        },
+      );
     }
 
     const orderCode = payResult?.code || txnid.replace(/_\d+$/, '');
-    console.log('[EasebuzzCallback] Order settled, code:', orderCode, 'state:', payResult?.state);
+    console.log(
+      '[EasebuzzCallback] Order settled, code:',
+      orderCode,
+      'state:',
+      payResult?.state,
+    );
 
     // Fire webhook to BB server with order details
     try {
-      const orderDetail = await gqlFetch(ORDER_BY_CODE_QUERY, { code: orderCode }, authToken);
+      const orderDetail = await gqlFetch(
+        ORDER_BY_CODE_QUERY,
+        { code: orderCode },
+        authToken,
+      );
       if (orderDetail.newToken) {
         authToken = orderDetail.newToken;
         session.set('authToken', orderDetail.newToken);
@@ -202,7 +248,8 @@ export async function action({ request }: ActionFunctionArgs) {
       if (settled) {
         const webhookEmail = email || settled.customer?.emailAddress || '';
         const bbServerUrl = process.env.BB_SERVER_URL || 'http://server:3000';
-        const webhookSecret = process.env.VENDURE_WEBHOOK_SECRET || 'vendure-webhook-secret';
+        const webhookSecret =
+          process.env.VENDURE_WEBHOOK_SECRET || 'vendure-webhook-secret';
         const webhookPayload = {
           event: 'PaymentSettled',
           vendureOrderId: settled.id,
@@ -220,7 +267,10 @@ export async function action({ request }: ActionFunctionArgs) {
             unitPrice: line.unitPriceWithTax,
             listPrice: line.unitPriceWithTax,
             linePrice: line.linePriceWithTax,
-            productName: line.productVariant?.product?.name || line.productVariant?.name || '',
+            productName:
+              line.productVariant?.product?.name ||
+              line.productVariant?.name ||
+              '',
             sku: line.productVariant?.sku || '',
           })),
           discounts: (settled.discounts || []).map((d: any) => ({
@@ -233,12 +283,19 @@ export async function action({ request }: ActionFunctionArgs) {
             name: p.name,
             couponCode: p.couponCode,
           })),
-          customer: settled.customer ? {
-            email: webhookEmail,
-            firstName: settled.customer.firstName || '',
-            lastName: settled.customer.lastName || '',
-            phone: settled.customer.phoneNumber || '',
-          } : { email: webhookEmail, firstName: firstname, lastName: '', phone: '' },
+          customer: settled.customer
+            ? {
+                email: webhookEmail,
+                firstName: settled.customer.firstName || '',
+                lastName: settled.customer.lastName || '',
+                phone: settled.customer.phoneNumber || '',
+              }
+            : {
+                email: webhookEmail,
+                firstName: firstname,
+                lastName: '',
+                phone: '',
+              },
           shippingAddress: settled.shippingAddress || {
             fullName: firstname,
             streetLine1: '',
@@ -251,7 +308,10 @@ export async function action({ request }: ActionFunctionArgs) {
           },
         };
 
-        console.log('[EasebuzzCallback] Sending webhook to BB server for order:', orderCode);
+        console.log(
+          '[EasebuzzCallback] Sending webhook to BB server for order:',
+          orderCode,
+        );
         const whRes = await fetch(`${bbServerUrl}/webhooks/vendure/order`, {
           method: 'POST',
           headers: {
@@ -260,12 +320,22 @@ export async function action({ request }: ActionFunctionArgs) {
           },
           body: JSON.stringify(webhookPayload),
         });
-        console.log('[EasebuzzCallback] BB server webhook response:', whRes.status, await whRes.text());
+        console.log(
+          '[EasebuzzCallback] BB server webhook response:',
+          whRes.status,
+          await whRes.text(),
+        );
       } else {
-        console.warn('[EasebuzzCallback] Could not fetch order details for webhook, code:', orderCode);
+        console.warn(
+          '[EasebuzzCallback] Could not fetch order details for webhook, code:',
+          orderCode,
+        );
       }
     } catch (whErr: any) {
-      console.error('[EasebuzzCallback] BB server webhook failed:', whErr.message);
+      console.error(
+        '[EasebuzzCallback] BB server webhook failed:',
+        whErr.message,
+      );
     }
 
     return redirect(`/checkout2/confirmation/${orderCode}?status=success`, {
@@ -273,8 +343,13 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (err: any) {
     console.error('[EasebuzzCallback] Error:', err.message);
-    return redirect(`/cart?paymentError=${encodeURIComponent('Something went wrong processing your payment.')}`, {
-      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-    });
+    return redirect(
+      `/cart?paymentError=${encodeURIComponent(
+        'Something went wrong processing your payment.',
+      )}`,
+      {
+        headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+      },
+    );
   }
 }

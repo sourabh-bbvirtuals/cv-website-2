@@ -4,24 +4,33 @@ import { useLoaderData } from '@remix-run/react';
 
 const TAB_META_INFO: Record<string, { title: string; description: string }> = {
   'mock-tests': {
-    title: 'Free Mock Tests for Class 11 & 12 – CBSE & Maharashtra HSC | Commerce Virtuals',
-    description: 'Attempt free full-length mock tests for CBSE and Maharashtra Board HSC commerce exams. Board-pattern papers with marking schemes for Accountancy, BST, Economics & more.',
+    title:
+      'Free Mock Tests for Class 11 & 12 – CBSE & Maharashtra HSC | Commerce Virtuals',
+    description:
+      'Attempt free full-length mock tests for CBSE and Maharashtra Board HSC commerce exams. Board-pattern papers with marking schemes for Accountancy, BST, Economics & more.',
   },
   quizzes: {
     title: 'Commerce MCQ Quizzes – CBSE, HSC & CUET Prep | Commerce Virtuals',
-    description: 'Practice topic-wise MCQ quizzes for Class 11 & 12 commerce — Accountancy, Business Studies, Economics and more. Ideal for CBSE boards, Maharashtra HSC and CUET-UG prep.',
+    description:
+      'Practice topic-wise MCQ quizzes for Class 11 & 12 commerce — Accountancy, Business Studies, Economics and more. Ideal for CBSE boards, Maharashtra HSC and CUET-UG prep.',
   },
   'past-papers': {
-    title: 'Previous Year Question Papers – CBSE & Maharashtra HSC Commerce | Commerce Virtuals',
-    description: 'Download CBSE Class 11 & 12 and Maharashtra HSC board previous year question papers with answer keys. Free for all commerce subjects including Accountancy, OCM and Economics.',
+    title:
+      'Previous Year Question Papers – CBSE & Maharashtra HSC Commerce | Commerce Virtuals',
+    description:
+      'Download CBSE Class 11 & 12 and Maharashtra HSC board previous year question papers with answer keys. Free for all commerce subjects including Accountancy, OCM and Economics.',
   },
   'free-videos': {
-    title: 'Free Commerce Video Lectures – Class 11 & 12 CBSE & HSC | Commerce Virtuals',
-    description: 'Watch free concept video lectures for Class 11 & 12 commerce. Covers CBSE and Maharashtra HSC subjects — Accountancy, Business Studies, Economics, OCM, BK and more.',
+    title:
+      'Free Commerce Video Lectures – Class 11 & 12 CBSE & HSC | Commerce Virtuals',
+    description:
+      'Watch free concept video lectures for Class 11 & 12 commerce. Covers CBSE and Maharashtra HSC subjects — Accountancy, Business Studies, Economics, OCM, BK and more.',
   },
   'study-notes': {
-    title: 'Free Commerce Study Notes – CBSE & Maharashtra HSC | Commerce Virtuals',
-    description: 'Download free chapter-wise study notes, revision sheets and formula charts for CBSE and Maharashtra Board HSC commerce subjects. Class 11 & 12 notes — crisp, exam-ready and free.',
+    title:
+      'Free Commerce Study Notes – CBSE & Maharashtra HSC | Commerce Virtuals',
+    description:
+      'Download free chapter-wise study notes, revision sheets and formula charts for CBSE and Maharashtra Board HSC commerce subjects. Class 11 & 12 notes — crisp, exam-ready and free.',
   },
 };
 
@@ -29,9 +38,7 @@ export const meta: MetaFunction = ({ params }) => {
   const tab = params.tab ?? '';
   const info = TAB_META_INFO[tab];
   if (!info) {
-    return [
-      { title: 'Free Commerce Resources | Commerce Virtuals' },
-    ];
+    return [{ title: 'Free Commerce Resources | Commerce Virtuals' }];
   }
   return [
     { title: info.title },
@@ -47,6 +54,7 @@ import {
   fetchTabNames,
   fetchTabContent,
 } from '~/utils/bbServer';
+import { resolveSelectedBoardAndClass } from '~/utils/resolveBoardClass.server';
 import { resolveNavbarBoardSelection } from '~/utils/resolveNavbarBoard.server';
 
 const TAB_NAME_BY_SEGMENT: Record<string, string> = {
@@ -76,23 +84,30 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const page = url.searchParams.get('page') ?? '1';
   const q = url.searchParams.get('q') ?? undefined;
 
-  const navSelection = await resolveNavbarBoardSelection(request);
+  // Start resolveNavbarBoardSelection immediately — it hits Vendure (GraphQL)
+  // and has no dependency on the guest token. Running it in parallel with
+  // withGuestToken (which fetches + validates the token) saves ~300-500 ms.
+  const navSelectionPromise = resolveNavbarBoardSelection(request);
 
   try {
     const result = await withGuestToken(request, async (token) => {
-      const boards = await fetchBoards(token);
+      // fetchBoards and navSelection are now both in flight at the same time.
+      // fetchBoards is cached after the first call, so it's near-instant
+      // on subsequent filter changes.
+      const [boards, navSelection] = await Promise.all([
+        fetchBoards(token),
+        navSelectionPromise,
+      ]);
 
-      let selectedBoardId = boards[0]?.id ?? '';
-      if (navSelection) {
-        const navBoard = navSelection.board.toLowerCase();
-        const matched = boards.find((b) => {
-          const bn = b.name.toLowerCase();
-          return bn.includes(navBoard) || navBoard.includes(bn);
-        });
-        if (matched) selectedBoardId = matched.id;
-      }
+      // Resolve board first (needs no classes yet)
+      const { boardId: selectedBoardId, boardMismatch } =
+        resolveSelectedBoardAndClass(
+          navSelection,
+          boards,
+          [], // classes not needed for board resolution
+        );
 
-      if (!selectedBoardId) {
+      if (!selectedBoardId || boardMismatch) {
         return {
           tabNames: [] as string[],
           activeTab: tabName,
@@ -100,22 +115,28 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
         };
       }
 
+      // fetchClasses is cached after the first call per boardId
       const classes = await fetchClasses(token, selectedBoardId);
-      let selectedClassId = classes[0]?.id ?? '';
-      if (navSelection) {
-        const matched = classes.find(
-          (c) => c.name.toLowerCase().trim() === navSelection.class.toLowerCase().trim(),
-        );
-        if (matched) selectedClassId = matched.id;
+      const { classId: selectedClassId, classMismatch } =
+        resolveSelectedBoardAndClass(navSelection, boards, classes);
+
+      if (classMismatch) {
+        return {
+          tabNames: [] as string[],
+          activeTab: tabName,
+          content: null,
+        };
       }
 
-      const tabNames = selectedClassId
-        ? await fetchTabNames(token, selectedBoardId, selectedClassId)
-        : [];
-
-      let content = null;
-      if (tabNames.includes(tabName)) {
-        content = await fetchTabContent(token, {
+      // KEY OPTIMISATION: we already know the tab name from the URL segment,
+      // so we don't need to wait for fetchTabNames before starting the content
+      // fetch. Fire both in parallel — saves the full round-trip of tabNames
+      // (typically 150–400 ms) off the critical path.
+      const [tabNames, content] = await Promise.all([
+        selectedClassId
+          ? fetchTabNames(token, selectedBoardId, selectedClassId)
+          : Promise.resolve([] as string[]),
+        fetchTabContent(token, {
           boardId: selectedBoardId,
           tabName,
           classId: selectedClassId || undefined,
@@ -123,8 +144,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
           subjectId,
           chapterNames,
           q,
-        });
-      }
+        }),
+      ]);
 
       return {
         tabNames,

@@ -221,7 +221,11 @@ export default function Checkout2Layout() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <Layout>
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isConfirmation ? 'pt-28 md:pt-36 pb-8' : 'py-8'}`}>
+        <div
+          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+            isConfirmation ? 'pt-28 md:pt-36 pb-8' : 'py-8'
+          }`}
+        >
           {!isConfirmation && (
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">

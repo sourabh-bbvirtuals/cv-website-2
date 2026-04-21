@@ -64,7 +64,9 @@ export async function resolveNavbarBoardSelection(
             const oBoard = o.board.toLowerCase();
             const oClass = o.class.replace(/\D/g, '');
             return (
-              oBoard.includes(userBoard) && userClass && oClass.includes(userClass)
+              oBoard.includes(userBoard) &&
+              userClass &&
+              oClass.includes(userClass)
             );
           }) ??
           boardOptions.find((o) => o.board.toLowerCase().includes(userBoard)) ??
@@ -72,6 +74,12 @@ export async function resolveNavbarBoardSelection(
       }
     }
 
+    // If no cookie was present at all, return null so loaders know to use
+    // their own first-visit default (boards[0]) rather than treating this
+    // as an explicit user selection.
+    if (!cookieSlug && !selected) return null;
+
+    // Cookie was set but points to a stale/unknown slug — fuzzy fallback is fine
     if (!selected) selected = boardOptions[0];
 
     return { board: selected.board, class: selected.class };

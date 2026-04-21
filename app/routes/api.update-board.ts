@@ -26,12 +26,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const headers = new Headers();
     headers.append(
       'Set-Cookie',
-      `bb-user-board=${encodeURIComponent(board)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+      `bb-user-board=${encodeURIComponent(board)}; Path=/; Max-Age=${
+        60 * 60 * 24 * 365
+      }; SameSite=Lax`,
     );
     if (studentClass) {
       headers.append(
         'Set-Cookie',
-        `bb-user-class=${encodeURIComponent(studentClass.replace(/\D/g, ''))}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+        `bb-user-class=${encodeURIComponent(
+          studentClass.replace(/\D/g, ''),
+        )}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
       );
     }
 

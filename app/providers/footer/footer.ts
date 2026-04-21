@@ -71,7 +71,7 @@ export const DEFAULT_SITE_SETTINGS: FooterData = {
     {
       id: '2',
       icon: 'phone',
-      text: '+91 62910 40 600',
+      text: '+91 6291 040 600',
     },
   ],
   address: {

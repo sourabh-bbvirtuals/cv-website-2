@@ -1,4 +1,8 @@
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/server-runtime';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from '@remix-run/server-runtime';
 import { Link, useLoaderData } from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { getBlogCollectionBySlug } from '~/providers/blog/blog-collection';
@@ -81,7 +85,8 @@ function decodeEditorHtml(raw: string): string {
 
 function ShareButtons({ title, slug }: { title: string; slug: string }) {
   const handleShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : `/blogs/${slug}`;
+    const url =
+      typeof window !== 'undefined' ? window.location.href : `/blogs/${slug}`;
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title, url });
@@ -102,8 +107,18 @@ function ShareButtons({ title, slug }: { title: string; slug: string }) {
         className="p-2 bg-white/50 rounded-lg flex justify-start items-center gap-2.5 hover:bg-slate-100 transition-colors"
         aria-label="Share this post"
       >
-        <svg className="w-6 h-6 opacity-30 text-slate-900" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Z" />
+        <svg
+          className="w-6 h-6 opacity-30 text-slate-900"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Z"
+          />
         </svg>
       </button>
     </div>
@@ -140,12 +155,29 @@ export default function BlogDetailPage() {
 
               {/* Breadcrumb */}
               <nav className="inline-flex justify-start items-center gap-2.5 flex-wrap content-center">
-                <Link to="/blogs" className="opacity-50 flex justify-center items-center gap-2.5 hover:opacity-70 transition-opacity">
-                  <span className="text-slate-900 text-xs font-normal font-['Geist']">Blog</span>
+                <Link
+                  to="/blogs"
+                  className="opacity-50 flex justify-center items-center gap-2.5 hover:opacity-70 transition-opacity"
+                >
+                  <span className="text-slate-900 text-xs font-normal font-['Geist']">
+                    Blog
+                  </span>
                 </Link>
                 <div className="w-4 h-4 relative opacity-50 flex items-center justify-center">
-                  <svg width="6" height="10" viewBox="0 0 6 10" fill="none" className="text-slate-900">
-                    <path d="M1 1L5 5L1 9" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg
+                    width="6"
+                    height="10"
+                    viewBox="0 0 6 10"
+                    fill="none"
+                    className="text-slate-900"
+                  >
+                    <path
+                      d="M1 1L5 5L1 9"
+                      stroke="currentColor"
+                      strokeWidth="1.33"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
                 <div className="flex justify-center items-center gap-2.5">
@@ -179,7 +211,6 @@ export default function BlogDetailPage() {
                 <ShareButtons title={b.title} slug={b.slug} />
               </div>
             </div>
-
           </div>
 
           {/* Blog Content */}
@@ -191,8 +222,8 @@ export default function BlogDetailPage() {
                   dangerouslySetInnerHTML={{ __html: b.htmlContent }}
                 />
               ) : (
-              <article
-                className="prose prose-slate prose-lg max-w-none
+                <article
+                  className="prose prose-slate prose-lg max-w-none
                   prose-headings:font-['Geist'] prose-headings:text-slate-900 prose-headings:font-semibold
                   prose-h2:text-2xl prose-h2:leading-7 prose-h2:mb-6 prose-h2:mt-12 first:prose-h2:mt-0
                   prose-h3:text-xl prose-h3:font-medium prose-h3:leading-6
@@ -204,13 +235,18 @@ export default function BlogDetailPage() {
                   prose-strong:text-slate-900 prose-strong:font-semibold
                   prose-img:rounded-lg prose-img:w-full
                   prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline"
-                dangerouslySetInnerHTML={{ __html: decodeEditorHtml(b.htmlContent) }}
-              />
+                  dangerouslySetInnerHTML={{
+                    __html: decodeEditorHtml(b.htmlContent),
+                  }}
+                />
               )
             ) : (
               <div className="flex flex-col gap-12">
                 {b.blocks?.map((block, i) => (
-                  <div key={i} className="self-stretch flex flex-col justify-start items-start gap-6">
+                  <div
+                    key={i}
+                    className="self-stretch flex flex-col justify-start items-start gap-6"
+                  >
                     {block.heading && (
                       <h2 className="self-stretch text-slate-900 text-2xl font-semibold font-['Geist'] leading-7">
                         {block.heading}
@@ -223,7 +259,10 @@ export default function BlogDetailPage() {
                     )}
                     {Array.isArray(block.content) &&
                       block.content.map((line, j) => (
-                        <p key={j} className="self-stretch text-slate-900 text-base font-normal font-['Geist'] leading-6">
+                        <p
+                          key={j}
+                          className="self-stretch text-slate-900 text-base font-normal font-['Geist'] leading-6"
+                        >
                           {line}
                         </p>
                       ))}
@@ -239,8 +278,18 @@ export default function BlogDetailPage() {
               to="/blogs"
               className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
               </svg>
               Back to all posts
             </Link>

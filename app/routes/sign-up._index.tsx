@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from '@remix-run/react';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { updateCustomer } from '~/providers/account/account';
 
@@ -17,7 +22,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
       phone = c.phoneNumber.replace(/^\+91/, '');
     }
     if (!phone && c?.emailAddress?.endsWith('@bbvirtuals.tech')) {
-      phone = c.emailAddress.replace('@bbvirtuals.tech', '').replace(/^\+?91/, '');
+      phone = c.emailAddress
+        .replace('@bbvirtuals.tech', '')
+        .replace(/^\+?91/, '');
     }
   } catch {}
   return json({ phone });
@@ -43,7 +50,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const dob = (formData.get('dob') as string) || '';
   const gender = (formData.get('gender') as string) || '';
 
-  console.log('[sign-up] updateCustomer input:', { firstName, lastName, phoneNumber: phone, dob, gender });
+  console.log('[sign-up] updateCustomer input:', {
+    firstName,
+    lastName,
+    phoneNumber: phone,
+    dob,
+    gender,
+  });
 
   try {
     const updateResult = await updateCustomer(
@@ -54,14 +67,17 @@ export async function action({ request }: ActionFunctionArgs) {
         customFields: {
           dateOfBirth: dob || null,
           gender: gender || null,
-          board: ((formData.get('board') as string) || '') || null,
-          studentClass: ((formData.get('studentClass') as string) || '') || null,
+          board: (formData.get('board') as string) || '' || null,
+          studentClass: (formData.get('studentClass') as string) || '' || null,
           contactEmail: email || null,
         },
       },
       { request },
     );
-    console.log('[sign-up] updateCustomer result:', JSON.stringify(updateResult));
+    console.log(
+      '[sign-up] updateCustomer result:',
+      JSON.stringify(updateResult),
+    );
   } catch (err) {
     console.error('updateCustomer threw:', err);
     return json(
@@ -94,13 +110,17 @@ export async function action({ request }: ActionFunctionArgs) {
   if (board) {
     headers.append(
       'Set-Cookie',
-      `bb-user-board=${encodeURIComponent(board)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+      `bb-user-board=${encodeURIComponent(board)}; Path=/; Max-Age=${
+        60 * 60 * 24 * 365
+      }; SameSite=Lax`,
     );
   }
   if (studentClass) {
     headers.append(
       'Set-Cookie',
-      `bb-user-class=${encodeURIComponent(studentClass.replace(/\D/g, ''))}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+      `bb-user-class=${encodeURIComponent(
+        studentClass.replace(/\D/g, ''),
+      )}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
     );
   }
   return redirect('/', { headers });
@@ -216,11 +236,17 @@ const SignUp: React.FC = () => {
           <input
             type="hidden"
             name="phone"
-            value={formData.phone ? `+91${formData.phone.replace(/\D/g, '')}` : ''}
+            value={
+              formData.phone ? `+91${formData.phone.replace(/\D/g, '')}` : ''
+            }
           />
           <input type="hidden" name="gender" value={formData.gender} />
           <input type="hidden" name="board" value={formData.board} />
-          <input type="hidden" name="studentClass" value={formData.studentClass} />
+          <input
+            type="hidden"
+            name="studentClass"
+            value={formData.studentClass}
+          />
           {/* Full Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-lightgray font-medium opacity-70 font-geist text-xs sm:text-sm">
@@ -231,7 +257,9 @@ const SignUp: React.FC = () => {
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className={`${inputClass} ${errors.fullName ? 'border-red-500' : ''}`}
+              className={`${inputClass} ${
+                errors.fullName ? 'border-red-500' : ''
+              }`}
               placeholder="Write Name here"
             />
             {errors.fullName && (
@@ -251,7 +279,9 @@ const SignUp: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`${inputClass} ${errors.email ? 'border-red-500' : ''}`}
+              className={`${inputClass} ${
+                errors.email ? 'border-red-500' : ''
+              }`}
               placeholder="Write Email here"
             />
             {errors.email && (

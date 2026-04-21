@@ -25,64 +25,73 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
       name: 'CA Ankita Sanghavi',
       designation: 'CA, AIR 27',
       experience: '5+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/b8/ca-ankita-sanghvi__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/b8/ca-ankita-sanghvi__preview.png',
     },
     {
       id: '2',
       name: 'CA Ashish Medicala',
       designation: 'CA',
       experience: '10+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/6c/ca-ashish-medicala__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/6c/ca-ashish-medicala__preview.png',
     },
     {
       id: '3',
-      name: 'CA Bhushan Gosal',
+      name: 'CA Bhushan Gosar',
       designation: 'CA, MCom',
       experience: '15+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/50/ca-bhushal-gosar__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/50/ca-bhushal-gosar__preview.png',
     },
     {
       id: '4',
       name: 'CA Mayur Sanghavi',
-      designation: 'FCA, CFA, FRM, Rank 1 CA Finals',
+      designation: 'CA, CFA, FRM, Rank 1 CA Finals',
       experience: '10+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/87/ca-mayur-sanghvi__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/87/ca-mayur-sanghvi__preview.png',
     },
     {
       id: '5',
       name: 'CA Payal Sanghavi',
-      designation: 'CA, CFA III',
+      designation: 'CA, CFA II',
       experience: '5+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/96/ca-payal-sanghvi__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/96/ca-payal-sanghvi__preview.png',
     },
     {
       id: '6',
       name: 'Pratik Mahajan',
       designation: 'Maths Specialist',
       experience: '4+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/ce/pratik-mahajan__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/ce/pratik-mahajan__preview.png',
     },
     {
       id: '7',
       name: 'CA Roshni Manral',
       designation: 'CA',
       experience: '5+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/0d/ca-roshni-manral__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/0d/ca-roshni-manral__preview.png',
     },
     {
       id: '8',
       name: 'CA Shubham Sanghavi',
 
-      designation: 'CA, CFA, State Topper SSC&HSC',
+      designation: 'CA, CFA, CFA III, State Topper SSC&HSC',
       experience: '14+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/bc/ca-shubham-sanghvi__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/bc/ca-shubham-sanghvi__preview.png',
     },
     {
       id: '9',
       name: 'Sanjay Appan',
       designation: 'OCM',
       experience: '10+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/77/sanjay-appan__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/77/sanjay-appan__preview.png',
     },
   ],
   cbse: [
@@ -91,79 +100,90 @@ export const FACULTIES_BY_BOARD: Record<string, Faculty[]> = {
       name: 'CA Aditya Agarwal',
       designation: 'CA',
       experience: '15+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/52/ca-aditya-agarwal__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/52/ca-aditya-agarwal__preview.png',
     },
     {
       id: '2',
       name: 'Aman Mehta',
       designation: 'Master in Commerce',
       experience: '14+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/bf/aman-mehta__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/bf/aman-mehta__preview.png',
     },
     {
       id: '3',
       name: 'Ashish Sunil',
       designation: 'CMA Finalist, MBA Finance',
       experience: '4+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/34/ashish-sunil__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/34/ashish-sunil__preview.png',
     },
     {
       id: '4',
       name: 'Ekta Gutgutia ',
       designation: 'Master’s in Commerce, B.ed',
       experience: '6+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/e0/ekta-gutgutia__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/e0/ekta-gutgutia__preview.png',
     },
     {
       id: '5',
       name: 'Himanshu Arora',
       designation: '​UGC NET | M.Com | MBA | B.Ed | PGDIB',
       experience: '15+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/81/himanshu-arora__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/81/himanshu-arora__preview.png',
     },
     {
       id: '6',
       name: 'Kirti Tripathi ',
       designation: 'Master’s in Arts ',
       experience: '12+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/23/kirti-tripathi__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/23/kirti-tripathi__preview.png',
     },
     {
       id: '7',
       name: 'Mahak Gandhi',
-      designation: 'CA Finalist',
-      experience: '1 Year Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/8f/mahak-gandhi__preview.png',
+      designation: '100/100 in BST',
+      experience: '2+ Years Experience',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/8f/mahak-gandhi__preview.png',
     },
   ],
   cuet: [
     {
       id: '1',
       name: 'Mahak Gandhi',
-      designation: 'CA Finalist',
-      experience: '1 Year Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/8f/mahak-gandhi__preview.png',
+      designation: '100/100 in BST',
+      experience: '2+ Years Experience',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/8f/mahak-gandhi__preview.png',
     },
     {
       id: '2',
       name: 'Aman Mehta',
       designation: 'Master in Commerce',
       experience: '14+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/bf/aman-mehta__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/bf/aman-mehta__preview.png',
     },
     {
       id: '3',
       name: 'Ashish Sunil',
       designation: 'CMA Finalist, MBA Finance',
       experience: '4+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/34/ashish-sunil__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/34/ashish-sunil__preview.png',
     },
     {
       id: '4',
       name: 'Kirti Tripathi ',
       designation: 'Master’s in Arts ',
       experience: '12+ Years Experience',
-      image: 'https://bbvendure.appwallah.com/assets/preview/23/kirti-tripathi__preview.png',
+      image:
+        'https://bbvendure.appwallah.com/assets/preview/23/kirti-tripathi__preview.png',
     },
   ],
 };

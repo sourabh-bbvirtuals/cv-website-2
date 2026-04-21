@@ -1,4 +1,10 @@
-import { createContext, useContext, useCallback, useState, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useState,
+  useEffect,
+} from 'react';
 import { useRevalidator } from '@remix-run/react';
 
 export interface BoardOption {
@@ -49,11 +55,16 @@ export function BoardSelectionProvider({
       const userClass = (profile.classLevel || '').replace(/\D/g, '');
       if (!userBoard) return;
 
-      const match = boardOptions.find((o) => {
-        const oBoard = o.board.toLowerCase();
-        const oClass = o.class.toLowerCase().replace(/\D/g, '');
-        return oBoard.includes(userBoard) && (!userClass || oClass.includes(userClass));
-      }) || boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+      const match =
+        boardOptions.find((o) => {
+          const oBoard = o.board.toLowerCase();
+          const oClass = o.class.toLowerCase().replace(/\D/g, '');
+          return (
+            oBoard.includes(userBoard) &&
+            (!userClass || oClass.includes(userClass))
+          );
+        }) ||
+        boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
 
       if (match) {
         setLocalSlug(match.slug);
@@ -70,8 +81,12 @@ export function BoardSelectionProvider({
 
       const option = boardOptions.find((o) => o.slug === slug);
       if (option) {
-        document.cookie = `bb-user-board=${encodeURIComponent(option.board)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
-        document.cookie = `bb-user-class=${encodeURIComponent(option.class.replace(/\D/g, ''))}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        document.cookie = `bb-user-board=${encodeURIComponent(
+          option.board,
+        )}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        document.cookie = `bb-user-class=${encodeURIComponent(
+          option.class.replace(/\D/g, ''),
+        )}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
 
         try {
           const stored = localStorage.getItem('bb_user_profile');
@@ -86,11 +101,16 @@ export function BoardSelectionProvider({
         fetch('/api/update-board', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ board: option.board, studentClass: option.class }),
+          body: JSON.stringify({
+            board: option.board,
+            studentClass: option.class,
+          }),
         }).catch(() => {});
       }
 
-      revalidator.revalidate();
+      // Defer revalidation by one tick so all document.cookie writes above
+      // are committed before the loader re-reads the Cookie request header.
+      setTimeout(() => revalidator.revalidate(), 0);
     },
     [revalidator, boardOptions],
   );

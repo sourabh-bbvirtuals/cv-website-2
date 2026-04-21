@@ -9,7 +9,7 @@ export const meta: MetaFunction = () => {
     {
       name: 'description',
       content:
-        'Contact Commerce Virtuals - CBSE, Maharashtra Board, and CUET coaching support. Call +91 62910 40 600 or email support@commercevirtuals.com',
+        'Contact Commerce Virtuals - CBSE, Maharashtra Board, and CUET coaching support. Call +91 6291 040 600 or email support@commercevirtuals.com',
     },
   ];
 };
@@ -30,9 +30,11 @@ export default function ContactUsRoute() {
       name: (form.elements.namedItem('name') as HTMLInputElement).value,
       email: (form.elements.namedItem('email') as HTMLInputElement).value,
       phone:
-        (form.elements.namedItem('phone') as HTMLInputElement).value || undefined,
+        (form.elements.namedItem('phone') as HTMLInputElement).value ||
+        undefined,
       subject: (form.elements.namedItem('subject') as HTMLSelectElement).value,
-      message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+      message: (form.elements.namedItem('message') as HTMLTextAreaElement)
+        .value,
     };
 
     try {
@@ -43,7 +45,9 @@ export default function ContactUsRoute() {
       });
 
       if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: 'Something went wrong' }));
+        const err = await resp
+          .json()
+          .catch(() => ({ error: 'Something went wrong' }));
         throw new Error(err.error || 'Failed to submit');
       }
 
@@ -107,7 +111,7 @@ export default function ContactUsRoute() {
                     href="tel:+916291040600"
                     className="text-[#3A6BFC] font-semibold text-lg hover:underline"
                   >
-                    +91 62910 40 600
+                    +91 6291 040 600
                   </a>
                 </div>
                 <span className="inline-block bg-white text-[#3A6BFC] px-3 py-1 rounded-full text-xs font-semibold">
@@ -315,9 +319,7 @@ export default function ContactUsRoute() {
                     {formState === 'submitting' && (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     )}
-                    {formState === 'submitting'
-                      ? 'Sending...'
-                      : 'Send Message'}
+                    {formState === 'submitting' ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
               )}

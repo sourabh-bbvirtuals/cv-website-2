@@ -20,7 +20,7 @@ export const faqs = [
   {
     question: 'Do you offer mentorship?',
     answer:
-      'Mentorship is coming soon! We are developing comprehensive guidance services including personalized study plans, 1-on-1 guidance, doubt resolution, and career planning. Contact us at +91 62910 40 600 to express your interest.',
+      'Mentorship is coming soon! We are developing comprehensive guidance services including personalized study plans, 1-on-1 guidance, doubt resolution, and career planning. Contact us at +91 6291 040 600 to express your interest.',
   },
   {
     question: 'How is Commerce Virtuals different from free online content?',
@@ -33,7 +33,7 @@ export const faqs = [
       'We accept Credit & Debit Cards (Visa, Mastercard, Amex), UPI (Google Pay, PhonePe, Paytm, BHIM), Net Banking (all major Indian banks), and Digital Wallets (Paytm, Amazon Pay).',
   },
   {
-    question: "What is your refund policy?",
+    question: 'What is your refund policy?',
     answer:
       "We offer a 7-day money-back guarantee. You can request a full refund within 7 days of purchase if you haven't consumed more than 20% of the course content. Visit our Refund & Cancellations Policy page for complete details.",
   },
@@ -45,7 +45,7 @@ export const faqs = [
   {
     question: 'How do I contact support?',
     answer:
-      'You can reach us at +91 62910 40 600 (Admissions & Sales) or email support@commercevirtuals.com. We aim to respond within 24 hours on business days.',
+      'You can reach us at +91 6291 040 600 (Admissions & Sales) or email support@commercevirtuals.com. We aim to respond within 24 hours on business days.',
   },
 ];
 

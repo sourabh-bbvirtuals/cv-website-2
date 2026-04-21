@@ -227,7 +227,8 @@ function ResultStatStrip({
 
 function buildIntroStats(info: TestInfo) {
   const d = info.difficulty ?? 'medium';
-  const levelLabel = d === 'easy' ? '(Easy)' : d === 'hard' ? '(HARD)' : '(Medium)';
+  const levelLabel =
+    d === 'easy' ? '(Easy)' : d === 'hard' ? '(HARD)' : '(Medium)';
   const levelClass =
     d === 'easy'
       ? 'font-mono text-[15px] leading-[120%] sm:text-xl md:text-2xl font-medium text-[#12caa5] tracking-wide'
@@ -735,9 +736,7 @@ export function QuizResultScreen({
         question: `${i + 1}. ${contentBlocksToText(q.stem)}`,
         passage: q.passage ?? '',
         correct: isCorrect,
-        yourAnswer: userOpt
-          ? contentBlocksToText(userOpt.content)
-          : 'Skipped',
+        yourAnswer: userOpt ? contentBlocksToText(userOpt.content) : 'Skipped',
         correctAnswer: correctOpt
           ? contentBlocksToText(correctOpt.content)
           : '—',

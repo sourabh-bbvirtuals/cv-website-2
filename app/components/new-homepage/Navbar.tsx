@@ -37,7 +37,10 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(e.target as Node)
+      ) {
         setAccountOpen(false);
       }
     };
@@ -47,7 +50,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
   return (
     <nav
-      className={`w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
+      className={`w-[290px] max-sm:-ml-[10px]  sm:w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
         isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
       } , ${isOurCoursesDetailPage ? 'hidden md:block' : ''} `}
     >
@@ -82,24 +85,20 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
             >
               Free Resources
             </a>
-            <a
-              href="/blogs"
-              className="hover:text-blue-600 transition-colors"
-            >
+            <a href="/blogs" className="hover:text-blue-600 transition-colors">
               Blogs
             </a>
           </div>
         </div>
 
         {/* Right Side: Actions */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           {/* 1. Desktop Board Dropdown (Pill UI) */}
           {showBoardDropdown && (
             <div className="hidden lg:block">
               <BoardDropdown isMobile={false} />
             </div>
           )}
-
 
           <button
             onClick={() => navigate('/cart')}
@@ -112,24 +111,38 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
             <div className="hidden lg:block relative" ref={accountRef}>
               <button
                 onClick={() => setAccountOpen(!accountOpen)}
-                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-base font-medium transition-colors border ${accountOpen ? 'bg-[#081627] text-white border-[#081627]' : 'bg-white text-[#081627] border-gray-200 hover:bg-gray-50'}`}
+                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-base font-medium transition-colors border ${
+                  accountOpen
+                    ? 'bg-[#081627] text-white border-[#081627]'
+                    : 'bg-white text-[#081627] border-gray-200 hover:bg-gray-50'
+                }`}
               >
-                <span>{customer.firstName} {customer.lastName}</span>
+                <span>
+                  {customer.firstName} {customer.lastName}
+                </span>
                 <ChevronDown
                   size={16}
-                  className={`transition-transform ${accountOpen ? 'rotate-180' : ''}`}
+                  className={`transition-transform ${
+                    accountOpen ? 'rotate-180' : ''
+                  }`}
                 />
               </button>
               {accountOpen && (
                 <div className="absolute top-[120%] right-0 min-w-[200px] bg-white border border-gray-100 shadow-2xl rounded-2xl py-2 z-[100]">
                   <button
-                    onClick={() => { navigate('/account'); setAccountOpen(false); }}
+                    onClick={() => {
+                      navigate('/account');
+                      setAccountOpen(false);
+                    }}
                     className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors text-[#081627] font-medium text-base"
                   >
                     Profile
                   </button>
                   <button
-                    onClick={() => { navigate('/account/orders'); setAccountOpen(false); }}
+                    onClick={() => {
+                      navigate('/account/orders');
+                      setAccountOpen(false);
+                    }}
                     className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors text-[#081627] font-medium text-base"
                   >
                     Order History
@@ -149,14 +162,17 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
               )}
             </div>
           ) : (
-            <Link to="/sign-in" className="primary-btn text-sm sm:text-base font-medium leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75">
+            <Link
+              to="/sign-in"
+              className="primary-btn text-xs sm:text-base font-medium leading-3 sm:leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75"
+            >
               Start For Free
             </Link>
           )}
 
           {/* Mobile Menu Toggle */}
           <button
-            className="xl:hidden p-2 text-lightgray hover:bg-gray-50 rounded-full"
+            className="xl:hidden p-0 sm:p-2 text-lightgray hover:bg-gray-50 rounded-full "
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -167,7 +183,6 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
       {/* Mobile Menu Dropdown (xl se niche dikhega) */}
       {isOpen && (
         <div className="absolute top-25 md:top-28 left-4 right-4 bg-white border border-gray-100 shadow-2xl rounded-xl lg:rounded-3xl p-4 lg:p-6 flex flex-col gap-5 xl:hidden z-50 animate-in fade-in zoom-in duration-300">
-
           {/* Mobile Links */}
           <div className="flex flex-col gap-3">
             <a
