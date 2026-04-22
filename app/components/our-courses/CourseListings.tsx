@@ -452,7 +452,7 @@ export default function CourseListings({
   ]);
 
   const getBtnClass = (isActive: boolean) =>
-    `flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
+    `flex items-center justify-center gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-full text-gray-700 border text-base font-medium transition-colors justify-between sm:justify-start w-full sm:w-auto whitespace-nowrap ${
       isActive
         ? 'bg-lightgray text-white border-lightgray'
         : 'bg-white text-lightgray border-lightgray/10 hover:bg-lightgray/5'
@@ -509,7 +509,7 @@ export default function CourseListings({
             </div>
 
             <div
-              className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+              className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 flex-wrap"
               ref={filterScrollRef}
             >
               {/* Board Selector — visible for guests */}
@@ -581,7 +581,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'sort'} />
                 </button>
                 {activeModal === 'sort' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-fit  sm:w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     {[
                       'Relevant',
                       'Most Popular',
@@ -627,7 +627,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'subjects'} />
                 </button>
                 {activeModal === 'subjects' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full right-0 sm:left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => {
                         setSelectedSubjects('');
@@ -771,7 +771,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'language'} />
                 </button>
                 {activeModal === 'language' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full right-0 sm:left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => setSelectedLanguage([])}
                       className={`w-full text-left px-4 py-2 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
@@ -838,7 +838,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'pricing'} />
                 </button>
                 {activeModal === 'pricing' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[120px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[120px] w-fit sm:w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     {['All', 'Free', 'Paid'].map((price) => (
                       <button
                         key={price}
