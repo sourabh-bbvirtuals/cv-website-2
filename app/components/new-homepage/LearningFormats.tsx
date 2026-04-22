@@ -62,7 +62,7 @@ const LearningFormats: React.FC = () => {
 
   return (
     <section className="bg-white overflow-hidden">
-      <div className="w-full">
+      <div className="w-full max-w-[1320px] mx-auto">
         <div className="flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-2 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
           <div className="text-left max-sm:text-center max-w-190 4xl:max-w-183.75! flex flex-col text-lightgray">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
