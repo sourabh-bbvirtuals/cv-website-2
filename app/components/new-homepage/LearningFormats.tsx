@@ -63,7 +63,7 @@ const LearningFormats: React.FC = () => {
   return (
     <section className="bg-white overflow-hidden">
       <div className="w-full max-w-[1320px] mx-auto">
-        <div className="flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-2 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
+        <div className="px-2 flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-2 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
           <div className="text-left max-sm:text-center max-w-190 4xl:max-w-183.75! flex flex-col text-lightgray">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Why Commerce Virtuals
@@ -151,7 +151,7 @@ const LearningFormats: React.FC = () => {
                     />
                   )}
 
-                  <div className="flex flex-col gap-3 text-lightgray px-1">
+                  <div className="flex flex-col gap-3 text-lightgray px-3 sm:px-1">
                     <h3 className="text-lg sm:text-xl md:text-2xl font-semibold">
                       {card.title}
                     </h3>

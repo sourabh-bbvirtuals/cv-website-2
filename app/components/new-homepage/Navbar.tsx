@@ -50,7 +50,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
   return (
     <nav
-      className={` max-sm:-ml-[10px] w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
+      className={`w-full py-1 sm:py-3 mt-4 md:mt-0 relative z-20 ${
         isOurCoursesPage ? 'bg-[#FFF8F9]' : ''
       } , ${isOurCoursesDetailPage ? 'hidden md:block' : ''} `}
     >
