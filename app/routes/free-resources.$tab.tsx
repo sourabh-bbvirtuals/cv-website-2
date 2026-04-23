@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
 const TAB_META_INFO: Record<string, { title: string; description: string }> = {
@@ -54,8 +54,97 @@ import {
   fetchTabNames,
   fetchTabContent,
 } from '~/utils/bbServer';
+import type { Board, ClassLevel, TabContentResponse } from '~/utils/bbServer';
 import { resolveSelectedBoardAndClass } from '~/utils/resolveBoardClass.server';
 import { resolveNavbarBoardSelection } from '~/utils/resolveNavbarBoard.server';
+import {
+  freeResourcesTabSegment,
+  isFreeResourcesTabContentEmpty,
+  preservedFreeResourcesSearchString,
+} from '~/utils/freeResourcesTabFallback.server';
+
+type BoardWithClasses = { board: Board; classes: ClassLevel[] };
+
+async function fetchMergedAllBoardsTabContent(
+  token: string,
+  tabNameForFetch: string,
+  boardsWithClasses: BoardWithClasses[],
+  page: string,
+  opts?: {
+    subjectId?: string;
+    chapterNames?: string;
+    q?: string;
+  },
+): Promise<TabContentResponse> {
+  const contentPromises: Promise<TabContentResponse>[] = [];
+  const { subjectId, chapterNames, q } = opts ?? {};
+  for (const { board, classes } of boardsWithClasses) {
+    if (classes.length === 0) {
+      contentPromises.push(
+        fetchTabContent(token, {
+          boardId: board.id,
+          tabName: tabNameForFetch,
+          page,
+          subjectId,
+          chapterNames,
+          q,
+        }),
+      );
+    } else {
+      for (const cls of classes) {
+        contentPromises.push(
+          fetchTabContent(token, {
+            boardId: board.id,
+            classId: cls.id,
+            tabName: tabNameForFetch,
+            page,
+            subjectId,
+            chapterNames,
+            q,
+          }),
+        );
+      }
+    }
+  }
+  const contentByBoard = await Promise.all(contentPromises);
+  return contentByBoard.reduce(
+    (acc, boardContent: TabContentResponse) => {
+      acc.subjects.push(...boardContent.subjects);
+      acc.totalCount += boardContent.totalCount;
+      const uniqueChapters = new Set([
+        ...acc.chapterNames,
+        ...boardContent.chapterNames,
+      ]);
+      acc.chapterNames = Array.from(uniqueChapters);
+      const uniqueSubjects = new Map(
+        acc.availableSubjects.map((s) => [s.id, s]),
+      );
+      boardContent.availableSubjects.forEach((s) => {
+        uniqueSubjects.set(s.id, s);
+      });
+      acc.availableSubjects = Array.from(uniqueSubjects.values());
+      return acc;
+    },
+    {
+      subjects: [] as TabContentResponse['subjects'],
+      totalCount: 0,
+      page: parseInt(page, 10),
+      pageSize: contentByBoard[0]?.pageSize || 10,
+      hasNextPage: false,
+      chapterNames: [] as string[],
+      availableSubjects: [] as TabContentResponse['availableSubjects'],
+    } satisfies Pick<
+      TabContentResponse,
+      | 'subjects'
+      | 'totalCount'
+      | 'page'
+      | 'pageSize'
+      | 'hasNextPage'
+      | 'chapterNames'
+      | 'availableSubjects'
+    >,
+  );
+}
 
 const TAB_NAME_BY_SEGMENT: Record<string, string> = {
   'mock-tests': 'Mock Tests',
@@ -83,6 +172,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const chapterNames = url.searchParams.get('chapterNames') ?? undefined;
   const page = url.searchParams.get('page') ?? '1';
   const q = url.searchParams.get('q') ?? undefined;
+  const allBoards = url.searchParams.get('allBoards') === 'true'; // Use URL param instead of cookie
 
   // Start resolveNavbarBoardSelection immediately — it hits Vendure (GraphQL)
   // and has no dependency on the guest token. Running it in parallel with
@@ -99,6 +189,75 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
         navSelectionPromise,
       ]);
 
+      // If "All Boards" is selected, fetch content for all boards
+      if (allBoards) {
+        // Fetch classes for all boards to ensure we get data for all classes
+        const boardsWithClasses = await Promise.all(
+          boards.map(async (board) => {
+            const classes = await fetchClasses(token, board.id);
+            return { board, classes };
+          }),
+        );
+
+        const firstBoardId = boards[0]?.id;
+        const firstClassId = boardsWithClasses[0]?.classes[0]?.id;
+
+        const [fetchedTabNames, mergedContent] = await Promise.all([
+          firstBoardId
+            ? fetchTabNames(token, firstBoardId, firstClassId)
+            : Promise.resolve([] as string[]),
+          fetchMergedAllBoardsTabContent(
+            token,
+            tabName,
+            boardsWithClasses,
+            page,
+            {
+              subjectId,
+              chapterNames,
+              q,
+            },
+          ),
+        ]);
+
+        const finalTabNames =
+          fetchedTabNames.length > 0
+            ? fetchedTabNames
+            : Object.values(TAB_NAME_BY_SEGMENT);
+
+        const mayAutoSwitchTab =
+          !subjectId && !chapterNames && !q && page === '1';
+
+        if (mayAutoSwitchTab && isFreeResourcesTabContentEmpty(mergedContent)) {
+          for (const candidate of finalTabNames) {
+            if (candidate === tabName) continue;
+            const seg = freeResourcesTabSegment(candidate);
+            if (!seg) continue;
+            const probed = await fetchMergedAllBoardsTabContent(
+              token,
+              candidate,
+              boardsWithClasses,
+              '1',
+            );
+            if (!isFreeResourcesTabContentEmpty(probed)) {
+              const qs = preservedFreeResourcesSearchString(url.searchParams);
+              return {
+                tabNames: finalTabNames,
+                activeTab: tabName,
+                content: null,
+                redirectTo: `/free-resources/${seg}${qs}`,
+              };
+            }
+          }
+        }
+
+        return {
+          tabNames: finalTabNames,
+          activeTab: tabName,
+          content: mergedContent,
+          redirectTo: null as string | null,
+        };
+      }
+
       // Resolve board first (needs no classes yet)
       const { boardId: selectedBoardId, boardMismatch } =
         resolveSelectedBoardAndClass(
@@ -112,6 +271,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
           tabNames: [] as string[],
           activeTab: tabName,
           content: null,
+          redirectTo: null as string | null,
         };
       }
 
@@ -125,6 +285,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
           tabNames: [] as string[],
           activeTab: tabName,
           content: null,
+          redirectTo: null as string | null,
         };
       }
 
@@ -147,15 +308,54 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
         }),
       ]);
 
+      const orderedTabNames =
+        tabNames.length > 0
+          ? tabNames
+          : (Object.values(TAB_NAME_BY_SEGMENT) as string[]);
+
+      const mayAutoSwitchTab =
+        !subjectId && !chapterNames && !q && page === '1';
+
+      if (mayAutoSwitchTab && isFreeResourcesTabContentEmpty(content)) {
+        for (const candidate of orderedTabNames) {
+          if (candidate === tabName) continue;
+          const seg = freeResourcesTabSegment(candidate);
+          if (!seg) continue;
+          const probed = await fetchTabContent(token, {
+            boardId: selectedBoardId,
+            tabName: candidate,
+            classId: selectedClassId || undefined,
+            page: '1',
+          });
+          if (!isFreeResourcesTabContentEmpty(probed)) {
+            const qs = preservedFreeResourcesSearchString(url.searchParams);
+            return {
+              tabNames,
+              activeTab: tabName,
+              content: null,
+              redirectTo: `/free-resources/${seg}${qs}`,
+            };
+          }
+        }
+      }
+
       return {
         tabNames,
         activeTab: tabName,
         content,
+        redirectTo: null as string | null,
       };
     });
 
+    const { redirectTo, ...rest } = result.data;
+    if (redirectTo) {
+      return redirect(redirectTo, {
+        headers: result.headers,
+      });
+    }
+
     return json(
-      { ...result.data, limitReached: false },
+      { ...rest, limitReached: false },
       result.headers ? { headers: result.headers } : undefined,
     );
   } catch (err) {
