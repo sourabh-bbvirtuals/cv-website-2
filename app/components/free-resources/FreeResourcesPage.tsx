@@ -519,7 +519,7 @@ export default function FreeResourcesPage({
           <div
             ref={filterScrollRef}
             data-pill-wrapper
-            className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+            className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 flex-wrap sm:overflow-visible"
           >
             {/* Board Selector */}
             {ctxBoardOptions.length > 0 && (
@@ -544,6 +544,7 @@ export default function FreeResourcesPage({
                   }
                 }}
                 closeAllPillSelects={handleCloseAllPillSelects}
+                align="left"
               />
             )}
             <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">

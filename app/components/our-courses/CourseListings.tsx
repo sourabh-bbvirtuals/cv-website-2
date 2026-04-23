@@ -509,7 +509,7 @@ export default function CourseListings({
             </div>
 
             <div
-              className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+              className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 flex-wrap sm:overflow-visible"
               ref={filterScrollRef}
             >
               {/* Board Selector — visible for guests */}
@@ -581,7 +581,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'sort'} />
                 </button>
                 {activeModal === 'sort' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     {[
                       'Relevant',
                       'Most Popular',
@@ -627,7 +627,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'subjects'} />
                 </button>
                 {activeModal === 'subjects' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => {
                         setSelectedSubjects('');
@@ -676,7 +676,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'faculty'} />
                 </button>
                 {activeModal === 'faculty' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 z-[9999] min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => setSelectedFaculties([])}
                       className={`w-full text-left px-4 py-3 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
@@ -771,7 +771,7 @@ export default function CourseListings({
                   <ChevronDown isOpen={activeModal === 'language'} />
                 </button>
                 {activeModal === 'language' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => setSelectedLanguage([])}
                       className={`w-full text-left px-4 py-2 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
