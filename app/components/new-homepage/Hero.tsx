@@ -146,16 +146,25 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
     const classNum = classMap[formData.class] || formData.class;
     const boardLower = formData.board.toLowerCase().replace(/\s+/g, '');
 
-    const match = boardOptions.find((o) => {
-      const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
-      const oClass = o.class.toLowerCase();
-      const boardMatch = oBoard === boardLower || oBoard.includes(boardLower) || boardLower.includes(oBoard);
-      const classMatch = oClass.includes(classNum);
-      return boardMatch && classMatch;
-    }) || boardOptions.find((o) => {
-      const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
-      return oBoard === boardLower || oBoard.includes(boardLower) || boardLower.includes(oBoard);
-    });
+    const match =
+      boardOptions.find((o) => {
+        const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
+        const oClass = o.class.toLowerCase();
+        const boardMatch =
+          oBoard === boardLower ||
+          oBoard.includes(boardLower) ||
+          boardLower.includes(oBoard);
+        const classMatch = oClass.includes(classNum);
+        return boardMatch && classMatch;
+      }) ||
+      boardOptions.find((o) => {
+        const oBoard = o.board.toLowerCase().replace(/\s+/g, '');
+        return (
+          oBoard === boardLower ||
+          oBoard.includes(boardLower) ||
+          boardLower.includes(oBoard)
+        );
+      });
 
     if (match) {
       setSelectedBoard(match.slug);
@@ -201,7 +210,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
           >
             {/* card content */}
             <div
-              className={`flex flex-col h-full gap-6 md:gap-16 ${
+              className={`flex flex-col h-full gap-6 md:gap-16 mx-auto ${
                 isLoggedIn ? 'items-center text-center' : ''
               }`}
             >
@@ -221,19 +230,19 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   <span>CUET</span>
                 </div>
                 {/* Headline */}
-                <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em]">
+                <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em] max-md:self-center">
                   Commerce Virtuals |<br className="" /> Courses for Class 11 &
                   12
                 </h1>
                 {/* Subheadline */}
-                <p className="text-base xl:text-xl text-lightgray w-[345px] md:w-full  leading-[150%]">
+                <p className="text-[13px] sm:text-base xl:text-xl text-lightgray w-[275px] sm:w-[345px] md:w-full  leading-[150%] max-md:text-center">
                   India's only commerce-exclusive EdTech platform. Structured
                   courses, test series & mentorship for CBSE, Maharashtra Board
                   HSC and CUET-UG. Built for Class 11 & 12 commerce students.
                 </p>
                 {/* CTA Button */}
                 <div
-                  className={`flex w-full mt-4 gap-3 sm:gap-4 ${
+                  className={`flex w-full mt-4 gap-[5px] sm:gap-4 ${
                     isLoggedIn
                       ? 'justify-center'
                       : 'justify-center sm:justify-start'
@@ -241,13 +250,13 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                 >
                   <Link
                     to="/our-courses"
-                    className="flex items-center gap-1 sm:gap-3 bg-[#3A6BFC] text-white font-medium px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! text-sm sm:text-base lg:text-lg 4xl:text-xl! shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] hover:brightness-110 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                    className="flex items-center gap-1 sm:gap-3 bg-[#3A6BFC] text-white font-medium px-2 sm:px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! text-[12px] sm:text-base lg:text-lg 4xl:text-xl! shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] hover:brightness-110 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                   >
                     <span>Explore Courses</span>
                   </Link>
                   <Link
                     to="/free-resources"
-                    className="flex items-center gap-1 sm:gap-3 bg-white text-gray-700 font-medium px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-sm sm:text-base lg:text-lg 4xl:text-xl! hover:bg-slate-100 hover:border-slate-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                    className="flex items-center gap-1 sm:gap-3 bg-white text-gray-700 font-medium px-2 sm:px-4 py-3 md:py-4 md:px-6 leading-[120%] rounded-full transition-all mb-5 sm:mb-8 4xl:mb-12! border border-[#0816271A] text-[12px] sm:text-base lg:text-lg 4xl:text-xl! hover:bg-slate-100 hover:border-slate-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                   >
                     <span>Explore Free Resources</span>
                   </Link>
@@ -259,7 +268,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   isLoggedIn ? 'w-full' : ''
                 }`}
               >
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Enrolled Students
                   </p>
@@ -267,7 +276,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     10,000+
                   </p>
                 </div>
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Free Resources
                   </p>
@@ -275,7 +284,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     100+
                   </p>
                 </div>
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Average Rating
                   </p>
@@ -283,7 +292,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     4.9
                   </p>
                 </div>
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Available Courses
                   </p>

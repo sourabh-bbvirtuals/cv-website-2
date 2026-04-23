@@ -21,7 +21,7 @@ export async function getCollectionWithChildren(
   options: QueryOptions,
 ) {
   const API_URL =
-    (process.env.VENDURE_API_URL || 'http://localhost:3000/shop-api')
+    process.env.VENDURE_API_URL || 'http://localhost:3000/shop-api';
 
   const { getSessionStorage } = await import('../../sessions');
   const query = `

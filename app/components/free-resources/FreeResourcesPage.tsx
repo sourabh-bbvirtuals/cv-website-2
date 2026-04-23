@@ -58,7 +58,10 @@ const TAB_META: Record<
 type SeoEntry = { heading: string; subtext: string };
 type BoardSeoMap = Record<string, SeoEntry>;
 
-const TAB_SEO_CONTENT: Record<string, { default: SeoEntry; byBoard: BoardSeoMap }> = {
+const TAB_SEO_CONTENT: Record<
+  string,
+  { default: SeoEntry; byBoard: BoardSeoMap }
+> = {
   'Mock Tests': {
     default: {
       heading: 'Full-Length Mock Tests — Board-Pattern, Subject-Wise',
@@ -72,7 +75,8 @@ const TAB_SEO_CONTENT: Record<string, { default: SeoEntry; byBoard: BoardSeoMap 
           'Practice the way you\u2019ll be examined. Our mock tests mirror the exact CBSE paper pattern — structured full-length tests with proper marking schemes.',
       },
       mh: {
-        heading: 'Full-Length Maharashtra HSC Mock Tests — Board-Pattern, Subject-Wise',
+        heading:
+          'Full-Length Maharashtra HSC Mock Tests — Board-Pattern, Subject-Wise',
         subtext:
           'Practice the way you\u2019ll be examined. Our mock tests mirror the exact Maharashtra HSC paper pattern — structured full-length tests with proper marking schemes.',
       },
@@ -199,7 +203,10 @@ const HERO_CONTENT: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-function resolveBoardKey(selectedSlug: string, boardOptions: { slug: string; board: string }[]): string | null {
+function resolveBoardKey(
+  selectedSlug: string,
+  boardOptions: { slug: string; board: string }[],
+): string | null {
   if (!selectedSlug) return null;
   const selected = boardOptions.find((o) => o.slug === selectedSlug);
   if (!selected) return null;
@@ -237,7 +244,15 @@ export default function FreeResourcesPage({
     title: string;
   } | null>(null);
 
-  const { selectedSlug, boardOptions: ctxBoardOptions, setSelectedBoard } = useBoardSelection();
+  const {
+    selectedSlug,
+    boardOptions: ctxBoardOptions,
+    setSelectedBoard,
+  } = useBoardSelection();
+
+  // Determine if "All Boards" is active from URL params
+  const isAllBoardsActive = searchParams.get('allBoards') === 'true';
+
   const boardKey = useMemo(
     () => resolveBoardKey(selectedSlug, ctxBoardOptions),
     [selectedSlug, ctxBoardOptions],
@@ -285,30 +300,9 @@ export default function FreeResourcesPage({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [closeAllPillSelectsSignal]);
 
-  useEffect(() => {
-    function handleScroll() {
-      if (closeAllPillSelectsSignal) {
-        setCloseAllPillSelectsSignal(0);
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [closeAllPillSelectsSignal]);
+  // Dropdown close handling updated to ignore scroll events
 
-  useEffect(() => {
-    const filterContainer = filterScrollRef.current;
-    if (!filterContainer) return;
-    function handleHorizontalScroll() {
-      if (closeAllPillSelectsSignal) {
-        setCloseAllPillSelectsSignal(0);
-      }
-    }
-    filterContainer.addEventListener('scroll', handleHorizontalScroll, {
-      passive: true,
-    });
-    return () =>
-      filterContainer.removeEventListener('scroll', handleHorizontalScroll);
-  }, [closeAllPillSelectsSignal]);
+  // Horizontal scroll handling updated to ignore scroll events
 
   const handleCloseAllPillSelects = () => {
     setCloseAllPillSelectsSignal((prev) => prev + 1);
@@ -323,7 +317,10 @@ export default function FreeResourcesPage({
       preventScrollReset: true,
     });
     setTimeout(() => {
-      tabStripRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      tabStripRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'start',
+      });
     }, 50);
   }
 
@@ -395,7 +392,10 @@ export default function FreeResourcesPage({
       </section>
 
       {/* Tab strip */}
-      <div ref={tabStripRef} className="sticky top-0 z-10 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
+      <div
+        ref={tabStripRef}
+        className="sticky top-0 z-10 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md"
+      >
         <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
           <div className="scrollbar-hide flex min-h-14 px-4 sm:px-0 sm:min-h-18 w-full flex-1 overflow-x-auto">
             {tabNames.map((tabName) => {
@@ -435,22 +435,24 @@ export default function FreeResourcesPage({
       </div>
 
       {/* Tab-specific SEO heading */}
-      {activeTab && TAB_SEO_CONTENT[activeTab] && (() => {
-        const tabSeo = TAB_SEO_CONTENT[activeTab];
-        const seo = (boardKey && tabSeo.byBoard[boardKey]) || tabSeo.default;
-        return (
-          <div className="bg-[#f7f8ff] pt-6 pb-2 sm:pt-8 sm:pb-3 lg:pt-10 lg:pb-4">
-            <div className="custom-container space-y-2 sm:space-y-3">
-              <h2 className="text-xl font-semibold leading-[130%] tracking-tight text-[#081627] sm:text-2xl lg:text-3xl">
-                {seo.heading}
-              </h2>
-              <p className="max-w-[960px] text-sm leading-[160%] text-lightgray sm:text-base lg:text-lg">
-                {seo.subtext}
-              </p>
+      {activeTab &&
+        TAB_SEO_CONTENT[activeTab] &&
+        (() => {
+          const tabSeo = TAB_SEO_CONTENT[activeTab];
+          const seo = (boardKey && tabSeo.byBoard[boardKey]) || tabSeo.default;
+          return (
+            <div className="bg-[#f7f8ff] pt-6 pb-2 sm:pt-8 sm:pb-3 lg:pt-10 lg:pb-4">
+              <div className="custom-container space-y-2 sm:space-y-3">
+                <h2 className="text-xl font-semibold leading-[130%] tracking-tight text-[#081627] sm:text-2xl lg:text-3xl">
+                  {seo.heading}
+                </h2>
+                <p className="max-w-[960px] text-sm leading-[160%] text-lightgray sm:text-base lg:text-lg">
+                  {seo.subtext}
+                </p>
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Subject pills bar (mobile) */}
       {content && content.availableSubjects.length > 0 && (
@@ -521,24 +523,62 @@ export default function FreeResourcesPage({
           <div
             ref={filterScrollRef}
             data-pill-wrapper
-            className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+            className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 flex-wrap sm:overflow-visible"
           >
             {/* Board Selector */}
             {ctxBoardOptions.length > 0 && (
               <PillSelect
-                value={selected ? `${selected.class} · ${selected.board}` : 'All Boards'}
-                options={['All Boards', ...ctxBoardOptions.map((o) => `${o.class} · ${o.board}`)]}
+                value={
+                  isAllBoardsActive
+                    ? 'All Boards'
+                    : selected
+                    ? `${selected.class} · ${selected.board}`
+                    : 'All Boards'
+                }
+                options={[
+                  'All Boards',
+                  ...ctxBoardOptions.map((o) => `${o.class} · ${o.board}`),
+                ]}
                 onChange={(val) => {
                   if (val === 'All Boards') {
                     setSelectedBoard('');
+                    // Add allBoards=true to URL params
+                    const params = new URLSearchParams(searchParams);
+                    params.set('allBoards', 'true');
+                    params.delete('page');
+                    const segment =
+                      TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+                    const qs = params.toString();
+                    navigate(
+                      `/free-resources/${segment}${qs ? `?${qs}` : ''}`,
+                      {
+                        preventScrollReset: true,
+                      },
+                    );
                   } else {
                     const match = ctxBoardOptions.find(
                       (o) => `${o.class} · ${o.board}` === val,
                     );
-                    if (match) setSelectedBoard(match.slug);
+                    if (match) {
+                      setSelectedBoard(match.slug);
+                      // Remove allBoards param and reset to page 1
+                      const params = new URLSearchParams(searchParams);
+                      params.delete('allBoards');
+                      params.delete('page');
+                      const segment =
+                        TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+                      const qs = params.toString();
+                      navigate(
+                        `/free-resources/${segment}${qs ? `?${qs}` : ''}`,
+                        {
+                          preventScrollReset: true,
+                        },
+                      );
+                    }
                   }
                 }}
                 closeAllPillSelects={handleCloseAllPillSelects}
+                align="left"
               />
             )}
             <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">
@@ -567,8 +607,19 @@ export default function FreeResourcesPage({
             {/* Chapter/Year selector */}
             {chapterOptions.length > 1 && (
               <PillSelect
-                value={activeTab === 'Past Papers' ? (currentChapterNames || 'All Years') : selectedChapter}
-                options={activeTab === 'Past Papers' ? ['All Years', ...chapterOptions.filter(o => o !== 'All Chapters')] : chapterOptions}
+                value={
+                  activeTab === 'Past Papers'
+                    ? currentChapterNames || 'All Years'
+                    : selectedChapter
+                }
+                options={
+                  activeTab === 'Past Papers'
+                    ? [
+                        'All Years',
+                        ...chapterOptions.filter((o) => o !== 'All Chapters'),
+                      ]
+                    : chapterOptions
+                }
                 onChange={(val) => {
                   if (val === 'All Chapters' || val === 'All Years') {
                     navigateWithParams({ chapterNames: undefined });

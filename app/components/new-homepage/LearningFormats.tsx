@@ -62,8 +62,8 @@ const LearningFormats: React.FC = () => {
 
   return (
     <section className="bg-white overflow-hidden">
-      <div className="custom-container">
-        <div className="flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-2 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
+      <div className="w-full max-w-[1320px] mx-auto">
+        <div className="px-2 flex max-sm:flex-col max-sm:items-center max-sm:text-center max-sm:gap-2 justify-between items-end mb-8 sm:mb-10 md:mb-16 gap-6">
           <div className="text-left max-sm:text-center max-w-190 4xl:max-w-183.75! flex flex-col text-lightgray">
             <p className="text-base md:text-lg sm:text-xl font-medium text-lightgray mb-2 md:mb-5 leading-[120%]">
               Why Commerce Virtuals
@@ -92,7 +92,7 @@ const LearningFormats: React.FC = () => {
           </div>
         </div>
         {/* Mobile Grid View */}
-        <div className="sm:hidden grid grid-cols-1 gap-6 mb-8 p-2">
+        {/* <div className="sm:hidden grid grid-cols-1 gap-6 mb-8 p-2">
           {cards.map((card) => (
             <div key={card.id} className="flex flex-col gap-4">
               {card.img && (
@@ -112,43 +112,50 @@ const LearningFormats: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
         {/* Desktop Carousel View */}
-        <div className="hidden sm:block relative">
+        <div className="relative  w-full min-w-0 flex-1">
           <Swiper
             modules={[Navigation, Autoplay]}
             onBeforeInit={(swiper) => {
               swiperRef.current = swiper;
             }}
-            spaceBetween={32}
-            slidesPerView={3}
+            style={{ width: '100%' }}
+            spaceBetween={16}
             speed={600}
-            loop
+            loop={false}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
+            centeredSlides={false}
+            key="learning-formats-swiper"
+            slidesPerView={1}
             breakpoints={{
-              320: { slidesPerView: 1 },
-              768: { slidesPerView: 2 },
-              1280: { slidesPerView: 3 },
+              0: { slidesPerView: 1, spaceBetween: 16 },
+              320: { slidesPerView: 1, spaceBetween: 16 },
+              480: { slidesPerView: 1.2, spaceBetween: 16 },
+              640: { slidesPerView: 1.2, spaceBetween: 16 },
+              768: { slidesPerView: 2, spaceBetween: 24 },
+              1024: { slidesPerView: 3, spaceBetween: 24 },
+              1280: { slidesPerView: 4, spaceBetween: 32 },
             }}
             className="w-full"
           >
             {cards.map((card) => (
-              <SwiperSlide key={card.id} className="h-auto!">
-                <div className="flex flex-col gap-6 h-full">
+              <SwiperSlide key={card.id} className="h-auto! ">
+                <div className="w-full flex flex-col gap-4 h-full">
                   {/* img */}
                   {card.img && (
                     <img
                       src={card.img}
                       alt={card.title}
-                      className="w-full h-full object-contain"
+                      className=" w-full max-w-[250px] sm:max-w-[300px] md:max-w-full h-auto object-contain rounded-xl mx-auto"
                     />
                   )}
 
-                  <div className="flex flex-col gap-3 text-lightgray px-1">
-                    <h3 className="text-2xl font-semibold text-gray-900 leading-tight mt-6">
+                  <div className="flex flex-col gap-3 text-lightgray px-3 sm:px-1">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-semibold">
                       {card.title}
                     </h3>
-                    <p className="text-sm md:text-base text-gray-900 font-normal leading-relaxed">
+                    <p className="text-xs sm:text-sm md:text-base leading-relaxed">
                       {card.desc}
                     </p>
                   </div>

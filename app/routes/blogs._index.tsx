@@ -1,11 +1,19 @@
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/server-runtime';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { getBlogCollections } from '~/providers/blog/blog-collections';
 
 export const meta: MetaFunction = () => [
   { title: 'Blog' },
-  { name: 'description', content: 'Our news and our take on the things shaping the human-media experience.' },
+  {
+    name: 'description',
+    content:
+      'Our news and our take on the things shaping the human-media experience.',
+  },
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -17,7 +25,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       slug: b.slug,
       excerpt: b.excerpt || '',
       image: b.image || '',
-      author: typeof b.author === 'object' && b.author?.name ? b.author.name : '',
+      author:
+        typeof b.author === 'object' && b.author?.name ? b.author.name : '',
       date: b.publishedAt || '',
       category: b.category || 'General',
       readTime: b.readTime || '5 min read',
@@ -32,7 +41,11 @@ function formatDate(dateStr: string): string {
   if (!dateStr) return '';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   } catch {
     return dateStr;
   }
@@ -59,13 +72,17 @@ function BlogCard({ blog, featured }: { blog: BlogItem; featured?: boolean }) {
     >
       {blog.image ? (
         <img
-          className={`self-stretch object-cover rounded-sm ${featured ? 'h-96' : 'h-72'}`}
+          className={`self-stretch object-cover rounded-sm ${
+            featured ? 'h-96' : 'h-72'
+          }`}
           src={blog.image}
           alt={blog.title}
         />
       ) : (
         <div
-          className={`self-stretch bg-slate-100 rounded-sm flex items-center justify-center ${featured ? 'h-96' : 'h-72'}`}
+          className={`self-stretch bg-slate-100 rounded-sm flex items-center justify-center ${
+            featured ? 'h-96' : 'h-72'
+          }`}
         >
           <span className="text-slate-400 text-sm">No image</span>
         </div>
@@ -124,13 +141,10 @@ export default function BlogListingPage() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-violet-50 pt-14 md:pt-36 xl:pt-40">
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20">
-            <div className="custom-container pb-12 lg:pb-16 flex flex-col items-center gap-4">
+          <div className="custom-container pb-12 lg:pb-16 flex flex-col items-center gap-4">
             <h1 className="text-center text-slate-900 text-5xl font-semibold font-['Geist'] leading-[48px]">
               Blog
             </h1>
-            <p className="text-center text-slate-900 text-base font-normal font-['Geist'] leading-6">
-              Our news and our take on the things shaping the human-media experience.
-            </p>
           </div>
         </div>
       </section>
@@ -155,7 +169,10 @@ export default function BlogListingPage() {
 
           {/* Regular rows: 3 cards each */}
           {rows.map((row, i) => (
-            <div key={i} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9">
+            <div
+              key={i}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9"
+            >
               {row.map((blog) => (
                 <BlogCard key={blog.id} blog={blog} />
               ))}

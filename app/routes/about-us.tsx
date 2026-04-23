@@ -69,11 +69,11 @@ export default function AboutUsRoute() {
               Our Mission
             </h3>
             <p>
-              To provide high-quality,{' '}
-              <strong>concept-based education</strong> for commerce students that
-              goes beyond textbooks and local tuitions. We believe that premium,
-              expert-led commerce education should be accessible to every
-              student—not just those who can afford expensive private coaching.
+              To provide high-quality, <strong>concept-based education</strong>{' '}
+              for commerce students that goes beyond textbooks and local
+              tuitions. We believe that premium, expert-led commerce education
+              should be accessible to every student—not just those who can
+              afford expensive private coaching.
             </p>
 
             <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">
@@ -86,9 +86,9 @@ export default function AboutUsRoute() {
                 expert coaching directly to home.
               </li>
               <li>
-                <strong>Consistent Support:</strong> Local tuitions struggle with
-                mismatched syllabus timelines. Our platform provides full access
-                to recorded content so students study at their own pace.
+                <strong>Consistent Support:</strong> Local tuitions struggle
+                with mismatched syllabus timelines. Our platform provides full
+                access to recorded content so students study at their own pace.
               </li>
               <li>
                 <strong>Expert Faculty:</strong> Our mentors are carefully
@@ -214,7 +214,8 @@ export default function AboutUsRoute() {
                 Economics, Entrepreneurship
               </li>
               <li>
-                <strong>Section IA:</strong> English Reading, Vocabulary, Grammar
+                <strong>Section IA:</strong> English Reading, Vocabulary,
+                Grammar
               </li>
               <li>
                 <strong>Section III:</strong> General Test (GK, Mental Ability,
@@ -352,7 +353,7 @@ export default function AboutUsRoute() {
                 href="tel:+916291040600"
                 className="text-[#3A6BFC] font-semibold hover:underline"
               >
-                +91 62910 40 600 (Admissions & Sales)
+                +91 6291 040 600 (Admissions & Sales)
               </a>{' '}
               |{' '}
               <a

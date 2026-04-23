@@ -6,7 +6,8 @@ import { API_URL } from '~/constants';
 import { sdk } from '~/graphqlWrapper';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 
-const PROFILE_INCOMPLETE_COOKIE = 'bb-profile-incomplete=1; Path=/; Max-Age=86400; SameSite=Lax';
+const PROFILE_INCOMPLETE_COOKIE =
+  'bb-profile-incomplete=1; Path=/; Max-Age=86400; SameSite=Lax';
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -57,11 +58,18 @@ export async function action({ request }: ActionFunctionArgs) {
           request: authedRequest,
         });
         const c = customer?.activeCustomer;
-        console.log('[login] activeCustomer after auth:', c?.id, c?.firstName, c?.lastName);
+        console.log(
+          '[login] activeCustomer after auth:',
+          c?.id,
+          c?.firstName,
+          c?.lastName,
+        );
 
         if (c && !c.phoneNumber && phone) {
           try {
-            const { updateCustomer } = await import('~/providers/account/account');
+            const { updateCustomer } = await import(
+              '~/providers/account/account'
+            );
             await updateCustomer(
               { phoneNumber: phone },
               { request: authedRequest },
@@ -71,10 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
           }
         }
 
-        const isIncomplete =
-          !c ||
-          !c.firstName ||
-          c.firstName === 'BB Virtual';
+        const isIncomplete = !c || !c.firstName || c.firstName === 'BB Virtual';
 
         if (isIncomplete) {
           headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
@@ -86,13 +91,17 @@ export async function action({ request }: ActionFunctionArgs) {
         if (userBoard) {
           headers.append(
             'Set-Cookie',
-            `bb-user-board=${encodeURIComponent(userBoard)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+            `bb-user-board=${encodeURIComponent(userBoard)}; Path=/; Max-Age=${
+              60 * 60 * 24 * 365
+            }; SameSite=Lax`,
           );
         }
         if (userClass) {
           headers.append(
             'Set-Cookie',
-            `bb-user-class=${encodeURIComponent(String(userClass).replace(/\D/g, ''))}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+            `bb-user-class=${encodeURIComponent(
+              String(userClass).replace(/\D/g, ''),
+            )}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
           );
         }
       } catch (e) {

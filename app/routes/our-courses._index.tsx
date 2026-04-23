@@ -2,8 +2,15 @@ import { json, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
 export const meta: MetaFunction = () => [
-  { title: 'Commerce Courses for Class 11 & 12 – CBSE, HSC & CUET | Commerce Virtuals' },
-  { name: 'description', content: "Join India's only commerce-exclusive platform covering CBSE, Maharashtra HSC and CUET-UG. Structured courses, organised test series & live mentorship for Class 11 & 12 students." },
+  {
+    title:
+      'Commerce Courses for Class 11 & 12 – CBSE, HSC & CUET | Commerce Virtuals',
+  },
+  {
+    name: 'description',
+    content:
+      "Join India's only commerce-exclusive platform covering CBSE, Maharashtra HSC and CUET-UG. Structured courses, organised test series & live mentorship for Class 11 & 12 students.",
+  },
 ];
 import CourseListings from '~/components/our-courses/CourseListings';
 import Hero from '~/components/our-courses/Hero';

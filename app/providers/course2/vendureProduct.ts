@@ -391,11 +391,17 @@ async function convertVendureProductToCourse2Product(
             const fdName = fd.name?.toLowerCase() || '';
             const match = facultyInfos.find((f) => {
               const fName = f.name?.toLowerCase() || '';
-              return fName && (fName === fdName || fName.includes(fdName) || fdName.includes(fName));
+              return (
+                fName &&
+                (fName === fdName ||
+                  fName.includes(fdName) ||
+                  fdName.includes(fName))
+              );
             });
             if (match) {
               if (!fd.image && match.imageUrl) fd.image = match.imageUrl;
-              if (!fd.description && match.description) fd.description = match.description;
+              if (!fd.description && match.description)
+                fd.description = match.description;
             }
           }
         }

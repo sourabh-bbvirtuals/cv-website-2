@@ -344,7 +344,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
           boardOptions.find((o) => {
             const oBoard = o.board.toLowerCase();
             const oClass = o.class.replace(/\D/g, '');
-            return oBoard.includes(userBoard) && userClass && oClass.includes(userClass);
+            return (
+              oBoard.includes(userBoard) &&
+              userClass &&
+              oClass.includes(userClass)
+            );
           }) ||
           boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
         if (matched) {
@@ -357,13 +361,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (!selectedSlug && boardOptions.length > 0 && isLoggedIn) {
       const c = customerData?.activeCustomer;
       const userBoard = ((c as any)?.customFields?.board || '').toLowerCase();
-      const userClass = ((c as any)?.customFields?.studentClass || '').toString().replace(/\D/g, '');
+      const userClass = ((c as any)?.customFields?.studentClass || '')
+        .toString()
+        .replace(/\D/g, '');
       if (userBoard) {
         const matched =
           boardOptions.find((o) => {
             const oBoard = o.board.toLowerCase();
             const oClass = o.class.replace(/\D/g, '');
-            return oBoard.includes(userBoard) && userClass && oClass.includes(userClass);
+            return (
+              oBoard.includes(userBoard) &&
+              userClass &&
+              oClass.includes(userClass)
+            );
           }) ||
           boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
         if (matched) {

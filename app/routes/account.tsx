@@ -410,17 +410,26 @@ export default function AccountLayout() {
       if (stored.email?.endsWith('@bbvirtuals.tech')) {
         stored.email =
           vendureCustomer?.customFields?.contactEmail ||
-          activeCustomer?.customFields?.contactEmail || '';
+          activeCustomer?.customFields?.contactEmail ||
+          '';
       }
-      if (!stored.phone && (vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber)) {
-        stored.phone = vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
+      if (
+        !stored.phone &&
+        (vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber)
+      ) {
+        stored.phone =
+          vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
       }
       setUserData(stored);
       setProfileLoaded(true);
       return;
     }
 
-    if (vendureCustomer && vendureCustomer.firstName && vendureCustomer.firstName !== 'BB Virtual') {
+    if (
+      vendureCustomer &&
+      vendureCustomer.firstName &&
+      vendureCustomer.firstName !== 'BB Virtual'
+    ) {
       const cf = vendureCustomer.customFields;
       const email =
         cf?.contactEmail ||

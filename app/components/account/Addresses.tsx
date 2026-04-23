@@ -220,8 +220,12 @@ export function Addresses({
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    let processedValue = value;
+    if (field === 'city' && typeof value === 'string') {
+      processedValue = value.replace(/[^a-zA-Z\s]/g, '');
+    }
     setNewAddressForm((prev) => {
-      const updated = { ...prev, [field]: value };
+      const updated = { ...prev, [field]: processedValue };
 
       // Clear province when country changes
       if (field === 'countryCode') {

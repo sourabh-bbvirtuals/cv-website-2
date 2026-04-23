@@ -60,9 +60,9 @@ export default function TermsAndConditionsRoute() {
             </h3>
             <p>
               Commerce Virtuals provides online educational services including
-              video lessons, test series, performance analytics, study materials,
-              and mentorship guidance (mentorship coming soon) for CBSE,
-              Maharashtra Board HSC, and CUET-UG preparation.
+              video lessons, test series, performance analytics, study
+              materials, and mentorship guidance (mentorship coming soon) for
+              CBSE, Maharashtra Board HSC, and CUET-UG preparation.
             </p>
             <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">
               Service Limitations
@@ -77,7 +77,9 @@ export default function TermsAndConditionsRoute() {
                 Access may be subject to internet connectivity and device
                 compatibility
               </li>
-              <li>Academic success depends on individual effort and practice</li>
+              <li>
+                Academic success depends on individual effort and practice
+              </li>
             </ul>
           </Section>
 
@@ -122,8 +124,8 @@ export default function TermsAndConditionsRoute() {
             </h3>
             <p>
               You are granted a limited, non-exclusive license to access content
-              for personal educational purposes only. You may download explicitly
-              provided materials for offline viewing.
+              for personal educational purposes only. You may download
+              explicitly provided materials for offline viewing.
             </p>
             <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">
               Prohibited Use
@@ -142,8 +144,8 @@ export default function TermsAndConditionsRoute() {
                   Use content for commercial purposes without authorization
                 </li>
                 <li>
-                  Screen record or screen capture videos (except through official
-                  features)
+                  Screen record or screen capture videos (except through
+                  official features)
                 </li>
               </ul>
             </RestrictedBox>
@@ -233,16 +235,16 @@ export default function TermsAndConditionsRoute() {
               Curriculum Changes
             </h3>
             <p>
-              While we strive to keep content aligned with official curricula, we
-              are not responsible for changes to board syllabi that we may not
-              immediately reflect.
+              While we strive to keep content aligned with official curricula,
+              we are not responsible for changes to board syllabi that we may
+              not immediately reflect.
             </p>
           </Section>
 
           <Section title="8. Indemnification">
             <p>
-              You agree to indemnify and hold Commerce Virtuals harmless from any
-              claims, damages, or losses arising from:
+              You agree to indemnify and hold Commerce Virtuals harmless from
+              any claims, damages, or losses arising from:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-slate-600">
               <li>Your violation of these terms</li>
@@ -273,8 +275,8 @@ export default function TermsAndConditionsRoute() {
             </h3>
             <p>
               We may terminate your account immediately if you violate these
-              terms, engage in illegal activity, attempt to hack the platform, or
-              cheat on assessments.
+              terms, engage in illegal activity, attempt to hack the platform,
+              or cheat on assessments.
             </p>
             <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">
               Data After Termination
@@ -282,7 +284,8 @@ export default function TermsAndConditionsRoute() {
             <ul className="list-disc pl-6 space-y-2 text-slate-600">
               <li>Your account access will be immediately revoked</li>
               <li>
-                Profile data may be retained for legal compliance (up to 5 years)
+                Profile data may be retained for legal compliance (up to 5
+                years)
               </li>
               <li>Test scores are retained for historical accuracy</li>
               <li>
@@ -327,8 +330,9 @@ export default function TermsAndConditionsRoute() {
               Consumer Protection
             </h3>
             <p>
-              This agreement is subject to consumer protection laws applicable in
-              India. Nothing herein excludes or limits your rights as a consumer.
+              This agreement is subject to consumer protection laws applicable
+              in India. Nothing herein excludes or limits your rights as a
+              consumer.
             </p>
           </Section>
 
@@ -354,7 +358,7 @@ export default function TermsAndConditionsRoute() {
                         href="tel:+916291040600"
                         className="text-[#3A6BFC] hover:underline"
                       >
-                        +91 62910 40 600
+                        +91 6291 040 600
                       </a>
                       <br />
                       <strong>Email:</strong>{' '}

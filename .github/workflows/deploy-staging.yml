@@ -1,0 +1,56 @@
+name: Deploy CV Website (Staging)
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com/grepvideos-cloud
+  TAG: staging
+  NAMESPACE: bbvirtuals-staging
+  KUBE_CONTEXT: do-blr1-sandbox-bbgv
+
+jobs:
+  deploy:
+    name: Build, Push & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Login to DO Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/bbv-cv-website:${{ env.TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Restart deployment
+        run: |
+          kubectl --context $KUBE_CONTEXT rollout restart deployment/cv-website -n $NAMESPACE
+          kubectl --context $KUBE_CONTEXT rollout status deployment/cv-website -n $NAMESPACE --timeout=180s
+
+      - name: Show pod status
+        if: always()
+        run: kubectl --context $KUBE_CONTEXT get pods -n $NAMESPACE -l app=cv-website

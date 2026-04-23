@@ -166,7 +166,12 @@ export async function loader({ params, request }: DataFunctionArgs) {
             const fdName = fd.name?.toLowerCase() || '';
             const match = facultyInfos.find((f: any) => {
               const fName = f.name?.toLowerCase() || '';
-              return fName && (fName === fdName || fName.includes(fdName) || fdName.includes(fName));
+              return (
+                fName &&
+                (fName === fdName ||
+                  fName.includes(fdName) ||
+                  fdName.includes(fName))
+              );
             });
             if (match) {
               return {
@@ -200,7 +205,12 @@ export async function loader({ params, request }: DataFunctionArgs) {
             const fdName = fd.name?.toLowerCase() || '';
             const match = allTeamMembers.find((t: any) => {
               const tName = t.name?.toLowerCase() || '';
-              return tName && (tName === fdName || tName.includes(fdName) || fdName.includes(tName));
+              return (
+                tName &&
+                (tName === fdName ||
+                  tName.includes(fdName) ||
+                  fdName.includes(tName))
+              );
             });
             if (match) {
               return {

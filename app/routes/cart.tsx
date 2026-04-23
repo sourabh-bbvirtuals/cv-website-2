@@ -1,10 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useFetcher, Link, useNavigate, useSearchParams } from '@remix-run/react';
+import {
+  useLoaderData,
+  useFetcher,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { API_URL } from '~/constants';
 import { getSessionStorage } from '~/sessions';
-import { Loader2, Trash2, ShoppingCart, AlertCircle, Tag, X } from 'lucide-react';
+import {
+  Loader2,
+  Trash2,
+  ShoppingCart,
+  AlertCircle,
+  Tag,
+  X,
+} from 'lucide-react';
 
 const ACTIVE_ORDER_QUERY = `
   query {
@@ -114,9 +127,7 @@ const TRANSITION_ORDER = `
   }
 `;
 
-
 const NEXT_STATES_QUERY = `query { nextOrderStates }`;
-
 
 async function gqlFetch(
   query: string,
@@ -166,10 +177,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const addresses = addressRes.body?.data?.activeCustomer?.addresses || [];
 
     if (activeOrder?.state && activeOrder.state !== 'AddingItems') {
-      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
-      if (tr.newToken) { authToken = tr.newToken; session.set('authToken', tr.newToken); }
-      const refreshed = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
-      if (refreshed.newToken) { authToken = refreshed.newToken; session.set('authToken', refreshed.newToken); }
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
+      if (tr.newToken) {
+        authToken = tr.newToken;
+        session.set('authToken', tr.newToken);
+      }
+      const refreshed = await gqlFetch(
+        ACTIVE_ORDER_QUERY,
+        undefined,
+        authToken,
+      );
+      if (refreshed.newToken) {
+        authToken = refreshed.newToken;
+        session.set('authToken', refreshed.newToken);
+      }
       activeOrder = refreshed.body?.data?.activeOrder || activeOrder;
     }
 
@@ -219,7 +244,11 @@ export async function action({ request }: LoaderFunctionArgs) {
     updateToken(orderCheck.newToken);
     const state = orderCheck.body?.data?.activeOrder?.state;
     if (state && state !== 'AddingItems') {
-      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
       updateToken(tr.newToken);
     }
     const { body: res, newToken } = await gqlFetch(
@@ -233,34 +262,56 @@ export async function action({ request }: LoaderFunctionArgs) {
 
   if (formAction === 'applyCoupon') {
     const couponCode = body.get('couponCode')?.toString() || '';
-    if (!couponCode) return json({ error: 'Coupon code is required' }, await commit());
+    if (!couponCode)
+      return json({ error: 'Coupon code is required' }, await commit());
     const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
     updateToken(oCheck.newToken);
-    if (oCheck.body?.data?.activeOrder?.state && oCheck.body.data.activeOrder.state !== 'AddingItems') {
-      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+    if (
+      oCheck.body?.data?.activeOrder?.state &&
+      oCheck.body.data.activeOrder.state !== 'AddingItems'
+    ) {
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
       updateToken(tr.newToken);
     }
     const res = await gqlFetch(APPLY_COUPON, { couponCode }, authToken);
     updateToken(res.newToken);
     const result = res.body?.data?.applyCouponCode;
     if (result?.errorCode) {
-      return json({ couponError: result.message || 'Invalid coupon code' }, await commit());
+      return json(
+        { couponError: result.message || 'Invalid coupon code' },
+        await commit(),
+      );
     }
     return json({ couponSuccess: true, order: result }, await commit());
   }
 
   if (formAction === 'removeCoupon') {
     const couponCode = body.get('couponCode')?.toString() || '';
-    if (!couponCode) return json({ error: 'Missing coupon code' }, await commit());
+    if (!couponCode)
+      return json({ error: 'Missing coupon code' }, await commit());
     const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
     updateToken(oCheck.newToken);
-    if (oCheck.body?.data?.activeOrder?.state && oCheck.body.data.activeOrder.state !== 'AddingItems') {
-      const tr = await gqlFetch(TRANSITION_ORDER, { state: 'AddingItems' }, authToken);
+    if (
+      oCheck.body?.data?.activeOrder?.state &&
+      oCheck.body.data.activeOrder.state !== 'AddingItems'
+    ) {
+      const tr = await gqlFetch(
+        TRANSITION_ORDER,
+        { state: 'AddingItems' },
+        authToken,
+      );
       updateToken(tr.newToken);
     }
     const res = await gqlFetch(REMOVE_COUPON, { couponCode }, authToken);
     updateToken(res.newToken);
-    return json({ couponRemoved: true, order: res.body?.data?.removeCouponCode }, await commit());
+    return json(
+      { couponRemoved: true, order: res.body?.data?.removeCouponCode },
+      await commit(),
+    );
   }
 
   if (formAction === 'buyNow') {
@@ -270,10 +321,13 @@ export async function action({ request }: LoaderFunctionArgs) {
     if (!loggedInCustomer) {
       return redirect('/sign-in?redirectTo=/cart');
     }
-    const email = body.get('email')?.toString()
-      || loggedInCustomer.customFields?.contactEmail
-      || (loggedInCustomer.emailAddress?.endsWith('@bbvirtuals.tech') ? '' : loggedInCustomer.emailAddress)
-      || '';
+    const email =
+      body.get('email')?.toString() ||
+      loggedInCustomer.customFields?.contactEmail ||
+      (loggedInCustomer.emailAddress?.endsWith('@bbvirtuals.tech')
+        ? ''
+        : loggedInCustomer.emailAddress) ||
+      '';
 
     const fullName = body.get('fullName')?.toString() || '';
     const phone = body.get('phone')?.toString() || '';
@@ -297,7 +351,11 @@ export async function action({ request }: LoaderFunctionArgs) {
 
     try {
       // 0. If the order is stuck in ArrangingPayment from a previous attempt, transition back
-      const currentOrder = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+      const currentOrder = await gqlFetch(
+        ACTIVE_ORDER_QUERY,
+        undefined,
+        authToken,
+      );
       updateToken(currentOrder.newToken);
       const orderState = currentOrder.body?.data?.activeOrder?.state;
       console.log('[BuyNow] Current order state:', orderState);
@@ -311,7 +369,10 @@ export async function action({ request }: LoaderFunctionArgs) {
         updateToken(back.newToken);
         const backResult = back.body?.data?.transitionOrderToState;
         if (backResult?.errorCode) {
-          console.error('[BuyNow] Failed to reset order state:', JSON.stringify(backResult));
+          console.error(
+            '[BuyNow] Failed to reset order state:',
+            JSON.stringify(backResult),
+          );
         } else {
           console.log('[BuyNow] Order reset to AddingItems');
         }
@@ -321,21 +382,36 @@ export async function action({ request }: LoaderFunctionArgs) {
       const couponsStr = body.get('coupons')?.toString() || '[]';
       console.log('[BuyNow] Coupons from form:', couponsStr);
       let couponsToApply: string[] = [];
-      try { couponsToApply = JSON.parse(couponsStr); } catch {}
+      try {
+        couponsToApply = JSON.parse(couponsStr);
+      } catch {}
       console.log('[BuyNow] Parsed coupons to apply:', couponsToApply);
       if (couponsToApply.length > 0) {
         // Check which coupons are already on the order
-        const activeOrd = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
+        const activeOrd = await gqlFetch(
+          ACTIVE_ORDER_QUERY,
+          undefined,
+          authToken,
+        );
         updateToken(activeOrd.newToken);
-        const existingCoupons: string[] = activeOrd.body?.data?.activeOrder?.couponCodes || [];
+        const existingCoupons: string[] =
+          activeOrd.body?.data?.activeOrder?.couponCodes || [];
         for (const coupon of couponsToApply) {
           if (!existingCoupons.includes(coupon)) {
             console.log('[BuyNow] Applying coupon:', coupon);
-            const cr = await gqlFetch(APPLY_COUPON, { couponCode: coupon }, authToken);
+            const cr = await gqlFetch(
+              APPLY_COUPON,
+              { couponCode: coupon },
+              authToken,
+            );
             updateToken(cr.newToken);
             const crResult = cr.body?.data?.applyCouponCode;
             if (crResult?.errorCode) {
-              console.error('[BuyNow] Coupon apply failed:', coupon, crResult.message);
+              console.error(
+                '[BuyNow] Coupon apply failed:',
+                coupon,
+                crResult.message,
+              );
             } else {
               console.log('[BuyNow] Coupon applied:', coupon);
             }
@@ -371,7 +447,9 @@ export async function action({ request }: LoaderFunctionArgs) {
         );
       }
 
-      console.log('[BuyNow] Customer already logged in, skipping setCustomerForOrder');
+      console.log(
+        '[BuyNow] Customer already logged in, skipping setCustomerForOrder',
+      );
 
       // 2. Set billing address (same as shipping)
       console.log('[BuyNow] Setting billing address…');
@@ -404,7 +482,10 @@ export async function action({ request }: LoaderFunctionArgs) {
           authToken,
         );
         updateToken(sm.newToken);
-        console.log('[BuyNow] Shipping method response:', JSON.stringify(sm.body));
+        console.log(
+          '[BuyNow] Shipping method response:',
+          JSON.stringify(sm.body),
+        );
         if (sm.body?.errors?.length) {
           console.error('[BuyNow] Shipping method errors:', sm.body.errors);
           return json(
@@ -417,7 +498,10 @@ export async function action({ request }: LoaderFunctionArgs) {
         }
         const smResult = sm.body?.data?.setOrderShippingMethod;
         if (smResult?.errorCode) {
-          console.error('[BuyNow] Shipping method error result:', JSON.stringify(smResult));
+          console.error(
+            '[BuyNow] Shipping method error result:',
+            JSON.stringify(smResult),
+          );
           return json(
             { error: `Shipping method: ${smResult.message}` },
             await commit(),
@@ -488,26 +572,39 @@ export async function action({ request }: LoaderFunctionArgs) {
       const ebSalt = process.env.EASEBUZZ_SALT || '';
       if (!ebKey || !ebSalt) {
         console.error('[BuyNow] EASEBUZZ_KEY or EASEBUZZ_SALT not configured');
-        return json({ error: 'Payment gateway not configured' }, await commit());
+        return json(
+          { error: 'Payment gateway not configured' },
+          await commit(),
+        );
       }
 
       const amountInRupees = (order.totalWithTax / 100).toFixed(2);
       const txnid = `${order.code}_${Date.now().toString(36)}`;
       const productinfo = `Order ${order.code}`;
-      console.log('[BuyNow] Order total:', order.totalWithTax, 'couponCodes:', order.couponCodes, 'amountInRupees:', amountInRupees);
+      console.log(
+        '[BuyNow] Order total:',
+        order.totalWithTax,
+        'couponCodes:',
+        order.couponCodes,
+        'amountInRupees:',
+        amountInRupees,
+      );
 
       const { createHash } = await import('crypto');
       const hashString = `${ebKey}|${txnid}|${amountInRupees}|${productinfo}|${fullName}|${email}|||||||||||${ebSalt}`;
       const hash = createHash('sha512').update(hashString).digest('hex');
 
       const ebEnv = process.env.EASEBUZZ_ENV || 'test';
-      const ebBaseUrl = ebEnv === 'prod'
-        ? 'https://pay.easebuzz.in'
-        : 'https://testpay.easebuzz.in';
+      const ebBaseUrl =
+        ebEnv === 'prod'
+          ? 'https://pay.easebuzz.in'
+          : 'https://testpay.easebuzz.in';
 
       const url = new URL(request.url);
       const forwardedHost = request.headers.get('X-Forwarded-Host') || url.host;
-      const forwardedProto = request.headers.get('X-Forwarded-Proto') || url.protocol.replace(':', '');
+      const forwardedProto =
+        request.headers.get('X-Forwarded-Proto') ||
+        url.protocol.replace(':', '');
       const origin = `${forwardedProto}://${forwardedHost}`;
       const siteUrl = forwardedHost.includes('localhost')
         ? 'http://localhost:8080'
@@ -526,14 +623,22 @@ export async function action({ request }: LoaderFunctionArgs) {
         hash,
       });
 
-      console.log('[BuyNow] Initiating Easebuzz payment, txnid:', txnid, 'amount:', amountInRupees);
+      console.log(
+        '[BuyNow] Initiating Easebuzz payment, txnid:',
+        txnid,
+        'amount:',
+        amountInRupees,
+      );
       const ebRes = await fetch(`${ebBaseUrl}/payment/initiateLink`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: initiateBody.toString(),
       });
-      const ebJson = await ebRes.json() as any;
-      console.log('[BuyNow] Easebuzz initiate response:', JSON.stringify(ebJson));
+      const ebJson = (await ebRes.json()) as any;
+      console.log(
+        '[BuyNow] Easebuzz initiate response:',
+        JSON.stringify(ebJson),
+      );
 
       if (ebJson.status === 1 && ebJson.data) {
         const accessKey = ebJson.data;
@@ -546,9 +651,15 @@ export async function action({ request }: LoaderFunctionArgs) {
         );
       }
 
-      console.error('[BuyNow] Easebuzz initiate failed:', JSON.stringify(ebJson));
+      console.error(
+        '[BuyNow] Easebuzz initiate failed:',
+        JSON.stringify(ebJson),
+      );
       return json(
-        { error: ebJson.error_desc || ebJson.data || 'Failed to initiate payment' },
+        {
+          error:
+            ebJson.error_desc || ebJson.data || 'Failed to initiate payment',
+        },
         await commit(),
       );
     } catch (err: any) {
@@ -594,8 +705,7 @@ const ShieldIcon = () => (
 );
 
 export default function CartPage() {
-  const { activeOrder, customer, addresses } =
-    useLoaderData<typeof loader>();
+  const { activeOrder, customer, addresses } = useLoaderData<typeof loader>();
   const removeFetcher = useFetcher();
   const buyFetcher = useFetcher();
   const couponFetcher = useFetcher();
@@ -609,26 +719,37 @@ export default function CartPage() {
     0,
   );
 
-  const defaultAddr = (addresses as any[])?.find(
-    (a: any) => a.defaultShippingAddress,
-  ) || (addresses as any[])?.[0] || null;
+  const defaultAddr =
+    (addresses as any[])?.find((a: any) => a.defaultShippingAddress) ||
+    (addresses as any[])?.[0] ||
+    null;
 
   const [fullName, setFullName] = useState(
     defaultAddr?.fullName ||
-    (customer
-      ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
-      : ''),
+      (customer
+        ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
+        : ''),
   );
   const [email, setEmail] = useState(
     customer?.customFields?.contactEmail ||
-    (customer?.emailAddress?.endsWith('@bbvirtuals.tech') ? '' : customer?.emailAddress || ''),
+      (customer?.emailAddress?.endsWith('@bbvirtuals.tech')
+        ? ''
+        : customer?.emailAddress || ''),
   );
   const [phone, setPhone] = useState(() => {
-    const digits = (defaultAddr?.phoneNumber || customer?.phoneNumber || '').replace(/\D/g, '');
+    const digits = (
+      defaultAddr?.phoneNumber ||
+      customer?.phoneNumber ||
+      ''
+    ).replace(/\D/g, '');
     return digits.slice(-10);
   });
-  const [streetLine1, setStreetLine1] = useState(defaultAddr?.streetLine1 || '');
-  const [streetLine2, setStreetLine2] = useState(defaultAddr?.streetLine2 || '');
+  const [streetLine1, setStreetLine1] = useState(
+    defaultAddr?.streetLine1 || '',
+  );
+  const [streetLine2, setStreetLine2] = useState(
+    defaultAddr?.streetLine2 || '',
+  );
   const [postalCode, setPostalCode] = useState(defaultAddr?.postalCode || '');
   const [city, setCity] = useState(defaultAddr?.city || '');
   const [province, setProvince] = useState(defaultAddr?.province || '');
@@ -651,7 +772,9 @@ export default function CartPage() {
 
   // Restore billing info from sessionStorage after login redirect
   const [restoredFromSession, setRestoredFromSession] = useState(false);
-  const [savedCouponsForServer, setSavedCouponsForServer] = useState<string[]>([]);
+  const [savedCouponsForServer, setSavedCouponsForServer] = useState<string[]>(
+    [],
+  );
 
   useEffect(() => {
     if (autoBuy && !restoredFromSession) {
@@ -704,13 +827,17 @@ export default function CartPage() {
       city.trim()
     ) {
       setAutoBuyTriggered(true);
-      setSearchParams((prev) => {
-        prev.delete('autoBuy');
-        return prev;
-      }, { replace: true });
-      const couponsToSend = savedCouponsForServer.length > 0
-        ? savedCouponsForServer
-        : appliedCoupons;
+      setSearchParams(
+        (prev) => {
+          prev.delete('autoBuy');
+          return prev;
+        },
+        { replace: true },
+      );
+      const couponsToSend =
+        savedCouponsForServer.length > 0
+          ? savedCouponsForServer
+          : appliedCoupons;
       buyFetcher.submit(
         {
           _action: 'buyNow',
@@ -728,7 +855,21 @@ export default function CartPage() {
         { method: 'post' },
       );
     }
-  }, [autoBuy, restoredFromSession, autoBuyTriggered, customer, isEmpty, fullName, email, phone, streetLine1, postalCode, city, savedCouponsForServer, appliedCoupons]);
+  }, [
+    autoBuy,
+    restoredFromSession,
+    autoBuyTriggered,
+    customer,
+    isEmpty,
+    fullName,
+    email,
+    phone,
+    streetLine1,
+    postalCode,
+    city,
+    savedCouponsForServer,
+    appliedCoupons,
+  ]);
 
   const couponData = couponFetcher.data as any;
   useEffect(() => {
@@ -767,13 +908,16 @@ export default function CartPage() {
     }
   }, []);
 
-  const handlePincodeChange = useCallback((val: string) => {
-    const digits = val.replace(/\D/g, '').slice(0, 6);
-    setPostalCode(digits);
-    if (digits.length === 6) {
-      lookupPincode(digits);
-    }
-  }, [lookupPincode]);
+  const handlePincodeChange = useCallback(
+    (val: string) => {
+      const digits = val.replace(/\D/g, '').slice(0, 6);
+      setPostalCode(digits);
+      if (digits.length === 6) {
+        lookupPincode(digits);
+      }
+    },
+    [lookupPincode],
+  );
 
   const handleRemove = (lineId: string) => {
     removeFetcher.submit({ _action: 'removeItem', lineId }, { method: 'post' });
@@ -788,12 +932,15 @@ export default function CartPage() {
     );
   }, [couponCode, couponFetcher]);
 
-  const handleRemoveCoupon = useCallback((code: string) => {
-    couponFetcher.submit(
-      { _action: 'removeCoupon', couponCode: code },
-      { method: 'post' },
-    );
-  }, [couponFetcher]);
+  const handleRemoveCoupon = useCallback(
+    (code: string) => {
+      couponFetcher.submit(
+        { _action: 'removeCoupon', couponCode: code },
+        { method: 'post' },
+      );
+    },
+    [couponFetcher],
+  );
 
   const navigate = useNavigate();
 
@@ -802,12 +949,24 @@ export default function CartPage() {
 
     if (!customer) {
       try {
-        sessionStorage.setItem('cartBillingInfo', JSON.stringify({
-          fullName, email, phone, streetLine1, streetLine2, postalCode, city, province,
-          coupons: appliedCoupons,
-        }));
+        sessionStorage.setItem(
+          'cartBillingInfo',
+          JSON.stringify({
+            fullName,
+            email,
+            phone,
+            streetLine1,
+            streetLine2,
+            postalCode,
+            city,
+            province,
+            coupons: appliedCoupons,
+          }),
+        );
       } catch {}
-      navigate('/sign-in?redirectTo=' + encodeURIComponent('/cart?autoBuy=true'));
+      navigate(
+        '/sign-in?redirectTo=' + encodeURIComponent('/cart?autoBuy=true'),
+      );
       return;
     }
 
@@ -1068,7 +1227,9 @@ export default function CartPage() {
                       <input
                         type="text"
                         value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        onChange={(e) =>
+                          setCity(e.target.value.replace(/[^a-zA-Z\s]/g, ''))
+                        }
                         className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
                       />
                     </div>
@@ -1165,7 +1326,9 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
-                        disabled={couponFetcher.state !== 'idle' || !couponCode.trim()}
+                        disabled={
+                          couponFetcher.state !== 'idle' || !couponCode.trim()
+                        }
                         className="px-4 h-10 bg-[#3A6BFC] text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
                       >
                         {couponFetcher.state !== 'idle' ? (

@@ -7,9 +7,7 @@ import {
 import { DataFunctionArgs, json, redirect } from '@remix-run/server-runtime';
 import { APP_META_TITLE } from '~/constants';
 import { getTopAnnouncementsForLayout } from '~/providers/announcements';
-import {
-  getOrderByCode,
-} from '~/providers/orders/order';
+import { getOrderByCode } from '~/providers/orders/order';
 import { formatPrice } from '~/providers/cart/vendureCart';
 import {
   CheckIcon,
@@ -72,10 +70,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
       customerId: order?.customer?.id,
     });
   } catch (orderError) {
-    console.error(
-      '[Confirmation] Could not get order data:',
-      orderError,
-    );
+    console.error('[Confirmation] Could not get order data:', orderError);
   }
 
   // Try to get announcements, but don't fail if we can't
@@ -176,39 +171,62 @@ export default function Checkout2Confirmation() {
 
   const displayCode = order?.code || orderCode || '';
 
-
   // Calculate discount breakdown
-  const offerAmountDetail: {totalDiscount: number; additionalOfferAmount: number; couponOfferAmount: number} = useMemo(() => {
-    if (!order) return {totalDiscount: 0, additionalOfferAmount: 0, couponOfferAmount: 0};
+  const offerAmountDetail: {
+    totalDiscount: number;
+    additionalOfferAmount: number;
+    couponOfferAmount: number;
+  } = useMemo(() => {
+    if (!order)
+      return {
+        totalDiscount: 0,
+        additionalOfferAmount: 0,
+        couponOfferAmount: 0,
+      };
     const discounts = order?.discounts;
     const promotions = order?.promotions;
     if (!discounts || discounts.length === 0) {
-      return {totalDiscount: 0, additionalOfferAmount: 0, couponOfferAmount: 0};
+      return {
+        totalDiscount: 0,
+        additionalOfferAmount: 0,
+        couponOfferAmount: 0,
+      };
     }
     let additionalOfferAmount = 0;
     let couponOfferAmount = 0;
     // Sum all discounts (amounts may be negative, so we take absolute value)
-    const discountSum = discounts.filter((discount: any) => discount.adjustmentSource !== 'PROMOTION:237').reduce((sum: number, discount: any) => {
-      // Handle both Money object (with value property) and direct number
-      let discountAmount = 0;
-      if (discount.amountWithTax !== undefined && discount.amountWithTax !== null) {
-        discountAmount = typeof discount.amountWithTax === 'object' 
-          ? discount.amountWithTax.value || 0 
-          : discount.amountWithTax;
-      } else if (discount.amount !== undefined && discount.amount !== null) {
-        discountAmount = typeof discount.amount === 'object' 
-          ? discount.amount.value || 0 
-          : discount.amount;
-      }
-      const promotion = promotions?.find((promotion: any) => "PROMOTION:"+ promotion.id === discount.adjustmentSource);
-      if (promotion?.couponCode) {
-        couponOfferAmount = couponOfferAmount + Math.abs(discountAmount);
-      } else {
-        additionalOfferAmount = additionalOfferAmount + Math.abs(discountAmount);
-      }
-      // Take absolute value since discounts are typically negative
-      return sum + Math.abs(discountAmount);
-    }, 0);
+    const discountSum = discounts
+      .filter((discount: any) => discount.adjustmentSource !== 'PROMOTION:237')
+      .reduce((sum: number, discount: any) => {
+        // Handle both Money object (with value property) and direct number
+        let discountAmount = 0;
+        if (
+          discount.amountWithTax !== undefined &&
+          discount.amountWithTax !== null
+        ) {
+          discountAmount =
+            typeof discount.amountWithTax === 'object'
+              ? discount.amountWithTax.value || 0
+              : discount.amountWithTax;
+        } else if (discount.amount !== undefined && discount.amount !== null) {
+          discountAmount =
+            typeof discount.amount === 'object'
+              ? discount.amount.value || 0
+              : discount.amount;
+        }
+        const promotion = promotions?.find(
+          (promotion: any) =>
+            'PROMOTION:' + promotion.id === discount.adjustmentSource,
+        );
+        if (promotion?.couponCode) {
+          couponOfferAmount = couponOfferAmount + Math.abs(discountAmount);
+        } else {
+          additionalOfferAmount =
+            additionalOfferAmount + Math.abs(discountAmount);
+        }
+        // Take absolute value since discounts are typically negative
+        return sum + Math.abs(discountAmount);
+      }, 0);
     return {
       totalDiscount: discountSum,
       additionalOfferAmount,
@@ -231,27 +249,30 @@ export default function Checkout2Confirmation() {
   useEffect(() => {
     // Only execute once per order code, even if effect runs multiple times (React StrictMode)
     if (
-      order && 
-      order.state === 'PaymentSettled' && 
+      order &&
+      order.state === 'PaymentSettled' &&
       order.code &&
       purchaseEventSentRef.current !== order.code
     ) {
       // Mark this order as processed
       purchaseEventSentRef.current = order.code;
-      
+
       pushToDataLayer({
-        'event': 'purchase',
-        'ecommerce': {
-          'transaction_id': order.code,
-          'value': order.totalWithTax / 100,
-          'currency': 'INR',
-          'items': order.lines.map(line => ({
-            'item_id': line.productVariant.sku,
-            'item_name': line.customFields?.additionalInformation ? JSON.parse(line.customFields?.additionalInformation).sellerSku || null : null,
-            'price': line.unitPriceWithTax / 100,
-            'quantity': line.quantity,
-          }))
-        }
+        event: 'purchase',
+        ecommerce: {
+          transaction_id: order.code,
+          value: order.totalWithTax / 100,
+          currency: 'INR',
+          items: order.lines.map((line) => ({
+            item_id: line.productVariant.sku,
+            item_name: line.customFields?.additionalInformation
+              ? JSON.parse(line.customFields?.additionalInformation)
+                  .sellerSku || null
+              : null,
+            price: line.unitPriceWithTax / 100,
+            quantity: line.quantity,
+          })),
+        },
       });
     }
   }, [order?.state, order?.code]);
@@ -321,41 +342,41 @@ export default function Checkout2Confirmation() {
                   </p>
                 </div>
                 {order?.createdAt && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Order Date
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {new Date(order.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Order Date
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {new Date(order.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
                 )}
                 {order?.totalWithTax != null && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Total Amount
-                  </label>
-                  <p className="text-sm text-gray-900 font-semibold">
-                    {formatPrice(order.totalWithTax, order.currencyCode)}
-                  </p>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Total Amount
+                    </label>
+                    <p className="text-sm text-gray-900 font-semibold">
+                      {formatPrice(order.totalWithTax, order.currencyCode)}
+                    </p>
+                  </div>
                 )}
               </div>
 
               {/* Order Items */}
               {order?.lines && order.lines.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-900 mb-4">
-                  Items Ordered
-                </h3>
-                <div className="space-y-3">
-                  {order.lines.map((line: any) => (
+                <div className="mb-6">
+                  <h3 className="text-md font-medium text-gray-900 mb-4">
+                    Items Ordered
+                  </h3>
+                  <div className="space-y-3">
+                    {order.lines.map((line: any) => (
                       <div
                         key={line.id}
                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
@@ -372,13 +393,13 @@ export default function Checkout2Confirmation() {
                         <p className="text-sm font-medium text-gray-900">
                           {formatPrice(
                             line.linePriceWithTax,
-                            order.currencyCode
+                            order.currencyCode,
                           )}
                         </p>
                       </div>
                     ))}
+                  </div>
                 </div>
-              </div>
               )}
 
               {/* Next Steps */}
@@ -451,37 +472,34 @@ export default function Checkout2Confirmation() {
                 </h3>
                 <div className="space-y-3">
                   {order.lines.map((line: any) => (
-                      <div
-                        key={line.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        {line.featuredAsset?.preview && (
-                          <img
-                            src={line.featuredAsset.preview}
-                            alt={
-                              line.productVariant.product?.name ||
-                              line.productVariant.name
-                            }
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {line.productVariant.product?.name ||
-                              line.productVariant.name}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Quantity: {line.quantity}
-                          </p>
-                        </div>
+                    <div
+                      key={line.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    >
+                      {line.featuredAsset?.preview && (
+                        <img
+                          src={line.featuredAsset.preview}
+                          alt={
+                            line.productVariant.product?.name ||
+                            line.productVariant.name
+                          }
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">
-                          {formatPrice(
-                            line.linePriceWithTax,
-                            order.currencyCode
-                          )}
+                          {line.productVariant.product?.name ||
+                            line.productVariant.name}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Quantity: {line.quantity}
                         </p>
                       </div>
-                    ))}
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatPrice(line.linePriceWithTax, order.currencyCode)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -622,56 +640,56 @@ export default function Checkout2Confirmation() {
 
       {/* Sidebar */}
       {order && (
-      <div className="lg:col-span-1">
-        <div className="sticky top-4 space-y-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Order Summary
-            </h3>
+        <div className="lg:col-span-1">
+          <div className="sticky top-4 space-y-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Order Summary
+              </h3>
 
-            <div className="mb-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Order Code</span>
-                <span className="text-gray-900 font-mono">{displayCode}</span>
-              </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-600">Date</span>
-                <span className="text-gray-900">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-600">Status</span>
-                <span
-                  className={`font-medium ${
-                    isSuccess
-                      ? 'text-green-600'
+              <div className="mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Order Code</span>
+                  <span className="text-gray-900 font-mono">{displayCode}</span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Date</span>
+                  <span className="text-gray-900">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Status</span>
+                  <span
+                    className={`font-medium ${
+                      isSuccess
+                        ? 'text-green-600'
+                        : isPending
+                        ? 'text-yellow-600'
+                        : isCancelled
+                        ? 'text-orange-600'
+                        : 'text-red-600'
+                    }`}
+                  >
+                    {isSuccess
+                      ? 'Confirmed'
                       : isPending
-                      ? 'text-yellow-600'
+                      ? 'Processing'
                       : isCancelled
-                      ? 'text-orange-600'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {isSuccess
-                    ? 'Confirmed'
-                    : isPending
-                    ? 'Processing'
-                    : isCancelled
-                    ? 'Cancelled'
-                    : 'Failed'}
-                </span>
+                      ? 'Cancelled'
+                      : 'Failed'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Amount</span>
+                  <span className="text-gray-900 font-semibold">
+                    {formatPrice(order.totalWithTax, order.currencyCode)}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-600">Amount</span>
-                <span className="text-gray-900 font-semibold">
-                  {formatPrice(order.totalWithTax, order.currencyCode)}
-                </span>
-              </div>
-            </div>
 
-            <div className="space-y-3 mb-6">
-              {order.lines.map((line: any) => (
+              <div className="space-y-3 mb-6">
+                {order.lines.map((line: any) => (
                   <div key={line.id} className="flex items-center gap-3">
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
@@ -687,109 +705,123 @@ export default function Checkout2Confirmation() {
                     </p>
                   </div>
                 ))}
-            </div>
+              </div>
 
-            <div className="border-t border-gray-200 pt-4 space-y-2 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-900">
-                  {formatPrice((order.subTotalWithTax || 0) + (offerAmountDetail?.totalDiscount || 0), order.currencyCode)}
-                </span>
-              </div>
-              {offerAmountDetail && offerAmountDetail.additionalOfferAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Additional Offer Applied</span>
-                  <span className="font-medium">
-                    -{formatPrice(offerAmountDetail.additionalOfferAmount, order.currencyCode)}
+              <div className="border-t border-gray-200 pt-4 space-y-2 mb-6">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-900">
+                    {formatPrice(
+                      (order.subTotalWithTax || 0) +
+                        (offerAmountDetail?.totalDiscount || 0),
+                      order.currencyCode,
+                    )}
                   </span>
                 </div>
-              )}
-              {offerAmountDetail && offerAmountDetail.couponOfferAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Coupon Offer</span>
-                  <span className="font-medium">
-                    -{formatPrice(offerAmountDetail.couponOfferAmount, order.currencyCode)}
+                {offerAmountDetail &&
+                  offerAmountDetail.additionalOfferAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Additional Offer Applied</span>
+                      <span className="font-medium">
+                        -
+                        {formatPrice(
+                          offerAmountDetail.additionalOfferAmount,
+                          order.currencyCode,
+                        )}
+                      </span>
+                    </div>
+                  )}
+                {offerAmountDetail &&
+                  offerAmountDetail.couponOfferAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Coupon Offer</span>
+                      <span className="font-medium">
+                        -
+                        {formatPrice(
+                          offerAmountDetail.couponOfferAmount,
+                          order.currencyCode,
+                        )}
+                      </span>
+                    </div>
+                  )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-900">
+                    {order.shippingWithTax > 0
+                      ? formatPrice(order.shippingWithTax, order.currencyCode)
+                      : 'Free'}
                   </span>
                 </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Shipping</span>
-                <span className="text-gray-900">
-                  {order.shippingWithTax > 0
-                    ? formatPrice(order.shippingWithTax, order.currencyCode)
-                    : 'Free'}
-                </span>
-              </div>
-              <div className="border-t border-gray-200 pt-2">
-                <div className="flex justify-between">
-                  <span className="text-base font-semibold text-gray-900">
-                    Total
-                  </span>
-                  <span className="text-base font-semibold text-gray-900">
-                    {formatPrice(order.totalWithTax, order.currencyCode)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {isPending && (
-              <div className="pt-6 border-t border-gray-200">
-                <div className="flex items-start gap-2">
-                  <ClockIcon className="w-4 h-4 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-medium text-yellow-900">
-                      Payment Processing
-                    </h4>
-                    <p className="text-sm text-yellow-800 mt-1">
-                      Your payment is being verified. You'll receive an email
-                      confirmation once it's confirmed.
-                    </p>
+                <div className="border-t border-gray-200 pt-2">
+                  <div className="flex justify-between">
+                    <span className="text-base font-semibold text-gray-900">
+                      Total
+                    </span>
+                    <span className="text-base font-semibold text-gray-900">
+                      {formatPrice(order.totalWithTax, order.currencyCode)}
+                    </span>
                   </div>
                 </div>
               </div>
-            )}
 
-            {order.customer && (
-              <div className="pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  Customer
-                </h4>
-                <p className="text-sm text-gray-600">
-                  {order.customer.firstName} {order.customer.lastName}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {order.customer.emailAddress}
-                </p>
-              </div>
-            )}
-
-            {isSuccess && order.shippingAddress && (
-              <div className="pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  Shipping Address
-                </h4>
-                <div className="text-sm text-gray-600">
-                  <p>{order.shippingAddress.fullName}</p>
-                  <p>{order.shippingAddress.streetLine1}</p>
-                  {order.shippingAddress.streetLine2 && (
-                    <p>{order.shippingAddress.streetLine2}</p>
-                  )}
-                  <p>
-                    {order.shippingAddress.city},{' '}
-                    {order.shippingAddress.province}{' '}
-                    {order.shippingAddress.postalCode}
-                  </p>
-                  {order.shippingAddress.phoneNumber && (
-                    <p className="mt-1">
-                      Phone: {order.shippingAddress.phoneNumber}
-                    </p>
-                  )}
+              {isPending && (
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="flex items-start gap-2">
+                    <ClockIcon className="w-4 h-4 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-yellow-900">
+                        Payment Processing
+                      </h4>
+                      <p className="text-sm text-yellow-800 mt-1">
+                        Your payment is being verified. You'll receive an email
+                        confirmation once it's confirmed.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {order.customer && (
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                    Customer
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {order.customer.firstName} {order.customer.lastName}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {order.customer.emailAddress}
+                  </p>
+                </div>
+              )}
+
+              {isSuccess && order.shippingAddress && (
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                    Shipping Address
+                  </h4>
+                  <div className="text-sm text-gray-600">
+                    <p>{order.shippingAddress.fullName}</p>
+                    <p>{order.shippingAddress.streetLine1}</p>
+                    {order.shippingAddress.streetLine2 && (
+                      <p>{order.shippingAddress.streetLine2}</p>
+                    )}
+                    <p>
+                      {order.shippingAddress.city},{' '}
+                      {order.shippingAddress.province}{' '}
+                      {order.shippingAddress.postalCode}
+                    </p>
+                    {order.shippingAddress.phoneNumber && (
+                      <p className="mt-1">
+                        Phone: {order.shippingAddress.phoneNumber}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
     </div>
   );

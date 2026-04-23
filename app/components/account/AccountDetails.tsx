@@ -24,7 +24,8 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
     email: displayEmail,
     phone: customer?.phoneNumber || '',
     title: customer?.title || '',
-    icaiRegistrationNumber: customer?.customFields?.icaiRegistrationNumber || '',
+    icaiRegistrationNumber:
+      customer?.customFields?.icaiRegistrationNumber || '',
     gstin: customer?.customFields?.gstin || '',
     dateOfBirth: customer?.customFields?.dateOfBirth || '',
     gender: customer?.customFields?.gender || '',
@@ -70,7 +71,8 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
       email: displayEmail,
       phone: customer?.phoneNumber || '',
       title: customer?.title || '',
-      icaiRegistrationNumber: customer?.customFields?.icaiRegistrationNumber || '',
+      icaiRegistrationNumber:
+        customer?.customFields?.icaiRegistrationNumber || '',
       gstin: customer?.customFields?.gstin || '',
       dateOfBirth: customer?.customFields?.dateOfBirth || '',
       gender: customer?.customFields?.gender || '',
@@ -278,7 +280,9 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
             </label>
             <select
               value={formData.studentClass}
-              onChange={(e) => handleInputChange('studentClass', e.target.value)}
+              onChange={(e) =>
+                handleInputChange('studentClass', e.target.value)
+              }
               disabled={!isEditing}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
@@ -294,7 +298,9 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
             <input
               type="tel"
               value={formData.icaiRegistrationNumber}
-              onChange={(e) => handleInputChange('icaiRegistrationNumber', e.target.value)}
+              onChange={(e) =>
+                handleInputChange('icaiRegistrationNumber', e.target.value)
+              }
               disabled={!isEditing}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
