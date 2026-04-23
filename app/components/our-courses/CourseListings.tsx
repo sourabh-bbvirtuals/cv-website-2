@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, {
   useState,
   useRef,
@@ -5,6 +6,13 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+} from '@floating-ui/react-dom';
 import { Link, useRouteLoaderData, useSearchParams } from '@remix-run/react';
 import { Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -265,6 +273,75 @@ const CheckIcon = () => (
   </svg>
 );
 
+function FilterDropdown({
+  label,
+  children,
+  isOpen,
+  onOpenChange,
+  align = 'left',
+  triggerClassName = '',
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  align?: 'left' | 'right';
+  triggerClassName?: string;
+}) {
+  const { x, y, strategy, refs } = useFloating({
+    open: isOpen,
+    onOpenChange,
+    placement: align === 'left' ? 'bottom-start' : 'bottom-end',
+    strategy: 'fixed',
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        refs.reference.current &&
+        !refs.reference.current.contains(event.target as Node) &&
+        refs.floating.current &&
+        !refs.floating.current.contains(event.target as Node)
+      ) {
+        onOpenChange(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onOpenChange, refs]);
+
+  return (
+    <div className="shrink-0">
+      <button
+        ref={refs.setReference}
+        onClick={() => onOpenChange(!isOpen)}
+        className={triggerClassName}
+      >
+        {label}
+      </button>
+      {isOpen &&
+        createPortal(
+          <div
+            ref={refs.setFloating}
+            style={{
+              position: strategy,
+              top: y ?? 0,
+              left: x ?? 0,
+              zIndex: 9999,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {children}
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}
+
 // --- Main Exported Component ---
 export default function CourseListings({
   products = [],
@@ -334,23 +411,6 @@ export default function CourseListings({
 
   const filterScrollRef = useRef<HTMLDivElement>(null);
   const filtersContainerRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (activeModal && filtersContainerRef.current) {
-        const target = event.target as Node;
-        if (!filtersContainerRef.current.contains(target)) {
-          setActiveModal(null);
-        }
-      }
-    }
-
-    if (activeModal) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [activeModal]);
 
   // Dropdowns remain open on scroll to stay anchored to the respective filters
 
@@ -509,140 +569,138 @@ export default function CourseListings({
             </div>
 
             <div
-              className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 flex-wrap sm:overflow-visible"
+              className="relative scrollbar-hide overflow-x-auto overflow-y-visible flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
               ref={filterScrollRef}
             >
               {/* Board Selector — visible for guests */}
               {!isLoggedIn && boardOptions.length > 0 && (
-                <div className="relative shrink-0">
-                  <button
-                    onClick={() =>
-                      setActiveModal(activeModal === 'board' ? null : 'board')
-                    }
-                    className={getBtnClass(activeModal === 'board')}
-                  >
-                    <span className="font-semibold text-sm sm:text-base">
-                      {selectedBoard
-                        ? `${selectedBoard.class} · ${selectedBoard.board}`
-                        : 'All Boards'}
-                    </span>
-                    <ChevronDown isOpen={activeModal === 'board'} />
-                  </button>
-                  {activeModal === 'board' && (
-                    <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
-                      <button
-                        onClick={() => {
-                          setSelectedBoard('');
-                          setActiveModal(null);
-                        }}
-                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
-                          !selectedSlug
-                            ? 'bg-lightgray/5 text-lightgray font-medium'
-                            : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
-                        }`}
-                      >
-                        All Boards
-                        {!selectedSlug && <CheckIcon />}
-                      </button>
-                      <div className="border-t border-lightgray/10" />
-                      {boardOptions.map((item) => (
-                        <button
-                          key={item.slug}
-                          onClick={() => {
-                            setSelectedBoard(item.slug);
-                            setActiveModal(null);
-                          }}
-                          className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
-                            selectedSlug === item.slug
-                              ? 'bg-lightgray/5 text-lightgray font-medium'
-                              : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
-                          }`}
-                        >
-                          {item.class} · {item.board} Board
-                          {selectedSlug === item.slug && <CheckIcon />}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              {/* SortBy Dropdown */}
-              <div className="relative shrink-0">
-                <button
-                  onClick={() =>
-                    setActiveModal(activeModal === 'sort' ? null : 'sort')
+                <FilterDropdown
+                  isOpen={activeModal === 'board'}
+                  onOpenChange={(open) => setActiveModal(open ? 'board' : null)}
+                  triggerClassName={getBtnClass(activeModal === 'board')}
+                  label={
+                    <>
+                      <span className="font-semibold text-sm sm:text-base">
+                        {selectedBoard
+                          ? `${selectedBoard.class} · ${selectedBoard.board}`
+                          : 'All Boards'}
+                      </span>
+                      <ChevronDown isOpen={activeModal === 'board'} />
+                    </>
                   }
-                  className={getBtnClass(activeModal === 'sort')}
                 >
-                  <span className="hidden sm:inline">Sort By:&nbsp;</span>
-                  <span className="font-semibold text-sm sm:text-base">
-                    {selectedSort || 'Relevant'}
-                  </span>
-                  <ChevronDown isOpen={activeModal === 'sort'} />
-                </button>
-                {activeModal === 'sort' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[180px] w-fit  sm:w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
-                    {[
-                      'Relevant',
-                      'Most Popular',
-                      'Price (High-Low)',
-                      'Price (Low-High)',
-                    ].map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => {
-                          setSelectedSort(opt);
-                          setActiveModal(null);
-                        }}
-                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors ${
-                          selectedSort === opt
-                            ? 'bg-lightgray/5 text-lightgray font-medium'
-                            : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Subjects Dropdown */}
-              <div className="relative shrink-0">
-                <button
-                  onClick={() =>
-                    setActiveModal(
-                      activeModal === 'subjects' ? null : 'subjects',
-                    )
-                  }
-                  className={getBtnClass(activeModal === 'subjects')}
-                >
-                  {selectedSubjects ? (
-                    <span className="font-semibold text-sm sm:text-base">
-                      {selectedSubjects}
-                    </span>
-                  ) : (
-                    <span className="text-sm sm:text-base">Subjects</span>
-                  )}
-                  <ChevronDown isOpen={activeModal === 'subjects'} />
-                </button>
-                {activeModal === 'subjects' && (
-                  <div className="absolute top-full right-0 sm:left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <div className="min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
                     <button
                       onClick={() => {
-                        setSelectedSubjects('');
+                        setSelectedBoard('');
                         setActiveModal(null);
                       }}
                       className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
-                        !selectedSubjects
+                        !selectedSlug
                           ? 'bg-lightgray/5 text-lightgray font-medium'
                           : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
                       }`}
                     >
-                      All Subjects
-                      {!selectedSubjects && <CheckIcon />}
+                      All Boards
+                      {!selectedSlug && <CheckIcon />}
                     </button>
                     <div className="border-t border-lightgray/10" />
+                    {boardOptions.map((item) => (
+                      <button
+                        key={item.slug}
+                        onClick={() => {
+                          setSelectedBoard(item.slug);
+                          setActiveModal(null);
+                        }}
+                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
+                          selectedSlug === item.slug
+                            ? 'bg-lightgray/5 text-lightgray font-medium'
+                            : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                        }`}
+                      >
+                        {item.class} · {item.board} Board
+                        {selectedSlug === item.slug && <CheckIcon />}
+                      </button>
+                    ))}
+                  </div>
+                </FilterDropdown>
+              )}
+              <FilterDropdown
+                isOpen={activeModal === 'sort'}
+                onOpenChange={(open) => setActiveModal(open ? 'sort' : null)}
+                triggerClassName={getBtnClass(activeModal === 'sort')}
+                label={
+                  <>
+                    <span className="hidden sm:inline">Sort By:&nbsp;</span>
+                    <span className="font-semibold text-sm sm:text-base">
+                      {selectedSort || 'Relevant'}
+                    </span>
+                    <ChevronDown isOpen={activeModal === 'sort'} />
+                  </>
+                }
+              >
+                <div className="min-w-[180px] w-fit sm:w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  {[
+                    'Relevant',
+                    'Most Popular',
+                    'Price (High-Low)',
+                    'Price (Low-High)',
+                  ].map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        setSelectedSort(opt);
+                        setActiveModal(null);
+                      }}
+                      className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors ${
+                        selectedSort === opt
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </FilterDropdown>
+
+              <FilterDropdown
+                isOpen={activeModal === 'subjects'}
+                onOpenChange={(open) =>
+                  setActiveModal(open ? 'subjects' : null)
+                }
+                triggerClassName={getBtnClass(activeModal === 'subjects')}
+                align="right"
+                label={
+                  <>
+                    {selectedSubjects ? (
+                      <span className="font-semibold text-sm sm:text-base">
+                        {selectedSubjects}
+                      </span>
+                    ) : (
+                      <span className="text-sm sm:text-base">Subjects</span>
+                    )}
+                    <ChevronDown isOpen={activeModal === 'subjects'} />
+                  </>
+                }
+              >
+                <div className="min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <button
+                    onClick={() => {
+                      setSelectedSubjects('');
+                      setActiveModal(null);
+                    }}
+                    className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors flex items-center justify-between ${
+                      !selectedSubjects
+                        ? 'bg-lightgray/5 text-lightgray font-medium'
+                        : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                    }`}
+                  >
+                    All Subjects
+                    {!selectedSubjects && <CheckIcon />}
+                  </button>
+                  <div className="border-t border-lightgray/10" />
+                  <div className="max-h-[300px] overflow-y-auto">
                     {subjectOptions.map((subject) => (
                       <button
                         key={subject}
@@ -661,42 +719,43 @@ export default function CourseListings({
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              </FilterDropdown>
 
-              {/* Faculty Dropdown */}
-              <div className="relative shrink-0">
-                <button
-                  onClick={() =>
-                    setActiveModal(activeModal === 'faculty' ? null : 'faculty')
-                  }
-                  className={getBtnClass(activeModal === 'faculty')}
-                >
-                  <span className="text-sm sm:text-base">Faculty</span>
-                  <ChevronDown isOpen={activeModal === 'faculty'} />
-                </button>
-                {activeModal === 'faculty' && (
-                  <div className="absolute top-full right-0 mt-2 z-[9999] min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
-                    <button
-                      onClick={() => setSelectedFaculties([])}
-                      className={`w-full text-left px-4 py-3 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
+              <FilterDropdown
+                isOpen={activeModal === 'faculty'}
+                onOpenChange={(open) => setActiveModal(open ? 'faculty' : null)}
+                triggerClassName={getBtnClass(activeModal === 'faculty')}
+                align="right"
+                label={
+                  <>
+                    <span className="text-sm sm:text-base">Faculty</span>
+                    <ChevronDown isOpen={activeModal === 'faculty'} />
+                  </>
+                }
+              >
+                <div className="min-w-[200px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <button
+                    onClick={() => setSelectedFaculties([])}
+                    className={`w-full text-left px-4 py-3 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
+                      selectedFaculties.length === 0
+                        ? 'bg-lightgray/5 text-lightgray font-medium'
+                        : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                    }`}
+                  >
+                    <div
+                      className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center ${
                         selectedFaculties.length === 0
-                          ? 'bg-lightgray/5 text-lightgray font-medium'
-                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'border-lightgray/30 bg-white'
                       }`}
                     >
-                      <div
-                        className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center ${
-                          selectedFaculties.length === 0
-                            ? 'bg-blue-500 border-blue-500'
-                            : 'border-lightgray/30 bg-white'
-                        }`}
-                      >
-                        {selectedFaculties.length === 0 && <CheckIcon />}
-                      </div>
-                      <span>All</span>
-                    </button>
-                    <div className="border-t border-lightgray/10" />
+                      {selectedFaculties.length === 0 && <CheckIcon />}
+                    </div>
+                    <span>All</span>
+                  </button>
+                  <div className="border-t border-lightgray/10" />
+                  <div className="max-h-[300px] overflow-y-auto">
                     {facultyOptions.map((faculty, idx) => (
                       <button
                         key={faculty}
@@ -739,59 +798,60 @@ export default function CourseListings({
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              </FilterDropdown>
 
-              {/* Language Dropdown */}
-              <div className="relative shrink-0">
-                <button
-                  onClick={() =>
-                    setActiveModal(
-                      activeModal === 'language' ? null : 'language',
-                    )
-                  }
-                  className={getBtnClass(activeModal === 'language')}
-                >
-                  {selectedLanguage.length > 0 ? (
-                    <span className="font-semibold flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
-                      <span className="hidden sm:inline">Language</span>
-                      <span className="sm:hidden">Lang</span>
-                      <span className="text-white text-xs bg-blue-500 px-2.5 py-1 rounded-full">
-                        {selectedLanguage.length}
+              <FilterDropdown
+                isOpen={activeModal === 'language'}
+                onOpenChange={(open) =>
+                  setActiveModal(open ? 'language' : null)
+                }
+                triggerClassName={getBtnClass(activeModal === 'language')}
+                align="right"
+                label={
+                  <>
+                    {selectedLanguage.length > 0 ? (
+                      <span className="font-semibold flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
+                        <span className="hidden sm:inline">Language</span>
+                        <span className="sm:hidden">Lang</span>
+                        <span className="text-white text-xs bg-blue-500 px-2.5 py-1 rounded-full">
+                          {selectedLanguage.length}
+                        </span>
                       </span>
-                    </span>
-                  ) : (
-                    <span className="hidden sm:inline text-sm sm:text-base">
-                      Language
-                    </span>
-                  )}
-                  {selectedLanguage.length === 0 && (
-                    <span className="sm:hidden text-sm">Lang</span>
-                  )}
-                  <ChevronDown isOpen={activeModal === 'language'} />
-                </button>
-                {activeModal === 'language' && (
-                  <div className="absolute top-full right-0 sm:left-0 mt-2 z-[9999] min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
-                    <button
-                      onClick={() => setSelectedLanguage([])}
-                      className={`w-full text-left px-4 py-2 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
+                    ) : (
+                      <span className="hidden sm:inline text-sm sm:text-base">
+                        Language
+                      </span>
+                    )}
+                    {selectedLanguage.length === 0 && (
+                      <span className="sm:hidden text-sm">Lang</span>
+                    )}
+                    <ChevronDown isOpen={activeModal === 'language'} />
+                  </>
+                }
+              >
+                <div className="min-w-[180px] w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <button
+                    onClick={() => setSelectedLanguage([])}
+                    className={`w-full text-left px-4 py-2 text-sm lg:text-base font-medium transition-colors flex items-center gap-3 ${
+                      selectedLanguage.length === 0
+                        ? 'bg-lightgray/5 text-lightgray font-medium'
+                        : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                    }`}
+                  >
+                    <div
+                      className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center ${
                         selectedLanguage.length === 0
-                          ? 'bg-lightgray/5 text-lightgray font-medium'
-                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'border-lightgray/30 bg-white'
                       }`}
                     >
-                      <div
-                        className={`md:w-5 md:h-5 w-4 h-4 rounded-sm border flex items-center justify-center ${
-                          selectedLanguage.length === 0
-                            ? 'bg-blue-500 border-blue-500'
-                            : 'border-lightgray/30 bg-white'
-                        }`}
-                      >
-                        {selectedLanguage.length === 0 && <CheckIcon />}
-                      </div>
-                      <span>All</span>
-                    </button>
-                    <div className="border-t border-lightgray/10" />
+                      {selectedLanguage.length === 0 && <CheckIcon />}
+                    </div>
+                    <span>All</span>
+                  </button>
+                  <div className="border-t border-lightgray/10" />
+                  <div className="max-h-[300px] overflow-y-auto">
                     {languageOptions.map((lang) => (
                       <button
                         key={lang}
@@ -821,43 +881,42 @@ export default function CourseListings({
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              </FilterDropdown>
 
-              {/* Pricing Dropdown */}
-              <div className="relative shrink-0">
-                <button
-                  onClick={() =>
-                    setActiveModal(activeModal === 'pricing' ? null : 'pricing')
-                  }
-                  className={getBtnClass(activeModal === 'pricing')}
-                >
-                  <span className="text-sm sm:text-base">
-                    {selectedPricing ? `${selectedPricing}` : 'Pricing'}
-                  </span>
-                  <ChevronDown isOpen={activeModal === 'pricing'} />
-                </button>
-                {activeModal === 'pricing' && (
-                  <div className="absolute top-full left-0 mt-2 z-[9999] min-w-[120px] w-fit sm:w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
-                    {['All', 'Free', 'Paid'].map((price) => (
-                      <button
-                        key={price}
-                        onClick={() => {
-                          setSelectedPricing(price);
-                          setActiveModal(null);
-                        }}
-                        className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors ${
-                          selectedPricing === price
-                            ? 'bg-lightgray/5 text-lightgray font-medium'
-                            : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
-                        }`}
-                      >
-                        {price}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <FilterDropdown
+                isOpen={activeModal === 'pricing'}
+                onOpenChange={(open) => setActiveModal(open ? 'pricing' : null)}
+                triggerClassName={getBtnClass(activeModal === 'pricing')}
+                align="right"
+                label={
+                  <>
+                    <span className="text-sm sm:text-base">
+                      {selectedPricing ? `${selectedPricing}` : 'Pricing'}
+                    </span>
+                    <ChevronDown isOpen={activeModal === 'pricing'} />
+                  </>
+                }
+              >
+                <div className="min-w-[120px] w-fit sm:w-max rounded-xl border border-[rgba(8,22,39,0.1)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                  {['All', 'Free', 'Paid'].map((price) => (
+                    <button
+                      key={price}
+                      onClick={() => {
+                        setSelectedPricing(price);
+                        setActiveModal(null);
+                      }}
+                      className={`w-full text-left px-5 py-2.5 text-sm lg:text-base font-medium transition-colors ${
+                        selectedPricing === price
+                          ? 'bg-lightgray/5 text-lightgray font-medium'
+                          : 'text-lightgray/80 hover:bg-lightgray/5 hover:text-lightgray'
+                      }`}
+                    >
+                      {price}
+                    </button>
+                  ))}
+                </div>
+              </FilterDropdown>
 
               <button
                 onClick={handleResetFilters}
