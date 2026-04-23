@@ -534,7 +534,7 @@ export default function CourseListings({
   }, [activeModal]);
 
   return (
-    <section className="w-full bg-white py-10 lg:py-12 4xl:py-16!">
+    <section className="w-full bg-white py-4 lg:py-8 4xl:py-16!">
       <div className="custom-container">
         {/* {activeModal && (
           <button

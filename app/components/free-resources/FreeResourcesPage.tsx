@@ -249,6 +249,10 @@ export default function FreeResourcesPage({
     boardOptions: ctxBoardOptions,
     setSelectedBoard,
   } = useBoardSelection();
+
+  // Determine if "All Boards" is active from URL params
+  const isAllBoardsActive = searchParams.get('allBoards') === 'true';
+
   const boardKey = useMemo(
     () => resolveBoardKey(selectedSlug, ctxBoardOptions),
     [selectedSlug, ctxBoardOptions],
@@ -525,7 +529,9 @@ export default function FreeResourcesPage({
             {ctxBoardOptions.length > 0 && (
               <PillSelect
                 value={
-                  selected
+                  isAllBoardsActive
+                    ? 'All Boards'
+                    : selected
                     ? `${selected.class} · ${selected.board}`
                     : 'All Boards'
                 }
@@ -536,11 +542,39 @@ export default function FreeResourcesPage({
                 onChange={(val) => {
                   if (val === 'All Boards') {
                     setSelectedBoard('');
+                    // Add allBoards=true to URL params
+                    const params = new URLSearchParams(searchParams);
+                    params.set('allBoards', 'true');
+                    params.delete('page');
+                    const segment =
+                      TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+                    const qs = params.toString();
+                    navigate(
+                      `/free-resources/${segment}${qs ? `?${qs}` : ''}`,
+                      {
+                        preventScrollReset: true,
+                      },
+                    );
                   } else {
                     const match = ctxBoardOptions.find(
                       (o) => `${o.class} · ${o.board}` === val,
                     );
-                    if (match) setSelectedBoard(match.slug);
+                    if (match) {
+                      setSelectedBoard(match.slug);
+                      // Remove allBoards param and reset to page 1
+                      const params = new URLSearchParams(searchParams);
+                      params.delete('allBoards');
+                      params.delete('page');
+                      const segment =
+                        TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+                      const qs = params.toString();
+                      navigate(
+                        `/free-resources/${segment}${qs ? `?${qs}` : ''}`,
+                        {
+                          preventScrollReset: true,
+                        },
+                      );
+                    }
                   }
                 }}
                 closeAllPillSelects={handleCloseAllPillSelects}
