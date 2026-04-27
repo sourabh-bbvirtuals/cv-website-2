@@ -1,6 +1,10 @@
 export default {
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        oswald: ['Oswald', 'sans-serif'],
+      },
+    },
   },
   plugins: [
     require('@tailwindcss/forms'),

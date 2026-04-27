@@ -6,9 +6,15 @@ import {
   Instagram,
   Send,
   Youtube,
+  ArrowRight,
 } from 'lucide-react';
+import { useLocation } from '@remix-run/react';
 
 const Footer = () => {
+  const location = useLocation();
+
+  const isOlyampiadPath = location.pathname.startsWith('/olympiad');
+
   const footerLinks = [
     {
       title: 'Know More',
@@ -33,10 +39,11 @@ const Footer = () => {
 
   return (
     <footer
-      className="w-full bg-[#f7f8ff]  pt-10 lg:pt-25 "
+      className="w-full  pt-10 lg:pt-25 "
       style={{
-        background:
-          'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 0, 0) )',
+        background: isOlyampiadPath
+          ? 'linear-gradient(360deg, #3A7FFF 0%, rgba(229, 246, 254, 1) 10%, rgba(229, 246, 254, 1)'
+          : 'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 0, 0) )',
       }}
     >
       {/* 1. Main Footer Wrapper with Bottom-to-Top Gradient */}
@@ -44,20 +51,36 @@ const Footer = () => {
         {/* CTA Section */}
         <div className="px-4 text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-semibold text-lightgray mb-2 md:mb-4">
-            Call us Directly for Purchase Related Queries
+            {isOlyampiadPath
+              ? 'Win your seat.'
+              : 'Call us Directly for Purchase Related Queries'}
           </h2>
-          <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
-            Get instant assistance from our team for any purchase-related
-            questions. <br />
-            We're here to help you make the right decision, faster.
-          </p>
-          <a
-            href="tel:8272332948"
-            className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[325px] md:w-[323px] h-[42px] md:h-[56px] font-normal md:font-medium py-4 px-6 md:text-xl leading-[120%]!"
-          >
-            <Phone size={20} fill="currentColor" />
-            Call Now (827-233-2948)
-          </a>
+          {isOlyampiadPath ? (
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+              Free entry. Closes 3 May, 9:00 AM IST.
+            </p>
+          ) : (
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+              Get instant assistance from our team for any purchase-related
+              questions. <br />
+              We're here to help you make the right decision, faster.
+            </p>
+          )}
+          {isOlyampiadPath ? (
+            <div className="flex items-center justify-center text-center">
+              <div className="flex cursor-pointer text-xl font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-8 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]">
+                Register For Free <ArrowRight className="w-6 h-6" />
+              </div>
+            </div>
+          ) : (
+            <a
+              href="tel:8272332948"
+              className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[325px] md:w-[323px] h-[42px] md:h-[56px] font-normal md:font-medium py-4 px-6 md:text-xl leading-[120%]!"
+            >
+              <Phone size={20} fill="currentColor" />
+              Call Now (827-233-2948)
+            </a>
+          )}
         </div>
 
         {/* 2. Watermark Text Container */}
