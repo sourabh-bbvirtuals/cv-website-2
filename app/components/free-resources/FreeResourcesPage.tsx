@@ -1,10 +1,10 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from '@remix-run/react';
 import { ChevronDown, Play, ServerOff, X } from 'lucide-react';
 import { PillSelect } from '../ui/PillSelect';
 import { ContentCardItem } from './ContentCard';
 import { LimitReachedOverlay } from './LimitReachedOverlay';
-import type { Board, ClassLevel, TabContentResponse } from '~/utils/bbServer';
+import type { TabContentResponse } from '~/utils/bbServer';
 import {
   MockTestsIcon,
   FreeVideosIcon,
@@ -12,6 +12,7 @@ import {
   QuizzesIcon,
   StudyNotesIcon,
 } from '../new-homepage/Icons';
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
 // ── Tab config ─────────────────────────────────────────────────
 
@@ -54,41 +55,171 @@ const TAB_META: Record<
   },
 };
 
-const TAB_SEO_CONTENT: Record<string, { heading: string; subtext: string }> = {
+type SeoEntry = { heading: string; subtext: string };
+type BoardSeoMap = Record<string, SeoEntry>;
+
+const TAB_SEO_CONTENT: Record<
+  string,
+  { default: SeoEntry; byBoard: BoardSeoMap }
+> = {
   'Mock Tests': {
-    heading: 'Full-Length Mock Tests — Board-Pattern, Subject-Wise',
-    subtext:
-      'Practice the way you\u2019ll be examined. Our mock tests mirror the exact CBSE and Maharashtra HSC paper patterns — structured full-length tests with proper marking schemes. The organised test series the big YouTube channels can\u2019t give you.',
+    default: {
+      heading: 'Full-Length Mock Tests — Board-Pattern, Subject-Wise',
+      subtext:
+        'Practice the way you\u2019ll be examined. Our mock tests mirror the exact CBSE and Maharashtra HSC paper patterns — structured full-length tests with proper marking schemes.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Full-Length CBSE Mock Tests — Board-Pattern, Subject-Wise',
+        subtext:
+          'Practice the way you\u2019ll be examined. Our mock tests mirror the exact CBSE paper pattern — structured full-length tests with proper marking schemes.',
+      },
+      mh: {
+        heading:
+          'Full-Length Maharashtra HSC Mock Tests — Board-Pattern, Subject-Wise',
+        subtext:
+          'Practice the way you\u2019ll be examined. Our mock tests mirror the exact Maharashtra HSC paper pattern — structured full-length tests with proper marking schemes.',
+      },
+      cuet: {
+        heading: 'Full-Length CUET-UG Mock Tests — Domain & General Test',
+        subtext:
+          'Practice the way you\u2019ll be examined. Full-length CUET mock tests covering Accountancy, BST, Economics, English and General Test — with proper marking schemes.',
+      },
+    },
   },
   Quizzes: {
-    heading: 'Topic-Wise MCQ Quizzes — CBSE, HSC & CUET Ready',
-    subtext:
-      'Nail the concepts before the exam does. Bite-sized MCQ quizzes across every chapter — from Partnership Accounts to Consumer Protection — with instant feedback and explanations. Perfect for CUET prep and quick board revision.',
+    default: {
+      heading: 'Topic-Wise MCQ Quizzes — CBSE, HSC & CUET Ready',
+      subtext:
+        'Nail the concepts before the exam does. Bite-sized MCQ quizzes across every chapter — with instant feedback and explanations.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Topic-Wise MCQ Quizzes — CBSE Commerce',
+        subtext:
+          'Bite-sized MCQ quizzes aligned to the CBSE syllabus — from Partnership Accounts to Consumer Protection — with instant feedback and explanations.',
+      },
+      mh: {
+        heading: 'Topic-Wise MCQ Quizzes — Maharashtra HSC Commerce',
+        subtext:
+          'Bite-sized MCQ quizzes aligned to the Maharashtra HSC syllabus — BK, OCM, Economics and SP — with instant feedback and explanations.',
+      },
+      cuet: {
+        heading: 'Topic-Wise MCQ Quizzes — CUET-UG Commerce',
+        subtext:
+          'Bite-sized MCQ quizzes for CUET domain subjects — Accountancy, BST, Economics, Entrepreneurship — with instant feedback and explanations.',
+      },
+    },
   },
   'Past Papers': {
-    heading: 'Previous Year Question Papers — CBSE & Maharashtra Board',
-    subtext:
-      'Explore past papers from CBSE Class 11 & 12 and Maharashtra HSC board exams — with answer keys — so you know exactly what the examiner is looking for.',
+    default: {
+      heading: 'Previous Year Question Papers — CBSE & Maharashtra Board',
+      subtext:
+        'Explore past papers from CBSE and Maharashtra HSC board exams — with answer keys — so you know exactly what the examiner is looking for.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Previous Year Question Papers — CBSE Commerce',
+        subtext:
+          'Explore CBSE past papers with answer keys — so you know exactly what the examiner is looking for.',
+      },
+      mh: {
+        heading: 'Previous Year Question Papers — Maharashtra HSC Commerce',
+        subtext:
+          'Explore Maharashtra HSC past papers with answer keys — so you know exactly what the examiner is looking for.',
+      },
+      cuet: {
+        heading: 'Previous Year Question Papers — CUET-UG',
+        subtext:
+          'Explore CUET-UG past papers with answer keys — so you know exactly what the examiner is looking for.',
+      },
+    },
   },
   'Free Videos': {
-    heading: 'Free Concept Videos — Commerce-Only, Clutter-Free',
-    subtext:
-      'No science detours. No engineering tangents. Every video is made for commerce students, by commerce-focused educators. Start with the chapters that confuse you most — Partnership, Financial Statements, or Macro.',
+    default: {
+      heading: 'Free Concept Videos — Commerce-Only, Clutter-Free',
+      subtext:
+        'No science detours. No engineering tangents. Every video is made for commerce students, by commerce-focused educators.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Free CBSE Commerce Concept Videos',
+        subtext:
+          'Every video is aligned to the CBSE commerce syllabus — start with the chapters that confuse you most.',
+      },
+      mh: {
+        heading: 'Free Maharashtra HSC Commerce Concept Videos',
+        subtext:
+          'Every video is aligned to the Maharashtra HSC commerce syllabus — start with the chapters that confuse you most.',
+      },
+      cuet: {
+        heading: 'Free CUET-UG Commerce Concept Videos',
+        subtext:
+          'Every video is built for CUET-UG domain prep — start with the subjects that confuse you most.',
+      },
+    },
   },
   'Study Notes': {
-    heading: 'Exam-Ready Study Notes — CBSE & Maharashtra HSC',
-    subtext:
-      'Crisp, syllabus-aligned notes that cut the fluff and keep the marks. Download chapter summaries, formula sheets, and revision notes for both CBSE and Maharashtra Board — the kind of organised material your coaching class charges for.',
+    default: {
+      heading: 'Exam-Ready Study Notes — CBSE & Maharashtra HSC',
+      subtext:
+        'Crisp, syllabus-aligned notes that cut the fluff and keep the marks. Download chapter summaries, formula sheets, and revision notes.',
+    },
+    byBoard: {
+      cbse: {
+        heading: 'Exam-Ready CBSE Commerce Study Notes',
+        subtext:
+          'Crisp, CBSE syllabus-aligned notes — chapter summaries, formula sheets, and revision notes for Accountancy, BST, and Economics.',
+      },
+      mh: {
+        heading: 'Exam-Ready Maharashtra HSC Commerce Study Notes',
+        subtext:
+          'Crisp, Maharashtra HSC syllabus-aligned notes — chapter summaries, formula sheets, and revision notes for BK, OCM, Economics and SP.',
+      },
+      cuet: {
+        heading: 'CUET-UG Commerce Study Notes',
+        subtext:
+          'Crisp, CUET-aligned notes — chapter summaries and revision notes for Accountancy, BST, Economics, and Entrepreneurship.',
+      },
+    },
   },
 };
+
+const HERO_CONTENT: Record<string, { title: string; subtitle: string }> = {
+  cbse: {
+    title: 'Free CBSE Commerce Study Resources',
+    subtitle:
+      'Hand-picked, exam-ready resources built exclusively for CBSE commerce students. No login required. No catch. Just results.',
+  },
+  mh: {
+    title: 'Free Maharashtra HSC Commerce Study Resources',
+    subtitle:
+      'Hand-picked, exam-ready resources built exclusively for Maharashtra Board (HSC) commerce students. No login required. No catch. Just results.',
+  },
+  cuet: {
+    title: 'Free CUET-UG Commerce Study Resources',
+    subtitle:
+      'Hand-picked, exam-ready resources for CUET-UG commerce preparation. No login required. No catch. Just results.',
+  },
+};
+
+function resolveBoardKey(
+  selectedSlug: string,
+  boardOptions: { slug: string; board: string }[],
+): string | null {
+  if (!selectedSlug) return null;
+  const selected = boardOptions.find((o) => o.slug === selectedSlug);
+  if (!selected) return null;
+  const raw = selected.board.toLowerCase().replace(/\s+/g, '');
+  if (raw.includes('cuet')) return 'cuet';
+  if (raw.includes('mh') || raw.includes('maharashtra')) return 'mh';
+  if (raw.includes('cbse')) return 'cbse';
+  return null;
+}
 
 // ── Props ──────────────────────────────────────────────────────
 
 interface FreeResourcesPageProps {
-  boards: Board[];
-  classes: ClassLevel[];
-  selectedBoardId: string;
-  selectedClassId: string;
   tabNames: string[];
   activeTab: string;
   content: TabContentResponse | null;
@@ -98,10 +229,6 @@ interface FreeResourcesPageProps {
 // ── Component ──────────────────────────────────────────────────
 
 export default function FreeResourcesPage({
-  boards,
-  classes,
-  selectedBoardId,
-  selectedClassId,
   tabNames,
   activeTab,
   content,
@@ -116,6 +243,29 @@ export default function FreeResourcesPage({
     videoId: string;
     title: string;
   } | null>(null);
+
+  const {
+    selectedSlug,
+    boardOptions: ctxBoardOptions,
+    setSelectedBoard,
+  } = useBoardSelection();
+
+  // Determine if "All Boards" is active from URL params
+  const isAllBoardsActive = searchParams.get('allBoards') === 'true';
+
+  const boardKey = useMemo(
+    () => resolveBoardKey(selectedSlug, ctxBoardOptions),
+    [selectedSlug, ctxBoardOptions],
+  );
+  const selected = ctxBoardOptions.find((o) => o.slug === selectedSlug);
+  const classLabel = selected?.class || '';
+
+  const heroTitle = boardKey
+    ? `${HERO_CONTENT[boardKey].title}${classLabel ? ` — ${classLabel}` : ''}`
+    : 'Free Commerce Study Resources for Class 11 & 12';
+  const heroSubtitle = boardKey
+    ? HERO_CONTENT[boardKey].subtitle
+    : 'Hand-picked, exam-ready resources — built exclusively for CBSE and Maharashtra Board (HSC) commerce students. No login required. No catch. Just results.';
 
   useEffect(() => {
     if (!videoPlayer) return;
@@ -150,48 +300,34 @@ export default function FreeResourcesPage({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [closeAllPillSelectsSignal]);
 
-  useEffect(() => {
-    function handleScroll() {
-      if (closeAllPillSelectsSignal) {
-        setCloseAllPillSelectsSignal(0);
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [closeAllPillSelectsSignal]);
+  // Dropdown close handling updated to ignore scroll events
 
-  useEffect(() => {
-    const filterContainer = filterScrollRef.current;
-    if (!filterContainer) return;
-    function handleHorizontalScroll() {
-      if (closeAllPillSelectsSignal) {
-        setCloseAllPillSelectsSignal(0);
-      }
-    }
-    filterContainer.addEventListener('scroll', handleHorizontalScroll, {
-      passive: true,
-    });
-    return () =>
-      filterContainer.removeEventListener('scroll', handleHorizontalScroll);
-  }, [closeAllPillSelectsSignal]);
+  // Horizontal scroll handling updated to ignore scroll events
 
   const handleCloseAllPillSelects = () => {
     setCloseAllPillSelectsSignal((prev) => prev + 1);
   };
 
-  // Navigation helpers — build URL with search params
+  const tabStripRef = useRef<HTMLDivElement>(null);
+
   function navigateToTab(tabName: string) {
     const segment = TAB_SEGMENT_BY_NAME[tabName];
     if (!segment) return;
-    const params = new URLSearchParams();
-    if (selectedBoardId) params.set('boardId', selectedBoardId);
-    if (selectedClassId) params.set('classId', selectedClassId);
-    const qs = params.toString();
-    navigate(`/free-resources/${segment}${qs ? `?${qs}` : ''}`);
+    navigate(`/free-resources/${segment}`, {
+      preventScrollReset: true,
+    });
+    setTimeout(() => {
+      tabStripRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'start',
+      });
+    }, 50);
   }
 
   function navigateWithParams(overrides: Record<string, string | undefined>) {
     const params = new URLSearchParams(searchParams);
+    params.delete('boardId');
+    params.delete('classId');
     for (const [k, v] of Object.entries(overrides)) {
       if (v === undefined || v === '') {
         params.delete(k);
@@ -199,33 +335,20 @@ export default function FreeResourcesPage({
         params.set(k, v);
       }
     }
-    // Always reset page when changing filters
     if (!('page' in overrides)) params.delete('page');
 
     const segment = TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
     const qs = params.toString();
-    navigate(`/free-resources/${segment}${qs ? `?${qs}` : ''}`);
+    navigate(`/free-resources/${segment}${qs ? `?${qs}` : ''}`, {
+      preventScrollReset: true,
+    });
   }
 
   // Current filter values from URL
-  const currentBoardId = selectedBoardId;
-  const currentClassId = selectedClassId;
   const currentSubjectId = searchParams.get('subjectId') ?? '';
   const currentChapterNames = searchParams.get('chapterNames') ?? '';
   const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
   const currentQ = searchParams.get('q') ?? '';
-
-  // Board options for selector
-  const boardOptions = boards.map((b) => b.name);
-  const selectedBoardName =
-    boards.find((b) => b.id === currentBoardId)?.name ?? boards[0]?.name ?? '';
-
-  // Class options for selector
-  const classOptions = classes.map((c) => c.name);
-  const selectedClassName =
-    classes.find((c) => c.id === currentClassId)?.name ??
-    classes[0]?.name ??
-    '';
 
   // Subject filter options from API
   const subjectOptions = [
@@ -259,13 +382,9 @@ export default function FreeResourcesPage({
         <div className="relative z-10 pt-14 sm:pt-13 md:pt-16 xl:pt-20 4xl:pt-[172px]!">
           <div className="custom-container pb-8 pt-4 lg:pb-12 4xl:pb-[74px]! 4xl:pt-8!">
             <div className="space-y-3 md:space-y-4 text-lightgray">
-              <h1 className="section-heading">
-                Free Commerce Study Resources for Class 11 &amp; 12
-              </h1>
+              <h1 className="section-heading">{heroTitle}</h1>
               <p className="max-w-[1280px] text-base leading-[150%] text-lightgray sm:text-lg sm:leading-[150%] xl:text-xl xl:leading-[150%]">
-                Hand-picked, exam-ready resources — built exclusively for CBSE
-                and Maharashtra Board (HSC) commerce students. No login
-                required. No catch. Just results.
+                {heroSubtitle}
               </p>
             </div>
           </div>
@@ -273,7 +392,10 @@ export default function FreeResourcesPage({
       </section>
 
       {/* Tab strip */}
-      <div className="sticky top-0 z-10 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md">
+      <div
+        ref={tabStripRef}
+        className="sticky top-0 z-10 flex w-full border-b border-[rgba(8,22,39,0.08)] bg-white/95 backdrop-blur-md"
+      >
         <div className="custom-container flex w-full px-0 sm:px-4 lg:px-6">
           <div className="scrollbar-hide flex min-h-14 px-4 sm:px-0 sm:min-h-18 w-full flex-1 overflow-x-auto">
             {tabNames.map((tabName) => {
@@ -313,18 +435,24 @@ export default function FreeResourcesPage({
       </div>
 
       {/* Tab-specific SEO heading */}
-      {activeTab && TAB_SEO_CONTENT[activeTab] && (
-        <div className="bg-[#f7f8ff] pt-6 pb-2 sm:pt-8 sm:pb-3 lg:pt-10 lg:pb-4">
-          <div className="custom-container space-y-2 sm:space-y-3">
-            <h2 className="text-xl font-semibold leading-[130%] tracking-tight text-[#081627] sm:text-2xl lg:text-3xl">
-              {TAB_SEO_CONTENT[activeTab].heading}
-            </h2>
-            <p className="max-w-[960px] text-sm leading-[160%] text-lightgray sm:text-base lg:text-lg">
-              {TAB_SEO_CONTENT[activeTab].subtext}
-            </p>
-          </div>
-        </div>
-      )}
+      {activeTab &&
+        TAB_SEO_CONTENT[activeTab] &&
+        (() => {
+          const tabSeo = TAB_SEO_CONTENT[activeTab];
+          const seo = (boardKey && tabSeo.byBoard[boardKey]) || tabSeo.default;
+          return (
+            <div className="bg-[#f7f8ff] pt-6 pb-2 sm:pt-8 sm:pb-3 lg:pt-10 lg:pb-4">
+              <div className="custom-container space-y-2 sm:space-y-3">
+                <h2 className="text-xl font-semibold leading-[130%] tracking-tight text-[#081627] sm:text-2xl lg:text-3xl">
+                  {seo.heading}
+                </h2>
+                <p className="max-w-[960px] text-sm leading-[160%] text-lightgray sm:text-base lg:text-lg">
+                  {seo.subtext}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
       {/* Subject pills bar (mobile) */}
       {content && content.availableSubjects.length > 0 && (
@@ -386,53 +514,76 @@ export default function FreeResourcesPage({
         className="sticky top-14 sm:top-18 z-20 border-b border-[rgba(8,22,39,0.08)] bg-[#FFFFFF66] py-3 sm:py-4 backdrop-blur-3xl"
       >
         <div className="custom-container flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="hidden md:inline text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px]">
-            {activeTab}
-            {content && ` (${content.totalCount})`}
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="hidden md:inline text-lg font-medium leading-[150%] tracking-tight text-lightgray sm:text-xl md:leading-[150%] md:tracking-[-0.24px] whitespace-nowrap">
+              {activeTab}
+              {content && ` (${content.totalCount})`}
+            </p>
+          </div>
           <div
             ref={filterScrollRef}
             data-pill-wrapper
-            className="relative scrollbar-hide overflow-x-auto flex items-center gap-2 sm:gap-3 md:gap-3 sm:flex-wrap"
+            className="relative scrollbar-hide flex items-center gap-2 sm:gap-3 md:gap-3 flex-wrap sm:overflow-visible"
           >
+            {/* Board Selector */}
+            {ctxBoardOptions.length > 0 && (
+              <PillSelect
+                value={
+                  isAllBoardsActive
+                    ? 'All Boards'
+                    : selected
+                    ? `${selected.class} · ${selected.board}`
+                    : 'All Boards'
+                }
+                options={[
+                  'All Boards',
+                  ...ctxBoardOptions.map((o) => `${o.class} · ${o.board}`),
+                ]}
+                onChange={(val) => {
+                  if (val === 'All Boards') {
+                    setSelectedBoard('');
+                    // Add allBoards=true to URL params
+                    const params = new URLSearchParams(searchParams);
+                    params.set('allBoards', 'true');
+                    params.delete('page');
+                    const segment =
+                      TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+                    const qs = params.toString();
+                    navigate(
+                      `/free-resources/${segment}${qs ? `?${qs}` : ''}`,
+                      {
+                        preventScrollReset: true,
+                      },
+                    );
+                  } else {
+                    const match = ctxBoardOptions.find(
+                      (o) => `${o.class} · ${o.board}` === val,
+                    );
+                    if (match) {
+                      setSelectedBoard(match.slug);
+                      // Remove allBoards param and reset to page 1
+                      const params = new URLSearchParams(searchParams);
+                      params.delete('allBoards');
+                      params.delete('page');
+                      const segment =
+                        TAB_SEGMENT_BY_NAME[activeTab] ?? 'mock-tests';
+                      const qs = params.toString();
+                      navigate(
+                        `/free-resources/${segment}${qs ? `?${qs}` : ''}`,
+                        {
+                          preventScrollReset: true,
+                        },
+                      );
+                    }
+                  }
+                }}
+                closeAllPillSelects={handleCloseAllPillSelects}
+                align="left"
+              />
+            )}
             <span className="hidden sm:inline text-sm font-medium leading-[150%] text-lightgray/50 sm:leading-[150%] md:text-base lg:text-base lg:leading-[150%] lg:text-lg shrink-0">
               Filter by:
             </span>
-
-            {/* Board selector */}
-            {boards.length > 1 && (
-              <PillSelect
-                value={selectedBoardName}
-                options={boardOptions}
-                onChange={(val) => {
-                  const board = boards.find((b) => b.name === val);
-                  if (board)
-                    navigateWithParams({
-                      boardId: board.id,
-                      classId: undefined,
-                      subjectId: undefined,
-                    });
-                }}
-                closeAllPillSelects={handleCloseAllPillSelects}
-              />
-            )}
-
-            {/* Class selector */}
-            {classes.length > 1 && (
-              <PillSelect
-                value={selectedClassName}
-                options={classOptions}
-                onChange={(val) => {
-                  const cls = classes.find((c) => c.name === val);
-                  if (cls)
-                    navigateWithParams({
-                      classId: cls.id,
-                      subjectId: undefined,
-                    });
-                }}
-                closeAllPillSelects={handleCloseAllPillSelects}
-              />
-            )}
 
             {/* Subject selector (desktop) */}
             <div className="md:block hidden">
@@ -453,13 +604,24 @@ export default function FreeResourcesPage({
               />
             </div>
 
-            {/* Chapter selector */}
+            {/* Chapter/Year selector */}
             {chapterOptions.length > 1 && (
               <PillSelect
-                value={selectedChapter}
-                options={chapterOptions}
+                value={
+                  activeTab === 'Past Papers'
+                    ? currentChapterNames || 'All Years'
+                    : selectedChapter
+                }
+                options={
+                  activeTab === 'Past Papers'
+                    ? [
+                        'All Years',
+                        ...chapterOptions.filter((o) => o !== 'All Chapters'),
+                      ]
+                    : chapterOptions
+                }
                 onChange={(val) => {
-                  if (val === 'All Chapters') {
+                  if (val === 'All Chapters' || val === 'All Years') {
                     navigateWithParams({ chapterNames: undefined });
                   } else {
                     navigateWithParams({ chapterNames: val });

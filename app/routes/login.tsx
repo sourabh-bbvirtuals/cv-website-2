@@ -4,18 +4,23 @@ import { useFetcher, useNavigate, useSearchParams } from '@remix-run/react';
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node';
 import { API_URL } from '~/constants';
 import { sdk } from '~/graphqlWrapper';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
+
+const PROFILE_INCOMPLETE_COOKIE =
+  'bb-profile-incomplete=1; Path=/; Max-Age=86400; SameSite=Lax';
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const phone = formData.get('phone') as string;
   const otp = formData.get('otp') as string;
+  const redirectTo = (formData.get('redirectTo') as string) || '/';
 
   try {
     const result = await sdk.Authenticate(
       {
         input: {
-          phone: {
-            phone,
+          otp: {
+            identifier: phone,
             otp,
           },
         } as any,
@@ -27,9 +32,85 @@ export async function action({ request }: ActionFunctionArgs) {
       result.authenticate?.__typename === 'CurrentUser' ||
       (result.authenticate as any)?.id
     ) {
-      return redirect('/', {
-        headers: result._headers,
+      const headers = new Headers();
+      result._headers.forEach((value, key) => {
+        headers.append(key, value);
       });
+
+      const setCookieHeader = headers.get('Set-Cookie') || '';
+      const newSessionCookie = setCookieHeader.split(';')[0] || '';
+
+      const oldCookies = (request.headers.get('Cookie') || '')
+        .split(';')
+        .map((c) => c.trim())
+        .filter((c) => !c.startsWith('__session='))
+        .join('; ');
+      const mergedCookie = oldCookies
+        ? `${oldCookies}; ${newSessionCookie}`
+        : newSessionCookie;
+
+      const authedRequest = new Request(request.url, {
+        headers: { Cookie: mergedCookie },
+      });
+
+      try {
+        const customer = await getActiveCustomerDetails({
+          request: authedRequest,
+        });
+        const c = customer?.activeCustomer;
+        console.log(
+          '[login] activeCustomer after auth:',
+          c?.id,
+          c?.firstName,
+          c?.lastName,
+        );
+
+        if (c && !c.phoneNumber && phone) {
+          try {
+            const { updateCustomer } = await import(
+              '~/providers/account/account'
+            );
+            await updateCustomer(
+              { phoneNumber: phone },
+              { request: authedRequest },
+            );
+          } catch (e) {
+            console.error('[login] failed to set phoneNumber:', e);
+          }
+        }
+
+        const isIncomplete = !c || !c.firstName || c.firstName === 'BB Virtual';
+
+        if (isIncomplete) {
+          headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+          return redirect('/sign-up', { headers });
+        }
+
+        const userBoard = (c as any).customFields?.board;
+        const userClass = (c as any).customFields?.studentClass;
+        if (userBoard) {
+          headers.append(
+            'Set-Cookie',
+            `bb-user-board=${encodeURIComponent(userBoard)}; Path=/; Max-Age=${
+              60 * 60 * 24 * 365
+            }; SameSite=Lax`,
+          );
+        }
+        if (userClass) {
+          headers.append(
+            'Set-Cookie',
+            `bb-user-class=${encodeURIComponent(
+              String(userClass).replace(/\D/g, ''),
+            )}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`,
+          );
+        }
+      } catch (e) {
+        console.error('[login] getActiveCustomerDetails failed:', e);
+        headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+        return redirect('/sign-up', { headers });
+      }
+
+      return redirect(redirectTo, { headers });
     }
 
     return json(
@@ -229,7 +310,7 @@ const Login: React.FC = () => {
 
               <p className="text-lightgray opacity-50 font-geist leading-[120%] text-sm sm:text-lg lg:text-xl mt-3 sm:mt-4">
                 {step === 'login' &&
-                  'Please Login to Continue with Commerce Virtual'}
+                  'Please Login to Continue with Commerce Virtuals'}
               </p>
               {step === 'otp' && (
                 <button

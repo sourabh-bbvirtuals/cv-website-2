@@ -556,7 +556,13 @@ export function VideoCarousel({ items }: { items: VideoItem[] }) {
 function FacultiesCarousel({
   items,
 }: {
-  items: Array<{ name: string; image: string; description: string }>;
+  items: Array<{
+    name: string;
+    image: string;
+    description: string;
+    designation?: string;
+    experience?: string;
+  }>;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -619,12 +625,20 @@ function FacultiesCarousel({
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex flex-col items-start gap-2 flex-1">
-                  {/* Faculty Info */}
+                <div className="flex flex-col items-start gap-1 flex-1">
                   <h3 className="text-base font-semibold text-slate-900">
                     {faculty.name}
                   </h3>
-                  <p className="text-base text-lightgray/50">{'CA, M.com'}</p>
+                  {faculty.designation && (
+                    <p className="text-sm text-gray-500">
+                      {faculty.designation}
+                    </p>
+                  )}
+                  {faculty.experience && (
+                    <p className="text-sm text-gray-400">
+                      {faculty.experience}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -632,7 +646,9 @@ function FacultiesCarousel({
               <div className="flex flex-col gap-2 w-full text-base text-lightgray/50 leading-relaxed flex-1">
                 {isExpanded ? (
                   <>
-                    <p>{faculty.description}</p>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: faculty.description }}
+                    />
                     <button
                       onClick={() => setExpandedIdx(null)}
                       className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
@@ -648,9 +664,8 @@ function FacultiesCarousel({
                         textRefs.current[absoluteIdx] = el;
                       }}
                       className="line-clamp-3"
-                    >
-                      {faculty.description}
-                    </p>
+                      dangerouslySetInnerHTML={{ __html: faculty.description }}
+                    />
                     {isClamped && (
                       <button
                         onClick={() => setExpandedIdx(absoluteIdx)}
@@ -741,7 +756,7 @@ function ContactSupport({
 function SectionTitle({ title }: { title: string }) {
   return (
     <div className="px-6 flex items-center gap-4">
-      <h2 className="text-sm w-full max-w-max font-medium text-gray-500 uppercase tracking-[1px]">
+      <h2 className="text-sm w-full max-w-max font-medium text-gray-500 uppercase tracking-[1px] whitespace-nowrap">
         {title}
       </h2>
       <div className="w-full border border-black/5" />
@@ -781,6 +796,33 @@ function CompositeBlock({
 }
 
 /** Route a spec item to the right renderer */
+function hasRenderableContent(item: SpecItem): boolean {
+  if (item.type === 'table' && item.table && Object.keys(item.table).length > 0)
+    return true;
+  if (item.type === 'list' && item.list && item.list.length > 0) return true;
+  if (
+    (item.type === 'html' ||
+      item.type === 'text' ||
+      item.type === 'html_text') &&
+    item.text
+  )
+    return true;
+  if (item.type === 'video' && item.text) return true;
+  if (item.type === 'faq' && item.faqItems && item.faqItems.length > 0)
+    return true;
+  if (
+    item.type === 'video_carousel' &&
+    item.videoItems &&
+    item.videoItems.length > 0
+  )
+    return true;
+  if (item.type === 'stat_items' && item.statItems && item.statItems.length > 0)
+    return true;
+  if (item.type === 'composite' && item.data)
+    return item.data.some(hasRenderableContent);
+  return false;
+}
+
 function SpecBlock({ item, depth = 0 }: { item: SpecItem; depth?: number }) {
   if (item.type === 'table' && item.table)
     return <SpecTable table={item.table} />;
@@ -843,9 +885,9 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
   return (
     <div className="p-0 w-full border border-black/5 overflow-hidden">
       {includedEntries.length > 0 && (
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-2">
           {includedEntries.map(([label, value], i) => {
-            const cols = 3;
+            const cols = 2;
             const rowIndex = Math.floor(i / cols);
             const totalRows = Math.ceil(includedEntries.length / cols);
 
@@ -881,21 +923,31 @@ function HighlightsSection({ specItems }: { specItems: SpecItem[] }) {
   const featuresSpec = specItems.find((s) => s.identifier === 'features');
   if (!featuresSpec) return null;
 
-  const courseHighlights = featuresSpec.data?.find((d) => d.type === 'list');
+  const courseHighlightsList = featuresSpec.data?.find(
+    (d) => d.type === 'list',
+  );
+  const courseHighlightsIcons = featuresSpec.data?.find(
+    (d) => d.type === 'icon_with_text' && d.iconWithTextItems?.length,
+  );
 
-  const highlights = courseHighlights?.list || [];
+  const highlights: Array<{ text: string; iconUrl?: string }> =
+    courseHighlightsList?.list?.map((t) => ({ text: t })) ||
+    courseHighlightsIcons?.iconWithTextItems?.map((item) => ({
+      text: item.text,
+      iconUrl: item.iconUrl,
+    })) ||
+    [];
 
   return (
     <div className="px-6 overflow-hidden relative w-full">
       <div className="relative z-10 flex flex-col lg:flex-row gap-5">
-        {/* Right Side: Highlights */}
         {highlights.length > 0 && (
           <div className="flex-1 flex flex-col gap-3">
             <ul className="flex flex-col gap-3">
-              {highlights.map((line, i) => {
-                const t = line.toLowerCase();
+              {highlights.map((item, i) => {
+                const t = item.text.toLowerCase();
                 let Icon = CheckCircle2;
-                let color = '#22C55E'; // Default green
+                let color = '#22C55E';
 
                 if (
                   t.includes('master teacher') ||
@@ -912,7 +964,7 @@ function HighlightsSection({ specItems }: { specItems: SpecItem[] }) {
                 } else if (t.includes('recording')) {
                   Icon = CirclePlay;
                   color = '#F97316';
-                } else if (t.includes('assignment')) {
+                } else if (t.includes('assignment') || t.includes('note')) {
                   Icon = NotepadText;
                   color = '#3B82F6';
                 } else if (t.includes('handwritten')) {
@@ -922,16 +974,26 @@ function HighlightsSection({ specItems }: { specItems: SpecItem[] }) {
 
                 return (
                   <li key={i} className="flex items-start gap-3">
-                    <Icon
-                      className="p-[3px] size-6 border shrink-0 rounded-full"
-                      style={{
-                        borderColor: `${color}33`,
-                        backgroundColor: `${color}33`,
-                        color: color,
-                      }}
-                      strokeWidth={1.5}
-                    />
-                    <span className="text-[15px] leading-relaxed">{line}</span>
+                    {item.iconUrl ? (
+                      <img
+                        src={item.iconUrl}
+                        alt=""
+                        className="size-6 shrink-0 rounded-full object-contain"
+                      />
+                    ) : (
+                      <Icon
+                        className="p-[3px] size-6 border shrink-0 rounded-full"
+                        style={{
+                          borderColor: `${color}33`,
+                          backgroundColor: `${color}33`,
+                          color: color,
+                        }}
+                        strokeWidth={1.5}
+                      />
+                    )}
+                    <span className="text-[15px] leading-relaxed">
+                      {item.text}
+                    </span>
                   </li>
                 );
               })}
@@ -964,6 +1026,7 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             child.list?.length ||
             child.videoItems?.length ||
             0;
+          const hasExpandableContent = hasRenderableContent(child);
           const durationRaw =
             child.extraFields?.duration ||
             child.extraFields?.duration_minutes ||
@@ -1015,8 +1078,12 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
               >
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-4 text-left"
-                  onClick={() => setOpenAccordion(open ? null : idx)}
+                  className={`w-full flex items-center justify-between gap-4 text-left ${
+                    !hasExpandableContent ? 'cursor-default' : ''
+                  }`}
+                  onClick={() =>
+                    hasExpandableContent && setOpenAccordion(open ? null : idx)
+                  }
                 >
                   {/* LEFT CONTENT */}
                   <div className="flex flex-col gap-2 flex-1 min-w-0">
@@ -1041,13 +1108,15 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                   </div>
 
                   {/* CHEVRON */}
-                  <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
-                    {open ? (
-                      <ChevronDown className="size-4 text-lightgray/50" />
-                    ) : (
-                      <ChevronRight className="size-4 text-lightgray/50" />
-                    )}
-                  </div>
+                  {hasExpandableContent && (
+                    <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                      {open ? (
+                        <ChevronDown className="size-4 text-lightgray/50" />
+                      ) : (
+                        <ChevronRight className="size-4 text-lightgray/50" />
+                      )}
+                    </div>
+                  )}
                 </button>
                 {/* specification blocks */}
                 <div
@@ -1151,38 +1220,42 @@ function VariantOptionSelector({
   light?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-wrap gap-3">
       {optionGroups.map((group) => (
-        <div key={group.id} className="flex flex-col gap-1.5">
+        <div key={group.id} className="flex flex-col gap-1">
           <label
-            className={`text-xs font-semibold uppercase tracking-wider ${
-              light ? 'text-white/50' : 'text-lightgray/60'
+            className={`text-[10px] font-semibold uppercase tracking-wider ${
+              light ? 'text-white/50' : 'text-slate-400'
             }`}
           >
             {group.name}
           </label>
-          <div className="flex flex-wrap gap-2">
-            {group.options.map((option) => {
-              const isSelected = selectedOptions[group.id] === option.id;
-              return (
-                <button
+          <div className="relative">
+            <select
+              value={selectedOptions[group.id] || ''}
+              onChange={(e) => onSelect(group.id, e.target.value)}
+              className={`appearance-none rounded-full border px-3 py-2 pr-8 text-sm font-medium outline-none transition-colors ${
+                light
+                  ? 'border-white/20 bg-white/10 text-white'
+                  : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300 focus:border-[#3A6BFC] focus:ring-1 focus:ring-[#3A6BFC]/20'
+              }`}
+            >
+              {group.options.map((option) => (
+                <option
                   key={option.id}
-                  type="button"
-                  onClick={() => onSelect(group.id, option.id)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                    isSelected
-                      ? light
-                        ? 'border-white bg-white/20 text-white shadow-sm'
-                        : 'border-[#3A6BFC] bg-[#3A6BFC]/10 text-[#3A6BFC] shadow-sm'
-                      : light
-                      ? 'border-white/20 bg-white/5 text-white/70 hover:border-white/40'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
+                  value={option.id}
+                  className="text-slate-800 bg-white"
                 >
                   {option.name}
-                </button>
-              );
-            })}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 ${
+                light ? 'text-white/50' : 'text-slate-400'
+              }`}
+            />
           </div>
         </div>
       ))}
@@ -1211,9 +1284,12 @@ export default function CourseDetailPage({
   >(() => {
     if (!hasOptions) return {};
     const initial: Record<string, string> = {};
-    const firstVariant = variants[0];
-    if (firstVariant) {
-      for (const opt of firstVariant.options) {
+    const cheapest = variants.reduce(
+      (min, v) => (v.priceWithTax < min.priceWithTax ? v : min),
+      variants[0],
+    );
+    if (cheapest) {
+      for (const opt of cheapest.options) {
         if (opt.group) initial[opt.group.id] = opt.id;
       }
     }
@@ -1358,7 +1434,7 @@ export default function CourseDetailPage({
   const title = product?.title || 'Course Details';
   const description = product?.description || '';
   const facultyImage =
-    product?.faculties?.[0]?.image || product?.featuredAsset?.preview;
+    product?.featuredAsset?.preview || product?.faculties?.[0]?.image;
 
   const [isWhatsIncludedVisible, setIsWhatsIncludedVisible] = useState(false);
   const whatsIncludedRef = useRef<HTMLDivElement>(null);
@@ -1465,9 +1541,14 @@ export default function CourseDetailPage({
         </div>
 
         {/* course description */}
-        <div className="px-6 z-20 mt-4">
-          <p className="text-white text-base leading-[1.5]">{description}</p>
-        </div>
+        {description && (
+          <div className="px-6 z-20 mt-4">
+            <div
+              className="text-white text-base leading-[1.5] line-clamp-3"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+          </div>
+        )}
 
         {/* Bottom Info Bar */}
         {/* Bottom Info Bar */}
@@ -1562,18 +1643,27 @@ export default function CourseDetailPage({
             const aboutSpec = specItems.find(
               (s) => s.identifier === 'about_course',
             );
-            return aboutSpec ? (
-              <div className="space-y-6">
-                {aboutSpec.data?.map((item, idx) => (
-                  <div key={idx}>
-                    <SpecBlock item={item} />
-                  </div>
-                ))}
+            if (!aboutSpec)
+              return (
+                <p className="text-slate-500 italic px-4">
+                  No course description available
+                </p>
+              );
+            if (aboutSpec.data && aboutSpec.data.length > 0) {
+              return (
+                <div className="space-y-6 px-4">
+                  {aboutSpec.data.map((item, idx) => (
+                    <div key={idx}>
+                      <SpecBlock item={item} />
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-6 px-4">
+                <SpecBlock item={aboutSpec} />
               </div>
-            ) : (
-              <p className="text-slate-500 italic px-4">
-                No course description available
-              </p>
             );
           })()}
         </section>

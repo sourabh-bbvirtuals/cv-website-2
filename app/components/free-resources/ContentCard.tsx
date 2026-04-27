@@ -1,15 +1,51 @@
 import React, { useState } from 'react';
+import { Link } from '@remix-run/react';
 import { Download, Eye, Play, FileText, Link2, Clock } from 'lucide-react';
 import type { ContentItem } from '~/utils/bbServer';
 
 const SUBJECT_COLORS = [
-  { dot: 'bg-[#1764d4]', bg: 'bg-[rgba(23,100,212,0.05)]', border: 'border-[rgba(23,100,212,0.1)]', text: 'text-[#1764d4]' },
-  { dot: 'bg-[#0baf7e]', bg: 'bg-[rgba(11,175,126,0.05)]', border: 'border-[rgba(11,175,126,0.1)]', text: 'text-[#0baf7e]' },
-  { dot: 'bg-[#ba7517]', bg: 'bg-[rgba(186,117,23,0.05)]', border: 'border-[rgba(186,117,23,0.1)]', text: 'text-[#ba7517]' },
-  { dot: 'bg-[#7b36ec]', bg: 'bg-[rgba(123,54,236,0.05)]', border: 'border-[rgba(123,54,236,0.1)]', text: 'text-[#7b36ec]' },
-  { dot: 'bg-[#6b7c5e]', bg: 'bg-[rgba(107,124,94,0.05)]', border: 'border-[rgba(107,124,94,0.1)]', text: 'text-[#6b7c5e]' },
-  { dot: 'bg-[#4a6fa5]', bg: 'bg-[rgba(74,111,165,0.05)]', border: 'border-[rgba(74,111,165,0.1)]', text: 'text-[#4a6fa5]' },
-  { dot: 'bg-[#f5a0ad]', bg: 'bg-[rgba(245,160,173,0.05)]', border: 'border-[rgba(245,160,173,0.1)]', text: 'text-[#d4647a]' },
+  {
+    dot: 'bg-[#1764d4]',
+    bg: 'bg-[rgba(23,100,212,0.05)]',
+    border: 'border-[rgba(23,100,212,0.1)]',
+    text: 'text-[#1764d4]',
+  },
+  {
+    dot: 'bg-[#0baf7e]',
+    bg: 'bg-[rgba(11,175,126,0.05)]',
+    border: 'border-[rgba(11,175,126,0.1)]',
+    text: 'text-[#0baf7e]',
+  },
+  {
+    dot: 'bg-[#ba7517]',
+    bg: 'bg-[rgba(186,117,23,0.05)]',
+    border: 'border-[rgba(186,117,23,0.1)]',
+    text: 'text-[#ba7517]',
+  },
+  {
+    dot: 'bg-[#7b36ec]',
+    bg: 'bg-[rgba(123,54,236,0.05)]',
+    border: 'border-[rgba(123,54,236,0.1)]',
+    text: 'text-[#7b36ec]',
+  },
+  {
+    dot: 'bg-[#6b7c5e]',
+    bg: 'bg-[rgba(107,124,94,0.05)]',
+    border: 'border-[rgba(107,124,94,0.1)]',
+    text: 'text-[#6b7c5e]',
+  },
+  {
+    dot: 'bg-[#4a6fa5]',
+    bg: 'bg-[rgba(74,111,165,0.05)]',
+    border: 'border-[rgba(74,111,165,0.1)]',
+    text: 'text-[#4a6fa5]',
+  },
+  {
+    dot: 'bg-[#f5a0ad]',
+    bg: 'bg-[rgba(245,160,173,0.05)]',
+    border: 'border-[rgba(245,160,173,0.1)]',
+    text: 'text-[#d4647a]',
+  },
 ];
 
 function colorForSubject(subjectName: string) {
@@ -52,7 +88,13 @@ function CardShell({
   );
 }
 
-function ViewButton({ href, label = 'View' }: { href?: string; label?: string }) {
+function ViewButton({
+  href,
+  label = 'View',
+}: {
+  href?: string;
+  label?: string;
+}) {
   if (href) {
     return (
       <a
@@ -78,7 +120,13 @@ function ViewButton({ href, label = 'View' }: { href?: string; label?: string })
   );
 }
 
-function DownloadButton({ href, label = 'Download' }: { href?: string; label?: string }) {
+function DownloadButton({
+  href,
+  label = 'Download',
+}: {
+  href?: string;
+  label?: string;
+}) {
   if (href) {
     return (
       <a
@@ -95,7 +143,13 @@ function DownloadButton({ href, label = 'Download' }: { href?: string; label?: s
   return null;
 }
 
-function NoteCard({ item, subjectName }: { item: ContentItem; subjectName: string }) {
+function NoteCard({
+  item,
+  subjectName,
+}: {
+  item: ContentItem;
+  subjectName: string;
+}) {
   return (
     <CardShell
       footer={
@@ -105,22 +159,41 @@ function NoteCard({ item, subjectName }: { item: ContentItem; subjectName: strin
         </>
       }
     >
+      {/* Subject badge */}
       <div className="flex flex-wrap gap-2 px-3 md:px-6">
         <SubjectBadge name={subjectName} />
       </div>
+
+      {/* Chapter label */}
       <div className="px-3 md:px-6">
         <ChapterLabel name={item.chapterName} />
       </div>
+
+      {/* Title */}
       <div className="px-3 md:px-6">
         <h2 className="line-clamp-2 text-xl font-medium leading-[150%] tracking-tight text-lightgray lg:leading-[150%]">
           {item.name}
         </h2>
       </div>
+
+      {/* Short description — only shown when the API returns a non-empty subtitle */}
       {item.subtitle && (
         <div className="px-3 md:px-6">
-          <p className="text-sm font-medium leading-[150%] text-lightgray/50 lg:text-base lg:leading-[150%]">
+          <p className="line-clamp-2 text-sm font-medium leading-[150%] text-lightgray/50 lg:text-base lg:leading-[150%]">
             {item.subtitle}
           </p>
+        </div>
+      )}
+
+      {/* Page count — only shown when the API returns a positive number */}
+      {item.pageCount != null && item.pageCount > 0 && (
+        <div className="px-3 md:px-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(8,22,39,0.08)] bg-[rgba(8,22,39,0.03)] px-3 py-1">
+            <FileText className="size-3.5 shrink-0 text-lightgray/40" />
+            <span className="text-sm font-medium text-lightgray/50">
+              {item.pageCount} {item.pageCount === 1 ? 'page' : 'pages'}
+            </span>
+          </div>
         </div>
       )}
     </CardShell>
@@ -192,62 +265,17 @@ function VideoCard({
   );
 }
 
-const APP_LINKS = {
-  playStore:
-    'https://play.google.com/store/apps/details?id=com.commercevirtuals.student&hl=en_IN',
-  appStore: 'https://apps.apple.com/app/commerce-virtual/id6761752942',
-};
-
-function AppDownloadPopover({
-  open,
-  onClose,
+function TestCard({
+  item,
+  subjectName,
 }: {
-  open: boolean;
-  onClose: () => void;
+  item: ContentItem;
+  subjectName: string;
 }) {
-  if (!open) return null;
-  return (
-    <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-xl border border-gray-100 bg-white p-4 shadow-xl">
-        <p className="mb-3 text-center text-sm font-medium text-lightgray">
-          Download our app to attempt quizzes &amp; mock tests
-        </p>
-        <div className="flex items-center justify-center gap-2">
-          <a
-            href={APP_LINKS.playStore}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-              alt="Google Play"
-              className="h-9"
-            />
-          </a>
-          <a
-            href={APP_LINKS.appStore}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-              alt="App Store"
-              className="h-9"
-            />
-          </a>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function TestCard({ item, subjectName }: { item: ContentItem; subjectName: string }) {
-  const [showAppPopover, setShowAppPopover] = useState(false);
   const meta = [
     item.questionCount && `${item.questionCount} Questions`,
     item.totalMarks != null && `${item.totalMarks} Marks`,
-    item.testDuration != null && `${item.testDuration} Minutes`,
+    item.testDuration != null && `${Math.ceil(item.testDuration / 60)} Minutes`,
   ]
     .filter(Boolean)
     .join(' • ');
@@ -255,19 +283,13 @@ function TestCard({ item, subjectName }: { item: ContentItem; subjectName: strin
   return (
     <CardShell
       footer={
-        <div className="relative flex flex-1">
-          <button
-            type="button"
-            onClick={() => setShowAppPopover((p) => !p)}
-            className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
-          >
-            Start
-          </button>
-          <AppDownloadPopover
-            open={showAppPopover}
-            onClose={() => setShowAppPopover(false)}
-          />
-        </div>
+        <Link
+          to={`/free-resources/quizzes/${item.id}/start`}
+          className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[38px] border border-[rgba(58,107,252,0.2)] bg-white text-sm font-medium text-[#3a6bfc] transition-colors hover:bg-[rgba(58,107,252,0.06)] lg:text-base"
+        >
+          <Play className="size-4 shrink-0 fill-[#3a6bfc] text-[#3a6bfc]" />
+          Start Quiz
+        </Link>
       }
     >
       <div className="flex flex-wrap gap-2 px-3 md:px-6">
@@ -316,7 +338,10 @@ function SubjectiveTestCard({
     <CardShell
       footer={
         <>
-          <ViewButton href={item.questionPaperUrl ?? undefined} label="Question Paper" />
+          <ViewButton
+            href={item.questionPaperUrl ?? undefined}
+            label="Question Paper"
+          />
           <DownloadButton href={item.answersUrl ?? undefined} label="Answers" />
         </>
       }
@@ -351,11 +376,7 @@ function ResourceCard({
   subjectName: string;
 }) {
   return (
-    <CardShell
-      footer={
-        <ViewButton href={item.url} label="Open" />
-      }
-    >
+    <CardShell footer={<ViewButton href={item.url} label="Open" />}>
       <div className="flex flex-wrap gap-2 px-3 md:px-6">
         <SubjectBadge name={subjectName} />
         {item.resourceType && (
@@ -377,7 +398,13 @@ function ResourceCard({
   );
 }
 
-function LiveCard({ item, subjectName }: { item: ContentItem; subjectName: string }) {
+function LiveCard({
+  item,
+  subjectName,
+}: {
+  item: ContentItem;
+  subjectName: string;
+}) {
   return (
     <CardShell>
       <div className="flex flex-wrap gap-2 px-3 md:px-6">
@@ -421,7 +448,13 @@ export function ContentCardItem({
     case 'note':
       return <NoteCard item={item} subjectName={subjectName} />;
     case 'video':
-      return <VideoCard item={item} subjectName={subjectName} onWatch={onWatchVideo} />;
+      return (
+        <VideoCard
+          item={item}
+          subjectName={subjectName}
+          onWatch={onWatchVideo}
+        />
+      );
     case 'test':
       return <TestCard item={item} subjectName={subjectName} />;
     case 'subjectiveTest':

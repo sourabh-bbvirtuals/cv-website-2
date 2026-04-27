@@ -3912,6 +3912,11 @@ input UpdateAddressInput {
 input UpdateCustomerCustomFieldsInput {
   gstin: String
   icaiRegistrationNumber: String
+  dateOfBirth: String
+  gender: String
+  board: String
+  studentClass: String
+  contactEmail: String
 }
 
 union UpdateCustomerEmailAddressResult = IdentifierChangeTokenExpiredError | IdentifierChangeTokenInvalidError | NativeAuthStrategyError | Success

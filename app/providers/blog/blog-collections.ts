@@ -193,9 +193,7 @@ export async function getBlogCollections(
         );
         const rawJson = bySlug?.description || bySlug?.customFields?.customData;
         if (rawJson) {
-          blogs.push(
-            ...parseBlogsFromCustomDataString(rawJson),
-          );
+          blogs.push(...parseBlogsFromCustomDataString(rawJson));
         }
       } catch {
         // ignore
@@ -234,11 +232,10 @@ export async function getBlogCollections(
           'blogs',
           options,
         );
-        const rawJson2 = bySlug?.description || bySlug?.customFields?.customData;
+        const rawJson2 =
+          bySlug?.description || bySlug?.customFields?.customData;
         if (rawJson2) {
-          blogs.push(
-            ...parseBlogsFromCustomDataString(rawJson2),
-          );
+          blogs.push(...parseBlogsFromCustomDataString(rawJson2));
         }
       } catch {
         // ignore

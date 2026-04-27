@@ -955,6 +955,14 @@ export default function Checkout2Index() {
       processedValue = digitsOnly;
     }
 
+    // Format city names to only allow alphabets and spaces
+    if (
+      (field === 'shippingCity' || field === 'billingCity') &&
+      typeof value === 'string'
+    ) {
+      processedValue = value.replace(/[^a-zA-Z\s]/g, '');
+    }
+
     setFormData((prev: any) => ({ ...prev, [field]: processedValue }));
     setError(null);
 

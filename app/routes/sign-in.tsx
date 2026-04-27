@@ -1,95 +1,144 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  MetaFunction,
-  useFetcher,
-  useNavigate,
-  useSearchParams,
-} from '@remix-run/react';
+import { MetaFunction, useFetcher, useSearchParams } from '@remix-run/react';
+import type { ActionFunctionArgs } from '@remix-run/node';
+import { json } from '@remix-run/node';
+import { API_URL } from '~/constants';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Sign In - Commerce Virtual' },
+    { title: 'Sign In - Commerce Virtuals' },
     {
       name: 'description',
       content:
-        'Sign in to your Commerce Virtual account to access your courses and study materials.',
+        'Sign in to your Commerce Virtuals account to access your courses and study materials.',
     },
   ];
 };
 
-const OTP_RESEND_COOLDOWN_SEC = 60;
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const phone = formData.get('phone') as string;
 
-function parseWaitSecondsFromMessage(message: string): number {
-  const m = message.match(/(\d+)\s*seconds?/i);
-  if (!m) return 0;
-  const n = parseInt(m[1], 10);
-  return Number.isFinite(n) && n > 0 ? n : 0;
+  if (!phone || phone.length < 12) {
+    return json({ error: 'Valid phone number is required' }, { status: 400 });
+  }
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          mutation RequestOtp($identifier: String!, $method: OtpMethod!) {
+            requestOtp(identifier: $identifier, method: $method) {
+              success
+              expiresAt
+              errorCode
+              errorMessage
+              retryAfterSeconds
+            }
+          }
+        `,
+        variables: { identifier: phone, method: 'PHONE' },
+      }),
+    });
+
+    const result = await resp.json();
+
+    if (result?.errors?.length) {
+      return json(
+        { error: result.errors[0].message || 'Failed to send OTP.' },
+        { status: 400 },
+      );
+    }
+
+    const data = result?.data?.requestOtp;
+    if (data?.success) {
+      return json({ ok: true });
+    }
+
+    return json(
+      {
+        error: data?.errorMessage || 'Failed to send OTP.',
+        retryAfterSeconds: data?.retryAfterSeconds,
+      },
+      { status: 400 },
+    );
+  } catch {
+    return json(
+      { error: 'Failed to send OTP. Please try again.' },
+      { status: 500 },
+    );
+  }
 }
+
+const OTP_RESEND_COOLDOWN_SEC = 60;
 
 export default function SignInPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const errorCode = searchParams.get('error');
-  const redirectTo = searchParams.get('redirectTo') || '/account';
-  const prefilledIdentifier = searchParams.get('identifier') || '';
   const isRegisteredSuccess = searchParams.get('registered') === 'true';
-  const authHref = `/auth/google?redirectTo=${encodeURIComponent(redirectTo)}`;
 
   const [otpStep, setOtpStep] = useState<0 | 1>(0);
-  const [identifier, setIdentifier] = useState(prefilledIdentifier);
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  const phoneOtpFetcher = useFetcher<{ ok?: boolean; error?: string }>();
+  const phoneOtpBusy = phoneOtpFetcher.state !== 'idle';
+
+  const verifyOtpFetcher = useFetcher<{ error?: string }>();
+  const verifyOtpBusy = verifyOtpFetcher.state !== 'idle';
+  const [otpError, setOtpError] = useState<string | null>(null);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const requestFetcher = useFetcher<{
-    ok?: boolean;
-    error?: string;
-    code?: string;
-    retryAfterSeconds?: number;
-  }>();
-  const verifyFetcher = useFetcher<{
-    ok?: boolean;
-    redirectTo?: string;
-    error?: string;
-    code?: string;
-  }>();
-
-  const otpRequestSubmittingRef = useRef(false);
+  const sendPhoneOtp = () => {
+    if (phoneNumber.length !== 10) return;
+    setPhoneError(null);
+    const fullPhone = `+91${phoneNumber}`;
+    phoneOtpFetcher.submit(
+      { phone: fullPhone },
+      { method: 'POST', action: '/sign-in' },
+    );
+  };
 
   useEffect(() => {
-    const d = verifyFetcher.data;
-    if (
-      d &&
-      typeof d === 'object' &&
-      d.ok === true &&
-      typeof d.redirectTo === 'string'
-    ) {
-      navigate(d.redirectTo, { replace: true });
+    if (phoneOtpFetcher.state !== 'idle' || !phoneOtpFetcher.data) return;
+    const d = phoneOtpFetcher.data;
+    if (d.ok) {
+      setOtpStep(1);
+      setOtp(['', '', '', '', '', '']);
+      setResendCooldown(OTP_RESEND_COOLDOWN_SEC);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    } else if (d.error) {
+      setPhoneError(d.error);
     }
-  }, [verifyFetcher.data, navigate]);
+  }, [phoneOtpFetcher.state, phoneOtpFetcher.data]);
+
+  const redirectTo = searchParams.get('redirectTo') || '/';
+
+  const verifyPhoneOtp = () => {
+    const otpValue = otp.join('');
+    if (otpValue.length < 6) return;
+    setOtpError(null);
+    const fullPhone = `+91${phoneNumber}`;
+    verifyOtpFetcher.submit(
+      { phone: fullPhone, otp: otpValue, redirectTo },
+      { method: 'POST', action: '/login' },
+    );
+  };
 
   useEffect(() => {
-    if (requestFetcher.state === 'submitting') {
-      otpRequestSubmittingRef.current = true;
+    if (verifyOtpFetcher.state !== 'idle' || !verifyOtpFetcher.data) return;
+    const d = verifyOtpFetcher.data;
+    if (d.error) {
+      setOtpError(d.error);
+      setOtp(['', '', '', '', '', '']);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
     }
-    if (requestFetcher.state === 'idle' && otpRequestSubmittingRef.current) {
-      otpRequestSubmittingRef.current = false;
-      const d = requestFetcher.data;
-      if (d?.ok) {
-        setOtpStep(1);
-        setOtp(['', '', '', '', '', '']);
-        setResendCooldown(OTP_RESEND_COOLDOWN_SEC);
-        setTimeout(() => otpRefs.current[0]?.focus(), 100);
-      } else if (d?.code === 'OTP_COOLDOWN') {
-        const s =
-          typeof d.retryAfterSeconds === 'number'
-            ? d.retryAfterSeconds
-            : parseWaitSecondsFromMessage(d.error ?? '');
-        if (s > 0) setResendCooldown(s);
-      }
-    }
-  }, [requestFetcher.state, requestFetcher.data]);
+  }, [verifyOtpFetcher.state, verifyOtpFetcher.data]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -111,53 +160,13 @@ export default function SignInPage() {
       ? 'Google login was rejected by the auth server.'
       : null;
 
-  const requestError =
-    typeof requestFetcher.data?.error === 'string'
-      ? requestFetcher.data.error
-      : null;
-  const hideRequestErrorForCooldown =
-    requestFetcher.data?.code === 'OTP_COOLDOWN' && resendCooldown > 0;
-  const verifyError =
-    typeof verifyFetcher.data?.error === 'string'
-      ? verifyFetcher.data.error
-      : null;
-
-  const errorMessage =
-    verifyError ||
-    (hideRequestErrorForCooldown ? null : requestError) ||
-    googleErrorMessage;
-
-  const otpRequestBusy = requestFetcher.state !== 'idle';
-  const canSendOtp = !otpRequestBusy && resendCooldown <= 0;
-
-  const sendOtp = () => {
-    if (!canSendOtp) return;
-    requestFetcher.submit(
-      { method: 'email', identifier: identifier.trim() },
-      {
-        method: 'POST',
-        action: '/auth/otp-request',
-        encType: 'application/json',
-      },
-    );
-  };
-
-  const verifyOtp = () => {
-    const otpValue = otp.join('');
-    if (otpValue.length < 6) return;
-    verifyFetcher.submit(
-      { otp: otpValue, redirectTo },
-      {
-        method: 'POST',
-        action: '/auth/otp-verify',
-        encType: 'application/json',
-      },
-    );
-  };
+  const errorMessage = otpError || phoneError || googleErrorMessage;
 
   const handleOtpChange = (index: number, value: string) => {
     const cleanValue = value.replace(/\D/g, '').slice(0, 1);
     if (!cleanValue && value !== '') return;
+
+    if (otpError) setOtpError(null);
 
     const newOtp = [...otp];
     newOtp[index] = cleanValue;
@@ -170,7 +179,7 @@ export default function SignInPage() {
     if (index === 5 && cleanValue !== '') {
       const fullOtp = [...newOtp];
       if (fullOtp.every((d) => d !== '')) {
-        setTimeout(() => verifyOtp(), 100);
+        setTimeout(() => verifyPhoneOtp(), 100);
       }
     }
   };
@@ -231,7 +240,7 @@ export default function SignInPage() {
               <p className="text-lightgray opacity-50 font-geist leading-[120%] text-sm sm:text-lg lg:text-xl mt-3 sm:mt-4">
                 {otpStep === 0
                   ? 'Sign in or create your account to continue'
-                  : `Enter the code sent to ${identifier}`}
+                  : `Enter the code sent to +91 ${phoneNumber}`}
               </p>
             </div>
 
@@ -253,74 +262,43 @@ export default function SignInPage() {
 
             {otpStep === 0 && (
               <div className="w-full flex flex-col gap-4">
-                <a
-                  href={authHref}
-                  className="font-geist font-medium text-base sm:text-lg lg:text-xl bg-white py-3 md:py-4.5 min-h-[44px] md:min-h-[52px] lg:min-h-[64px] text-lightgray flex items-center justify-center gap-3 w-full rounded-full border border-[#0816271A] hover:bg-gray-50 transition-all"
-                >
-                  <svg
-                    className="size-5 sm:size-6"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill="#4285F4"
-                      d="M23.49 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h6.46a5.52 5.52 0 01-2.4 3.62v3h3.88c2.27-2.09 3.55-5.16 3.55-8.65z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.88-3c-1.08.72-2.46 1.16-4.05 1.16-3.11 0-5.74-2.1-6.68-4.93H1.3v3.09A12 12 0 0012 24z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.32 14.32A7.22 7.22 0 014.94 12c0-.8.14-1.58.38-2.32V6.59H1.3A12 12 0 000 12c0 1.93.46 3.76 1.3 5.41l4.02-3.09z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.76 0 3.35.61 4.6 1.8l3.45-3.45C17.94 1.14 15.24 0 12 0A12 12 0 001.3 6.59l4.02 3.09c.94-2.83 3.57-4.93 6.68-4.93z"
-                    />
-                  </svg>
-                  Continue with Google
-                </a>
-
-                <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-lightgray/20" />
-                  <p className="font-geist text-sm text-lightgray opacity-50">
-                    or continue with email
-                  </p>
-                  <div className="h-px flex-1 bg-lightgray/20" />
-                </div>
-
                 <form
                   className="w-full flex flex-col gap-4"
                   onSubmit={(e) => {
                     e.preventDefault();
-                    sendOtp();
+                    sendPhoneOtp();
                   }}
                 >
                   <div className="flex flex-col items-start gap-2 w-full text-left">
                     <label className="text-lightgray font-medium opacity-50 font-geist leading-[120%] text-base sm:text-lg lg:text-xl ml-4">
-                      Email Address
+                      Phone Number
                     </label>
-                    <input
-                      type="email"
-                      autoComplete="email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="you@example.com"
-                      className="w-full bg-white rounded-full px-4 md:px-6 py-2.5 md:py-4.5 border border-[#0816271A] text-lightgray text-base sm:text-lg lg:text-xl font-medium font-geist outline-none focus:border-[#3A6BFC] focus:ring-1 focus:ring-[#3A6BFC] transition-all"
-                    />
+                    <div className="flex items-center w-full gap-2 bg-white rounded-full px-4 md:px-6 py-2.5 md:py-4.5 border border-[#0816271A] focus-within:border-[#3A6BFC] focus-within:ring-1 focus-within:ring-[#3A6BFC] transition-all">
+                      <span className="text-lightgray font-medium font-geist text-base sm:text-lg lg:text-xl">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={phoneNumber}
+                        onChange={(e) =>
+                          setPhoneNumber(
+                            e.target.value.replace(/\D/g, '').slice(0, 10),
+                          )
+                        }
+                        placeholder="00000-00000"
+                        className="bg-transparent w-full text-lightgray text-base sm:text-lg lg:text-xl font-medium font-geist border-none outline-none"
+                      />
+                    </div>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={!canSendOtp}
+                    disabled={phoneOtpBusy || phoneNumber.length !== 10}
                     className="font-geist font-medium text-base sm:text-lg lg:text-xl bg-[#3A6BFC] py-3 md:py-4.5 min-h-[44px] md:min-h-[52px] lg:min-h-[64px] text-white flex items-center justify-center w-full rounded-full shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] transition-all disabled:opacity-60"
                   >
-                    {otpRequestBusy
-                      ? 'Sending...'
-                      : resendCooldown > 0
-                      ? `Wait ${resendCooldown}s`
-                      : 'Send OTP'}
+                    {phoneOtpBusy ? 'Sending...' : 'Send OTP'}
                   </button>
                 </form>
               </div>
@@ -350,15 +328,11 @@ export default function SignInPage() {
                 </div>
 
                 <button
-                  onClick={verifyOtp}
-                  disabled={
-                    verifyFetcher.state !== 'idle' || otp.join('').length < 6
-                  }
+                  onClick={verifyPhoneOtp}
+                  disabled={otp.join('').length < 6 || verifyOtpBusy}
                   className="font-geist font-medium text-base sm:text-lg lg:text-xl bg-[#3A6BFC] py-3 md:py-4.5 min-h-[44px] md:min-h-[52px] lg:min-h-[64px] text-white flex items-center justify-center w-full rounded-full shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] transition-all disabled:opacity-60"
                 >
-                  {verifyFetcher.state !== 'idle'
-                    ? 'Verifying...'
-                    : 'Verify & Continue'}
+                  {verifyOtpBusy ? 'Verifying...' : 'Verify & Continue'}
                 </button>
 
                 <div className="flex flex-col items-center gap-3">
@@ -369,14 +343,14 @@ export default function SignInPage() {
                     }}
                     className="font-geist font-medium text-[#3A6BFC] text-sm sm:text-base lg:text-lg hover:underline transition-all"
                   >
-                    Change Email
+                    Change Number
                   </button>
                   <button
-                    onClick={sendOtp}
-                    disabled={!canSendOtp}
+                    onClick={sendPhoneOtp}
+                    disabled={phoneOtpBusy || resendCooldown > 0}
                     className="font-geist font-medium text-[#808591] text-sm sm:text-base hover:text-[#3A6BFC] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
-                    {otpRequestBusy
+                    {phoneOtpBusy
                       ? 'Sending...'
                       : resendCooldown > 0
                       ? `Resend OTP in ${resendCooldown}s`
@@ -398,11 +372,17 @@ export default function SignInPage() {
         </p>
 
         <div className="flex justify-center gap-1">
-          <a href="#" className="underline opacity-50 hover:text-[#3A6BFC]">
+          <a
+            href="/terms-and-conditions"
+            className="underline opacity-50 hover:text-[#3A6BFC]"
+          >
             Terms of Service
           </a>
           <span className="opacity-50">and</span>
-          <a href="#" className="underline opacity-50 hover:text-[#3A6BFC]">
+          <a
+            href="/privacy-and-terms"
+            className="underline opacity-50 hover:text-[#3A6BFC]"
+          >
             Privacy Policy
           </a>
         </div>

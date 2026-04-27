@@ -8,7 +8,7 @@ const steps = [
     step: 'Step 01.',
     stepClass: 'text-[30px] tracking-[-0.3px]',
     title: 'Choose Your Exam',
-    body: 'Choose Class 11, 12, CA Foundation, or CUET. Select your board and subjects.',
+    body: 'Choose Class 11, 12 or CUET. Select your board and subjects.',
     boxClass:
       'h-[280px] sm:h-[340px] lg:h-[380px] max-w-[500px] w-full rounded-[20px]',
   },
@@ -16,7 +16,7 @@ const steps = [
     step: 'Step 01.',
     stepClass: 'text-[30px] tracking-[-0.3px]',
     title: 'Choose Your Class',
-    body: 'Choose Class 11, 12, CA Foundation, or CUET. Select your board and subjects.',
+    body: 'Choose Class 11, 12 or CUET. Select your board and subjects.',
     boxClass:
       'h-[280px] sm:h-[340px] lg:h-[380px] max-w-[500px] w-full rounded-[20px]',
   },
@@ -24,7 +24,7 @@ const steps = [
     step: 'Step 02.',
     stepClass: 'text-4xl sm:text-[36px] tracking-[-0.36px]',
     title: 'Select Course & Make Purchase',
-    body: 'Choose Class 11, 12, CA Foundation, or CUET. Select your board and subjects.',
+    body: 'Choose Class 11, 12 or CUET. Select your board and subjects.',
     boxClass:
       'h-[320px] sm:h-[420px] lg:h-[510px] max-w-[680px] w-full rounded-[24px]',
   },
@@ -41,7 +41,7 @@ const PersonalizationShowcase: React.FC = () => {
       <div className="custom-container relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 px-2">
           <p className="text-xl font-medium text-lightgray mb-5 leading-[1.2]">
-            Why Commerce Virtual
+            Why Commerce Virtuals
           </p>
           <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-semibold text-lightgray tracking-[-0.02em] leading-[1.15]">
             From Zero to Personalized in 30 Seconds.

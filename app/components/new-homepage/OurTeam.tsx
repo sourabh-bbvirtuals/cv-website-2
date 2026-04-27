@@ -15,7 +15,7 @@ const OurTeam: React.FC = () => {
 
   const faculties = FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
   return (
-    <section className="overflow-hidden">
+    <section id="our-team" className="scroll-mt-32 overflow-hidden">
       <div className="custom-container">
         <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-2 sm:mb-12 md:mb-16">
           <div className="text-left max-sm:text-center">

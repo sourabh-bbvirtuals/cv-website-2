@@ -1,40 +1,73 @@
-import React from 'react';
-import {
-  Phone,
-  MessageCircle,
-  Facebook,
-  Instagram,
-  Send,
-  Youtube,
-  ArrowRight,
-} from 'lucide-react';
-import { useLocation } from '@remix-run/react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Phone, Instagram, Youtube } from 'lucide-react';
+
+const YOUTUBE_CHANNELS = [
+  {
+    label: 'MH Board',
+    href: 'https://youtube.com/@commercevirtualsmh',
+    boardKey: 'mh',
+  },
+  {
+    label: 'CBSE Board',
+    href: 'https://youtube.com/@commercevirtualscbseboards',
+    boardKey: 'cbse',
+  },
+  {
+    label: 'CUET',
+    href: 'https://youtube.com/@commercevirtualscuet',
+    boardKey: 'cuet',
+  },
+];
+
+const INSTAGRAM_PAGES = [
+  { label: 'MH Board', href: 'https://www.instagram.com/commercevirtualsmh' },
+  {
+    label: 'CBSE Board',
+    href: 'https://www.instagram.com/commercevirtualcbse',
+  },
+];
+
+function useUserBoard(): string | null {
+  const [board, setBoard] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('bb_user_profile');
+      if (!stored) return;
+      const profile = JSON.parse(stored);
+      const raw = (profile.board || '').toLowerCase().trim();
+      if (raw) setBoard(raw);
+    } catch {}
+  }, []);
+  return board;
+}
+
+function resolveYoutubeForBoard(board: string | null) {
+  if (!board) return null;
+  const b = board.toLowerCase();
+  if (b.includes('cuet'))
+    return YOUTUBE_CHANNELS.find((c) => c.boardKey === 'cuet') ?? null;
+  if (b.includes('mh') || b.includes('maharashtra') || b.includes('hsc'))
+    return YOUTUBE_CHANNELS.find((c) => c.boardKey === 'mh') ?? null;
+  if (b.includes('cbse'))
+    return YOUTUBE_CHANNELS.find((c) => c.boardKey === 'cbse') ?? null;
+  return null;
+}
 
 const Footer = () => {
-  const location = useLocation();
-
-  const isOlyampiadPath = location.pathname.startsWith('/olympiad');
+  const userBoard = useUserBoard();
+  const matchedYoutube = resolveYoutubeForBoard(userBoard);
 
   const footerLinks = [
     {
       title: 'Know More',
       links: [
-        'About Us',
-        'Terms & Conditions',
-        'Refund & Cancellations',
-        'Contact us',
-        'Privacy Policy',
+        { label: 'About Us', href: '/about-us' },
+        { label: 'Contact Us', href: '/contact-us' },
+        { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+        { label: 'Privacy Policy', href: '/privacy-policy' },
+        { label: 'Refund & Cancellations', href: '/refund-and-cancellations' },
       ],
     },
-    { title: 'Connect', links: ['Youtube', 'Instagram'] },
-  ];
-
-  const socialIcons = [
-    { Icon: MessageCircle, href: '#' },
-    { Icon: Facebook, href: '#' },
-    { Icon: Instagram, href: '#' },
-    { Icon: Send, href: '#' },
-    { Icon: Youtube, href: '#' },
   ];
 
   return (
@@ -55,32 +88,18 @@ const Footer = () => {
               ? 'Win your seat.'
               : 'Call us Directly for Purchase Related Queries'}
           </h2>
-          {isOlyampiadPath ? (
-            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
-              Free entry. Closes 3 May, 9:00 AM IST.
-            </p>
-          ) : (
-            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
-              Get instant assistance from our team for any purchase-related
-              questions. <br />
-              We're here to help you make the right decision, faster.
-            </p>
-          )}
-          {isOlyampiadPath ? (
-            <div className="flex items-center justify-center text-center">
-              <div className="flex cursor-pointer text-xl font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-8 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]">
-                Register For Free <ArrowRight className="w-6 h-6" />
-              </div>
-            </div>
-          ) : (
-            <a
-              href="tel:8272332948"
-              className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[325px] md:w-[323px] h-[42px] md:h-[56px] font-normal md:font-medium py-4 px-6 md:text-xl leading-[120%]!"
-            >
-              <Phone size={20} fill="currentColor" />
-              Call Now (827-233-2948)
-            </a>
-          )}
+          <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+            Get instant assistance from our team for any purchase-related
+            questions. <br />
+            We're here to help you make the right decision, faster.
+          </p>
+          <a
+            href="tel:+916291040600"
+            className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[270px] sm:w-[340px] md:w-[420px] h-[52px] md:h-[64px] font-medium py-4 px-8 text-[13px] sm:text-base md:text-xl leading-[120%]!"
+          >
+            <Phone size={20} fill="currentColor" />
+            Call Now (+91 6291 040 600)
+          </a>
         </div>
 
         {/* 2. Watermark Text Container */}
@@ -102,7 +121,7 @@ const Footer = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Commerce Virtual
+            Commerce Virtuals
           </h2>
         </div>
         {/* 3. Main Footer Content (Links & Logo) */}
@@ -117,15 +136,43 @@ const Footer = () => {
                 <img src="/assets/logo.png" alt="Logo" className="w-55" />
               </a>
               <div className="flex gap-3 mt-4">
-                {socialIcons.map(({ Icon, href }, index) => (
+                <FooterSocialDropdown
+                  icon={<Instagram size={20} />}
+                  label="Instagram"
+                  items={INSTAGRAM_PAGES}
+                />
+                {matchedYoutube ? (
                   <a
-                    key={index}
-                    href={href}
-                    className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-[#BAC2CB] hover:text-blue-500 transition-colors border border-gray-100"
+                    href={matchedYoutube.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-[#BAC2CB] hover:text-red-500 transition-colors border border-gray-100"
+                    aria-label={`YouTube – ${matchedYoutube.label}`}
                   >
-                    <Icon size={20} />
+                    <Youtube size={20} />
                   </a>
-                ))}
+                ) : (
+                  <FooterSocialDropdown
+                    icon={<Youtube size={20} />}
+                    label="YouTube"
+                    items={YOUTUBE_CHANNELS}
+                  />
+                )}
+                <a
+                  href="https://wa.me/916291040600?text=Hi+Commerce+Virtuals%2C+I%27d+like+to+know+more+about+courses."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-[#BAC2CB] hover:text-green-500 transition-colors border border-gray-100"
+                  aria-label="WhatsApp"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                  </svg>
+                </a>
               </div>
             </div>
 
@@ -141,12 +188,12 @@ const Footer = () => {
                   </h3>
                   <ul className="flex flex-col gap-2">
                     {section.links.map((link) => (
-                      <li key={link}>
+                      <li key={link.label}>
                         <a
-                          href="#"
+                          href={link.href}
                           className="text-lightgray/80 hover:text-blue-600 transition-colors leading-[150%]"
                         >
-                          {link}
+                          {link.label}
                         </a>
                       </li>
                     ))}
@@ -168,9 +215,23 @@ const Footer = () => {
                     West Mumbai - 400091
                   </p>
                   <p>
-                    Sales Contact -{' '}
-                    <a href="tel:7718866966" className="hover:underline">
-                      7718866966
+                    Admissions & Sales -{' '}
+                    <a href="tel:+916291040600" className="hover:underline">
+                      +91 6291 040 600
+                    </a>
+                  </p>
+                  <p>
+                    Support -{' '}
+                    <a href="tel:+916291050600" className="hover:underline">
+                      +91 6291 050 600
+                    </a>
+                  </p>
+                  <p>
+                    <a
+                      href="mailto:support@commercevirtuals.com"
+                      className="hover:underline"
+                    >
+                      support@commercevirtuals.com
                     </a>
                   </p>
                 </div>
@@ -189,5 +250,55 @@ const Footer = () => {
     </footer>
   );
 };
+
+function FooterSocialDropdown({
+  icon,
+  label,
+  items,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  items: { label: string; href: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-[#BAC2CB] hover:text-blue-500 transition-colors border border-gray-100"
+        aria-label={label}
+      >
+        {icon}
+      </button>
+      {open && (
+        <div className="absolute left-0 bottom-full mb-2 bg-white rounded-xl shadow-lg border border-slate-100 py-2 min-w-[160px] z-50">
+          {items.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default Footer;

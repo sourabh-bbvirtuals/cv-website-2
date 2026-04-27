@@ -51,7 +51,9 @@ async function getBlogPostFromBlogsArray(
   options: QueryOptions,
 ): Promise<BlogCollectionData | null> {
   const result = await getCollectionBySlug('blogs', options);
-  const raw = result.collection?.description || result.collection?.customFields?.customData;
+  const raw =
+    result.collection?.description ||
+    result.collection?.customFields?.customData;
   if (!raw) return null;
   let parsed: unknown;
   try {
@@ -116,7 +118,9 @@ export async function getBlogCollectionBySlug(
 
     const result = await getCollectionBySlug(slug, options);
 
-    const rawBlogJson = result.collection?.description || result.collection?.customFields?.customData;
+    const rawBlogJson =
+      result.collection?.description ||
+      result.collection?.customFields?.customData;
     if (rawBlogJson) {
       let blogData: Record<string, unknown>;
       try {

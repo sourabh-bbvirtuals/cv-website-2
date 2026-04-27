@@ -8,6 +8,7 @@ import {
   StudyNotesIcon,
 } from './Icons';
 import { Link } from '@remix-run/react';
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
 const RESOURCE_LINK_MAP: Record<string, string> = {
   'Study Notes': '/free-resources/study-notes',
@@ -17,35 +18,78 @@ const RESOURCE_LINK_MAP: Record<string, string> = {
   'Free Videos': '/free-resources/free-videos',
 };
 
+const BOARD_RESOURCE_DESC: Record<string, Record<string, string>> = {
+  mh: {
+    'Study Notes': 'MH Board Notes',
+    'Mock Tests': 'MH Board Tests',
+    'Past Papers': 'MH Board Papers',
+    Quizzes: 'MH Board Quizzes',
+    'Free Videos': 'MH Board Videos',
+  },
+  cbse: {
+    'Study Notes': 'CBSE Notes',
+    'Mock Tests': 'CBSE Tests',
+    'Past Papers': 'CBSE Papers',
+    Quizzes: 'CBSE Quizzes',
+    'Free Videos': 'CBSE Videos',
+  },
+  cuet: {
+    'Study Notes': 'CUET Notes',
+    'Mock Tests': 'CUET Tests',
+    'Past Papers': 'CUET Papers',
+    Quizzes: 'CUET Quizzes',
+    'Free Videos': 'CUET Videos',
+  },
+};
+
+const DEFAULT_DESC: Record<string, string> = {
+  'Study Notes': '240+ PDFs',
+  'Mock Tests': 'CBSE, CUET, MH',
+  'Past Papers': '10 Years',
+  Quizzes: 'Practice Quizzes',
+  'Free Videos': '500+ Lectures',
+};
+
 const FreeResources = () => {
+  const { selectedSlug, boardOptions } = useBoardSelection();
+  const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
+  const boardKey = selectedBoard?.board.toLowerCase() || '';
+
+  const getDesc = (title: string) => {
+    if (boardKey && BOARD_RESOURCE_DESC[boardKey]?.[title]) {
+      return BOARD_RESOURCE_DESC[boardKey][title];
+    }
+    return DEFAULT_DESC[title] || '';
+  };
+
   const resources = [
     {
       title: 'Study Notes',
-      desc: '240+ PDFs',
+      desc: getDesc('Study Notes'),
       icon: <StudyNotesIcon classname="max-w-12 md:max-w-18" />,
       bgColor: 'bg-[#EEF2FF]',
     },
     {
       title: 'Mock Tests',
-      desc: 'CBSE, CUET, MH',
+      desc: getDesc('Mock Tests'),
       icon: <MockTestsIcon />,
       bgColor: 'bg-[#FFEEF8]',
     },
     {
       title: 'Past Papers',
-      desc: '10 Years',
+      desc: getDesc('Past Papers'),
       icon: <PastPapersIcon />,
       bgColor: 'bg-[#EDF9FF]',
     },
     {
       title: 'Quizzes',
-      desc: '180+ PDFs',
+      desc: getDesc('Quizzes'),
       icon: <QuizzesIcon />,
       bgColor: 'bg-[#FFF1EE]',
     },
     {
       title: 'Free Videos',
-      desc: '500+ Lectures',
+      desc: getDesc('Free Videos'),
       icon: <FreeVideosIcon />,
       bgColor: 'bg-[#EEF0FF]',
     },
@@ -66,8 +110,7 @@ const FreeResources = () => {
           Start Learning Today
         </h2>
         <p className="text-lightgray text-sm mt-3 leading-[140%] max-w-xs">
-          Choose Class 11, 12, CA Foundation, or CUET. Select your board and
-          subjects.
+          Choose Class 11, 12 or CUET. Select your board and subjects.
         </p>
       </div>
 
@@ -120,8 +163,7 @@ const FreeResources = () => {
             Start Learning Today
           </h2>
           <p className="text-lightgray text-base sm:text-lg xl:text-xl mt-3 sm:mt-4 leading-[140%] xl:leading-[150%]">
-            Choose Class 11, 12, CA Foundation, or CUET. Select your board and
-            subjects.
+            Choose Class 11, 12 or CUET. Select your board and subjects.
           </p>
           <div className="flex gap-3 sm:gap- shrink-0 mt-16">
             <Link

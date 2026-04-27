@@ -27,6 +27,11 @@ export type SpecItem = {
     imageUrl?: string;
     description?: string;
   }>;
+  iconWithTextItems?: Array<{
+    text: string;
+    iconUrl?: string;
+    muiIconName?: string;
+  }>;
 };
 
 export type VariantOption = {
@@ -60,7 +65,13 @@ export type ProductData = {
   price: string;
   priceWithTax: number;
   featuredAsset?: { preview: string } | null;
-  faculties?: Array<{ name: string; image: string; description: string }>;
+  faculties?: Array<{
+    name: string;
+    image: string;
+    description: string;
+    designation?: string;
+    experience?: string;
+  }>;
   facetValues?: Array<{ name: string; facet: { name: string } }>;
   customFields?: {
     customData?: string | null;

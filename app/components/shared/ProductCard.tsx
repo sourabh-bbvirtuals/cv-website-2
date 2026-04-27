@@ -168,7 +168,7 @@ export function ProductCard({
     }
 
     // Get WhatsApp configuration
-    const phoneNumber = '917773977747'; // Default phone number
+    const phoneNumber = '916291040600';
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const productUrl = `${baseUrl}/courses2/product/${slug}`;
 

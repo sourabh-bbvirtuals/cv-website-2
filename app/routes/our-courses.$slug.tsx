@@ -24,11 +24,23 @@ export async function loader({ params, request }: DataFunctionArgs) {
   const normalizedSlug = slug.trim().replace(/\s+/g, '-').toLowerCase();
 
   try {
-    // Fetch product + collection in parallel using normalized slug
-    const [productResult, collectionResult] = await Promise.allSettled([
-      getProductBySlug(normalizedSlug, { request }),
-      getCollectionBySlug(normalizedSlug, { request }),
-    ]);
+    // Fetch product + collection + team data in parallel
+    const teamFetch = fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ collection(slug: "cv-team") { customFields { customData } } }`,
+      }),
+    })
+      .then((r) => r.json())
+      .catch(() => null);
+
+    const [productResult, collectionResult, teamResult] =
+      await Promise.allSettled([
+        getProductBySlug(normalizedSlug, { request }),
+        getCollectionBySlug(normalizedSlug, { request }),
+        teamFetch,
+      ]);
 
     // ─── Product ────────────────────────────────────────────────────────────
     const product =
@@ -151,12 +163,22 @@ export async function loader({ params, request }: DataFunctionArgs) {
           }));
         } else {
           faculties = faculties.map((fd: any) => {
-            if (!fd.image) {
-              const match = facultyInfos.find(
-                (f: any) =>
-                  f.name && f.name.toLowerCase() === fd.name.toLowerCase(),
+            const fdName = fd.name?.toLowerCase() || '';
+            const match = facultyInfos.find((f: any) => {
+              const fName = f.name?.toLowerCase() || '';
+              return (
+                fName &&
+                (fName === fdName ||
+                  fName.includes(fdName) ||
+                  fdName.includes(fName))
               );
-              if (match?.imageUrl) return { ...fd, image: match.imageUrl };
+            });
+            if (match) {
+              return {
+                ...fd,
+                image: fd.image || match.imageUrl || '',
+                description: fd.description || match.description || '',
+              };
             }
             return fd;
           });
@@ -164,11 +186,77 @@ export async function loader({ params, request }: DataFunctionArgs) {
       }
     }
 
+    // Enrich faculty with designation/experience from cv-team collection
+    try {
+      const teamRaw =
+        teamResult.status === 'fulfilled'
+          ? teamResult.value?.data?.collection?.customFields?.customData
+          : null;
+      if (teamRaw) {
+        const teamParsed =
+          typeof teamRaw === 'string' ? JSON.parse(teamRaw) : teamRaw;
+        const allTeamMembers = [
+          ...(teamParsed.mh || []),
+          ...(teamParsed.cbse || []),
+          ...(teamParsed.cuet || []),
+        ];
+        if (allTeamMembers.length > 0) {
+          faculties = faculties.map((fd: any) => {
+            const fdName = fd.name?.toLowerCase() || '';
+            const match = allTeamMembers.find((t: any) => {
+              const tName = t.name?.toLowerCase() || '';
+              return (
+                tName &&
+                (tName === fdName ||
+                  tName.includes(fdName) ||
+                  fdName.includes(tName))
+              );
+            });
+            if (match) {
+              return {
+                ...fd,
+                designation: fd.designation || match.designation || '',
+                experience: fd.experience || match.experience || '',
+              };
+            }
+            return fd;
+          });
+        }
+      }
+    } catch {
+      // non-fatal
+    }
+
+    // Prefer the short_description spec over the Vendure description field
+    const specList = specifications?.product || [];
+    const shortDescSpec = specList.find(
+      (s: any) => s.identifier === 'short_description',
+    );
+    const finalDescription = shortDescSpec?.text
+      ? sanitizeHtml(shortDescSpec.text, {
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
+      : safeDescription;
+
     const productData = product
       ? {
           id: product.id,
           title: product.title,
-          description: safeDescription,
+          description: finalDescription,
           price: product.priceWithTax
             ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
             : '',

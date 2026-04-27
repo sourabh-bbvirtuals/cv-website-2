@@ -17,26 +17,47 @@ export interface TeamSectionProps {
   title: string;
   members: TeamMember[];
   boardFaculties?: Record<string, TeamMember[]>;
+  hasExplicitBoard?: boolean;
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFaculties }) => {
+const TeamSection: React.FC<TeamSectionProps> = ({
+  title,
+  members,
+  boardFaculties,
+  hasExplicitBoard,
+}) => {
   const { selectedSlug, boardOptions } = useBoardSelection();
   const selectedBoard = boardOptions.find((o) => o.slug === selectedSlug);
-  const boardKey = selectedBoard?.board.toLowerCase() || 'mh';
+  const boardKey = hasExplicitBoard
+    ? selectedBoard?.board.toLowerCase() || ''
+    : '';
 
-  const vendureBoardMembers = boardFaculties?.[boardKey];
+  const allBoardFaculties = boardFaculties
+    ? Object.values(boardFaculties).flat().filter(Boolean)
+    : [];
+  const allFallbackFaculties = Object.values(FACULTIES_BY_BOARD).flat();
+
+  const vendureBoardMembers = boardKey ? boardFaculties?.[boardKey] : null;
   const faculties =
     vendureBoardMembers && vendureBoardMembers.length > 0
       ? vendureBoardMembers
+      : boardKey && FACULTIES_BY_BOARD[boardKey]?.length > 0
+      ? FACULTIES_BY_BOARD[boardKey]
+      : allBoardFaculties.length > 0
+      ? allBoardFaculties
       : members.length > 0
-        ? members
-        : FACULTIES_BY_BOARD[boardKey] || FACULTIES_BY_BOARD.mh;
+      ? members
+      : allFallbackFaculties;
+
+  const uniqueFaculties = faculties.filter(
+    (f, i, arr) => arr.findIndex((x) => x.name === f.name) === i,
+  );
   const swiperRef = useRef<SwiperType | null>(null);
 
   // if (!members || members.length === 0) return null;
 
   return (
-    <section className="overflow-hidden">
+    <section id="our-team" className="scroll-mt-32 overflow-hidden">
       <div className="custom-container">
         <div className="flex max-sm:flex-col max-sm:text-center max-sm:items-center max-sm:gap-4 justify-between items-end gap-4 mb-2 sm:mb-12 md:mb-16">
           <div className="text-left max-sm:text-center">
@@ -92,7 +113,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
             }}
             className="w-full"
           >
-            {faculties.map((member, index) => (
+            {uniqueFaculties.map((member, index) => (
               <SwiperSlide key={index}>
                 <article
                   className={`group flex flex-col items-center px-0.5 text-center ${
@@ -104,7 +125,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
                       src={member.image}
                       alt={member.name}
                       loading="lazy"
-                      className="w-full h-full object-contain object-bottom"
+                      className="w-full h-full object-cover object-top"
                     />
                   </div>
                   <div className="flex flex-col gap-3">
@@ -117,9 +138,11 @@ const TeamSection: React.FC<TeamSectionProps> = ({ title, members, boardFacultie
                     <p className="text-sm md:text-base font-normal leading-[120%] text-lightgray/60 sm:text-base">
                       {member.designation}
                     </p>
-                    {/* <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
-                      {member.experience}
-                    </span> */}
+                    {member.experience && (
+                      <span className="inline-flex items-center justify-center rounded-[40px] border border-[#0816271A] bg-[#0816270D] px-1.5 py-0.5 sm:px-2 sm:py-1 text-sm sm:text-base leading-[1.2] font-medium text-[#08162780] whitespace-nowrap">
+                        {member.experience}
+                      </span>
+                    )}
                   </div>
                 </article>
               </SwiperSlide>

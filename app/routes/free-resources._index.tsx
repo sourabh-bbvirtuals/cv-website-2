@@ -3,8 +3,15 @@ import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
 export const meta: MetaFunction = () => [
-  { title: 'Free Commerce Resources – Mock Tests, Notes & Past Papers | Commerce Virtuals' },
-  { name: 'description', content: 'Download free Class 11 & 12 commerce study notes, past papers, mock tests and MCQ quizzes for CBSE and Maharashtra HSC board. No signup needed. 100% free.' },
+  {
+    title:
+      'Free Commerce Resources – Mock Tests, Notes & Past Papers | Commerce Virtuals',
+  },
+  {
+    name: 'description',
+    content:
+      'Download free Class 11 & 12 commerce study notes, past papers, mock tests and MCQ quizzes for CBSE and Maharashtra HSC board. No signup needed. 100% free.',
+  },
 ];
 import Layout from '~/components/Layout';
 import FreeResourcesPage from '~/components/free-resources/FreeResourcesPage';
@@ -15,40 +22,76 @@ import {
   fetchTabNames,
   fetchTabContent,
 } from '~/utils/bbServer';
+import { resolveSelectedBoardAndClass } from '~/utils/resolveBoardClass.server';
+import { resolveNavbarBoardSelection } from '~/utils/resolveNavbarBoard.server';
+import { isFreeResourcesTabContentEmpty } from '~/utils/freeResourcesTabFallback.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const boardId = url.searchParams.get('boardId') ?? undefined;
-  const classId = url.searchParams.get('classId') ?? undefined;
   const subjectId = url.searchParams.get('subjectId') ?? undefined;
   const chapterNames = url.searchParams.get('chapterNames') ?? undefined;
   const page = url.searchParams.get('page') ?? '1';
   const q = url.searchParams.get('q') ?? undefined;
 
+  // Start resolveNavbarBoardSelection immediately — it hits Vendure (GraphQL)
+  // and has no dependency on the guest token. Running it in parallel with
+  // withGuestToken saves ~300-500 ms on every filter or tab change.
+  const navSelectionPromise = resolveNavbarBoardSelection(request);
+
   try {
     const result = await withGuestToken(request, async (token) => {
-      const boards = await fetchBoards(token);
-      const selectedBoardId = boardId ?? boards[0]?.id;
+      // fetchBoards and navSelection now run concurrently.
+      // fetchBoards is cached after the first call.
+      const [boards, navSelection] = await Promise.all([
+        fetchBoards(token),
+        navSelectionPromise,
+      ]);
 
-      if (!selectedBoardId) {
-        return {
+      // Resolve board first (needs no classes yet)
+      const { boardId: selectedBoardId, boardMismatch } =
+        resolveSelectedBoardAndClass(
+          navSelection,
           boards,
-          classes: [],
-          selectedBoardId: '',
-          selectedClassId: '',
+          [], // classes not needed for board resolution
+        );
+
+      if (!selectedBoardId || boardMismatch) {
+        // Either no boards available, or user's cookie pointed to an unknown board
+        return {
           tabNames: [] as string[],
           activeTab: '',
           content: null,
         };
       }
 
+      // fetchClasses is cached after the first call per boardId
       const classes = await fetchClasses(token, selectedBoardId);
-      const selectedClassId = classId ?? classes[0]?.id ?? '';
+      const { classId: selectedClassId, classMismatch } =
+        resolveSelectedBoardAndClass(navSelection, boards, classes);
 
-      const tabNames = selectedClassId
+      if (classMismatch) {
+        // User's cookie specified a class that doesn't exist for this board
+        return {
+          tabNames: [] as string[],
+          activeTab: '',
+          content: null,
+        };
+      }
+
+      const fetchedTabNames = selectedClassId
         ? await fetchTabNames(token, selectedBoardId, selectedClassId)
         : [];
-      const activeTab = tabNames[0] ?? '';
+      const tabNames =
+        fetchedTabNames.length > 0
+          ? fetchedTabNames
+          : [
+              'Mock Tests',
+              'Study Notes',
+              'Past Papers',
+              'Quizzes',
+              'Free Videos',
+            ];
+      let activeTab = tabNames[0] ?? '';
 
       let content = null;
       if (activeTab) {
@@ -63,11 +106,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
         });
       }
 
+      const mayAutoSwitchTab =
+        !subjectId && !chapterNames && !q && page === '1';
+
+      if (mayAutoSwitchTab && isFreeResourcesTabContentEmpty(content)) {
+        for (const candidate of tabNames) {
+          if (candidate === activeTab) continue;
+          const probed = await fetchTabContent(token, {
+            boardId: selectedBoardId,
+            tabName: candidate,
+            classId: selectedClassId || undefined,
+            page: '1',
+          });
+          if (!isFreeResourcesTabContentEmpty(probed)) {
+            activeTab = candidate;
+            content = probed;
+            break;
+          }
+        }
+      }
+
       return {
-        boards,
-        classes,
-        selectedBoardId,
-        selectedClassId,
         tabNames,
         activeTab,
         content,
@@ -81,10 +140,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } catch (err) {
     if (err instanceof LimitReachedError) {
       return json({
-        boards: [],
-        classes: [],
-        selectedBoardId: '',
-        selectedClassId: '',
         tabNames: [] as string[],
         activeTab: '',
         content: null,
@@ -101,10 +156,6 @@ export default function FreeResourcesIndexRoute() {
   return (
     <Layout>
       <FreeResourcesPage
-        boards={data.boards}
-        classes={data.classes}
-        selectedBoardId={data.selectedBoardId}
-        selectedClassId={data.selectedClassId}
         tabNames={data.tabNames}
         activeTab={data.activeTab}
         content={data.content}

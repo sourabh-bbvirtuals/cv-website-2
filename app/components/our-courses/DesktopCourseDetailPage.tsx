@@ -355,7 +355,13 @@ function VideoCarousel({
 function FacultiesCarousel({
   items,
 }: {
-  items: Array<{ name: string; image: string; description: string }>;
+  items: Array<{
+    name: string;
+    image: string;
+    description: string;
+    designation?: string;
+    experience?: string;
+  }>;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -434,12 +440,20 @@ function FacultiesCarousel({
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex flex-col items-start gap-2 flex-1">
-                  {/* Faculty Info */}
+                <div className="flex flex-col items-start gap-1 flex-1">
                   <h3 className="text-base font-semibold text-slate-900">
                     {faculty.name}
                   </h3>
-                  <p className="text-base text-lightgray/50">{'CA, M.com'}</p>
+                  {faculty.designation && (
+                    <p className="text-sm text-gray-500">
+                      {faculty.designation}
+                    </p>
+                  )}
+                  {faculty.experience && (
+                    <p className="text-sm text-gray-400">
+                      {faculty.experience}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -447,7 +461,9 @@ function FacultiesCarousel({
               <div className="flex flex-col gap-2 w-full text-base text-lightgray/50 leading-relaxed flex-1">
                 {isExpanded ? (
                   <>
-                    <p>{faculty.description}</p>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: faculty.description }}
+                    />
                     <button
                       onClick={() => setExpandedIdx(null)}
                       className="font-medium text-[#3a6bfc] hover:underline flex items-center gap-1 w-fit"
@@ -463,9 +479,8 @@ function FacultiesCarousel({
                         textRefs.current[absoluteIdx] = el;
                       }}
                       className="line-clamp-3"
-                    >
-                      {faculty.description}
-                    </p>
+                      dangerouslySetInnerHTML={{ __html: faculty.description }}
+                    />
                     {isClamped && (
                       <button
                         onClick={() => setExpandedIdx(absoluteIdx)}
@@ -575,6 +590,33 @@ function CompositeBlock({
   );
 }
 
+function hasRenderableContent(item: SpecItem): boolean {
+  if (item.type === 'table' && item.table && Object.keys(item.table).length > 0)
+    return true;
+  if (item.type === 'list' && item.list && item.list.length > 0) return true;
+  if (
+    (item.type === 'html' ||
+      item.type === 'text' ||
+      item.type === 'html_text') &&
+    item.text
+  )
+    return true;
+  if (item.type === 'video' && item.text) return true;
+  if (item.type === 'faq' && item.faqItems && item.faqItems.length > 0)
+    return true;
+  if (
+    item.type === 'video_carousel' &&
+    item.videoItems &&
+    item.videoItems.length > 0
+  )
+    return true;
+  if (item.type === 'stat_items' && item.statItems && item.statItems.length > 0)
+    return true;
+  if (item.type === 'composite' && item.data)
+    return item.data.some(hasRenderableContent);
+  return false;
+}
+
 /** Route a spec item to the right renderer */
 function SpecBlock({ item, depth = 0 }: { item: SpecItem; depth?: number }) {
   if (item.type === 'table' && item.table)
@@ -628,12 +670,23 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
   if (!featuresSpec) return null;
 
   const whatsIncluded = featuresSpec.data?.find((d) => d.type === 'table');
-  const courseHighlights = featuresSpec.data?.find((d) => d.type === 'list');
+  const courseHighlightsList = featuresSpec.data?.find(
+    (d) => d.type === 'list',
+  );
+  const courseHighlightsIcons = featuresSpec.data?.find(
+    (d) => d.type === 'icon_with_text' && d.iconWithTextItems?.length,
+  );
 
   const includedEntries = whatsIncluded?.table
     ? Object.entries(whatsIncluded.table)
     : [];
-  const highlights = courseHighlights?.list || [];
+  const highlights: Array<{ text: string; iconUrl?: string }> =
+    courseHighlightsList?.list?.map((t) => ({ text: t })) ||
+    courseHighlightsIcons?.iconWithTextItems?.map((item) => ({
+      text: item.text,
+      iconUrl: item.iconUrl,
+    })) ||
+    [];
 
   return (
     <div className="rounded-[24px] bg-[#081627] p-4 sm:p-5 lg:p-6 text-white shadow-xl overflow-hidden relative w-full border border-slate-800/50">
@@ -676,10 +729,10 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
         {highlights.length > 0 && (
           <div className="flex-1 flex flex-col gap-3">
             <ul className="flex flex-col gap-3">
-              {highlights.map((line, i) => {
-                const t = line.toLowerCase();
+              {highlights.map((item, i) => {
+                const t = item.text.toLowerCase();
                 let Icon = CheckCircle2;
-                let color = '#22C55E'; // Default green
+                let color = '#22C55E';
 
                 if (
                   t.includes('master teacher') ||
@@ -696,7 +749,7 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
                 } else if (t.includes('recording')) {
                   Icon = CirclePlay;
                   color = '#F97316';
-                } else if (t.includes('assignment')) {
+                } else if (t.includes('assignment') || t.includes('note')) {
                   Icon = NotepadText;
                   color = '#3B82F6';
                 } else if (t.includes('handwritten')) {
@@ -706,17 +759,25 @@ function FeaturesSection({ specItems }: { specItems: SpecItem[] }) {
 
                 return (
                   <li key={i} className="flex items-start gap-3">
-                    <Icon
-                      className="mt-0.5 p-[3px] size-6 border shrink-0 rounded-full"
-                      style={{
-                        borderColor: `${color}33`,
-                        backgroundColor: `${color}33`,
-                        color: color,
-                      }}
-                      strokeWidth={1.5}
-                    />
+                    {item.iconUrl ? (
+                      <img
+                        src={item.iconUrl}
+                        alt=""
+                        className="mt-0.5 size-6 shrink-0 rounded-full object-contain"
+                      />
+                    ) : (
+                      <Icon
+                        className="mt-0.5 p-[3px] size-6 border shrink-0 rounded-full"
+                        style={{
+                          borderColor: `${color}33`,
+                          backgroundColor: `${color}33`,
+                          color: color,
+                        }}
+                        strokeWidth={1.5}
+                      />
+                    )}
                     <span className="text-sm sm:text-base leading-relaxed">
-                      {line}
+                      {item.text}
                     </span>
                   </li>
                 );
@@ -760,6 +821,7 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
             child.list?.length ||
             child.videoItems?.length ||
             0;
+          const hasExpandableContent = hasRenderableContent(child);
           const durationRaw =
             child.extraFields?.duration ||
             child.extraFields?.duration_minutes ||
@@ -811,8 +873,12 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
               >
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-4 text-left transition-colors"
-                  onClick={() => setOpenAccordion(open ? null : idx)}
+                  className={`w-full flex items-center justify-between gap-4 text-left transition-colors ${
+                    !hasExpandableContent ? 'cursor-default' : ''
+                  }`}
+                  onClick={() =>
+                    hasExpandableContent && setOpenAccordion(open ? null : idx)
+                  }
                 >
                   {/* LEFT CONTENT */}
                   <div className="flex flex-col gap-2">
@@ -833,14 +899,16 @@ function RenderSyllabus({ item }: { item: SpecItem }) {
                     </span>
                   </div>
 
-                  {/* RIGHT ICON */}
-                  <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
-                    {open ? (
-                      <ChevronDown className="size-4 text-lightgray/50" />
-                    ) : (
-                      <ChevronRight className="size-4 text-lightgray/50" />
-                    )}
-                  </div>
+                  {/* RIGHT ICON - hidden when no expandable content */}
+                  {hasExpandableContent && (
+                    <div className="shrink-0 flex items-center justify-center p-0.5 bg-lightgray/5 rounded-full">
+                      {open ? (
+                        <ChevronDown className="size-4 text-lightgray/50" />
+                      ) : (
+                        <ChevronRight className="size-4 text-lightgray/50" />
+                      )}
+                    </div>
+                  )}
                 </button>
                 {/* specification blocks */}
                 <div
@@ -942,30 +1010,28 @@ function VariantOptionSelector({
   onSelect: (groupId: string, optionId: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-wrap gap-4">
       {optionGroups.map((group) => (
-        <div key={group.id} className="flex flex-col gap-2">
-          <label className="text-sm font-semibold uppercase tracking-wider text-lightgray/60">
+        <div key={group.id} className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
             {group.name}
           </label>
-          <div className="flex flex-wrap gap-2">
-            {group.options.map((option) => {
-              const isSelected = selectedOptions[group.id] === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => onSelect(group.id, option.id)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                    isSelected
-                      ? 'border-[#3A6BFC] bg-[#3A6BFC]/10 text-[#3A6BFC] shadow-sm'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                >
+          <div className="relative">
+            <select
+              value={selectedOptions[group.id] || ''}
+              onChange={(e) => onSelect(group.id, e.target.value)}
+              className="appearance-none rounded-full border border-slate-200 bg-white px-4 py-2.5 pr-10 text-sm font-medium text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-[#3A6BFC] focus:ring-1 focus:ring-[#3A6BFC]/20"
+            >
+              {group.options.map((option) => (
+                <option key={option.id} value={option.id}>
                   {option.name}
-                </button>
-              );
-            })}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={16}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
           </div>
         </div>
       ))}
@@ -994,9 +1060,12 @@ export default function CourseDetailPage({
   >(() => {
     if (!hasOptions) return {};
     const initial: Record<string, string> = {};
-    const firstVariant = variants[0];
-    if (firstVariant) {
-      for (const opt of firstVariant.options) {
+    const cheapest = variants.reduce(
+      (min, v) => (v.priceWithTax < min.priceWithTax ? v : min),
+      variants[0],
+    );
+    if (cheapest) {
+      for (const opt of cheapest.options) {
         if (opt.group) initial[opt.group.id] = opt.id;
       }
     }
@@ -1141,7 +1210,7 @@ export default function CourseDetailPage({
   const title = product?.title || 'Course Details';
   const description = product?.description || '';
   const facultyImage =
-    product?.faculties?.[0]?.image || product?.featuredAsset?.preview;
+    product?.featuredAsset?.preview || product?.faculties?.[0]?.image;
   const displayFaculties =
     product?.faculties && product.faculties.length > 0 ? product.faculties : [];
 
@@ -1155,9 +1224,9 @@ export default function CourseDetailPage({
         {/* big card */}
         <div className="max-w-330 border gap-[50px] rounded-4xl border-[#DFD4EE] bg-white mx-auto p-9 relative z-10">
           {/* top part */}
-          <div className="flex flex-row items-center gap-9">
+          <div className="flex flex-row items-stretch gap-9">
             {/* Left - Hero Content */}
-            <div className="flex flex-col gap-[30px]">
+            <div className="flex flex-col justify-between flex-1">
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-4">
                   {(courseLanguage || courseMode) && (
@@ -1187,17 +1256,17 @@ export default function CourseDetailPage({
                       )}
                     </div>
                   )}
-                  <h1 className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl lg:leading-[1.15]">
+                  <h1 className="text-[22px] font-semibold tracking-tight text-[#0f172a] sm:text-[28px] lg:leading-[1.15]">
                     {title}
                   </h1>
                 </div>
 
-                {/* {description && (
+                {description && (
                   <div
-                    className="max-w-2xl text-lg font-medium leading-relaxed text-slate-500 sm:text-xl lg:line-clamp-2"
+                    className="max-w-2xl text-base leading-relaxed text-slate-500 line-clamp-2"
                     dangerouslySetInnerHTML={{ __html: description }}
                   />
-                )} */}
+                )}
               </div>
 
               {/* variant options */}
@@ -1237,9 +1306,8 @@ export default function CourseDetailPage({
             </div>
 
             {/* Right - Faculty Image Box */}
-            <div className="flex w-[510px] justify-end">
-              {/* Image Container with Original Primary Logic */}
-              <div className="relative  h-[340px] w-full max-w-[510px] rounded-2xl bg-[#faeae5] overflow-hidden mb-0">
+            <div className="flex w-[510px] shrink-0 justify-end">
+              <div className="relative min-h-[340px] w-full max-w-[510px] rounded-2xl bg-[#faeae5] overflow-hidden">
                 <img
                   src={facultyImage}
                   alt={product?.faculties?.[0]?.name || 'Faculty'}
@@ -1324,18 +1392,27 @@ export default function CourseDetailPage({
                 const aboutSpec = specItems.find(
                   (s) => s.identifier === 'about_course',
                 );
-                return aboutSpec ? (
+                if (!aboutSpec)
+                  return (
+                    <p className="text-slate-500 italic">
+                      No course description available
+                    </p>
+                  );
+                if (aboutSpec.data && aboutSpec.data.length > 0) {
+                  return (
+                    <div className="space-y-6">
+                      {aboutSpec.data.map((item, idx) => (
+                        <div key={idx}>
+                          <SpecBlock item={item} />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return (
                   <div className="space-y-6">
-                    {aboutSpec.data?.map((item, idx) => (
-                      <div key={idx}>
-                        <SpecBlock item={item} />
-                      </div>
-                    ))}
+                    <SpecBlock item={aboutSpec} />
                   </div>
-                ) : (
-                  <p className="text-slate-500 italic">
-                    No course description available
-                  </p>
                 );
               })()}
             </section>

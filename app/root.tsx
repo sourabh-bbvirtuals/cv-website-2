@@ -18,6 +18,7 @@ import {
   DataFunctionArgs,
   json,
   LinksFunction,
+  redirect,
 } from '@remix-run/server-runtime';
 import { useEffect } from 'react';
 import { getActiveCustomer } from '~/providers/customer/customer';
@@ -64,6 +65,9 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
     // just logged in via new login route
     return true;
   }
+  if (currentUrl.pathname === '/sign-up') {
+    return true;
+  }
 
   if (currentUrl.pathname === '/account' && nextUrl.pathname === '/') {
     // just logged out
@@ -84,6 +88,9 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   }
   if (formAction === '/account') {
     // account form submitted (logout, etc.)
+    return true;
+  }
+  if (formAction === '/sign-up') {
     return true;
   }
   return false;
@@ -108,6 +115,17 @@ export async function loader({ request, context }: DataFunctionArgs) {
   if (cfEnv?.SESSION_SECRET) {
     setSessionSecret(cfEnv.SESSION_SECRET);
   }
+
+  const url = new URL(request.url);
+  const allowedPaths = ['/sign-up', '/sign-in', '/login', '/auth/'];
+  const isAllowed = allowedPaths.some(
+    (p) => url.pathname === p || url.pathname.startsWith(p),
+  );
+  const cookies = request.headers.get('Cookie') || '';
+  if (!isAllowed && cookies.includes('bb-profile-incomplete=1')) {
+    return redirect('/sign-up');
+  }
+
   const activeCustomer = await getActiveCustomer({ request });
 
   const locale = await getI18NextServer().then((i18next) =>
@@ -203,6 +221,11 @@ export default function App() {
         <script
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-001NR9NF1Y');`,
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","wb7fifwfxt");`,
           }}
         />
       </head>

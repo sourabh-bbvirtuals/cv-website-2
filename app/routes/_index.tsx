@@ -24,7 +24,7 @@ import LearningFormats from '~/components/new-homepage/LearningFormats';
 import OurTeam from '~/components/new-homepage/OurTeam';
 import TeamSection from '~/components/new-homepage/TeamSection';
 import Testimonials from '~/components/new-homepage/Testimonials';
-import { getActiveCustomer } from '~/providers/customer/customer';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import {
   BoardSelectionProvider,
   parseBoardCookie,
@@ -127,7 +127,8 @@ const ALL_PRODUCTS_QUERY = `
 
 function mapProductsToCourses(products: any[]) {
   return (products || []).map((product: any) => {
-    const variant = product.variants?.[0] || {};
+    const variants = product.variants || [];
+    const variant = variants[0] || {};
     const productFacets = product.facetValues || [];
     const variantFacets = variant.facetValues || [];
     const facetNames = [...productFacets, ...variantFacets]
@@ -169,7 +170,12 @@ function mapProductsToCourses(products: any[]) {
       /* ignore */
     }
 
-    const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
+    const minPrice = variants.reduce(
+      (min: number, v: any) =>
+        v?.priceWithTax != null && v.priceWithTax < min ? v.priceWithTax : min,
+      variants[0]?.priceWithTax ?? 0,
+    );
+    const priceVal = minPrice / 100;
 
     const language = byGroup('language')[0] || '';
     const lectureMode = byGroup('lecture mode')[0] || '';
@@ -288,7 +294,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const cookieSlug = parseBoardCookie(request.headers.get('Cookie'));
 
     const [customerData, parentResult, sectionsResult] = await Promise.all([
-      getActiveCustomer({ request }).catch(() => null),
+      getActiveCustomerDetails({ request }).catch(() => null),
       gqlFetch(PARENT_QUERY)
         .then((r: any) => r.data?.collection)
         .catch(() => null),
@@ -316,10 +322,70 @@ export async function loader({ request }: LoaderFunctionArgs) {
       })
       .filter(Boolean) as BoardOption[];
 
-    const selectedSlug =
+    const isLoggedIn = !!customerData?.activeCustomer;
+
+    let selectedSlug =
       cookieSlug && boardOptions.some((o) => o.slug === cookieSlug)
         ? cookieSlug
-        : boardOptions[0]?.slug || '';
+        : '';
+
+    let hasExplicitBoard = !!selectedSlug;
+
+    if (!selectedSlug && boardOptions.length > 0) {
+      const cookies = request.headers.get('Cookie') || '';
+      const boardMatch = cookies.match(/bb-user-board=([^;]*)/);
+      const classMatch = cookies.match(/bb-user-class=([^;]*)/);
+      if (boardMatch) {
+        const userBoard = decodeURIComponent(boardMatch[1]).toLowerCase();
+        const userClass = classMatch
+          ? decodeURIComponent(classMatch[1]).replace(/\D/g, '')
+          : '';
+        const matched =
+          boardOptions.find((o) => {
+            const oBoard = o.board.toLowerCase();
+            const oClass = o.class.replace(/\D/g, '');
+            return (
+              oBoard.includes(userBoard) &&
+              userClass &&
+              oClass.includes(userClass)
+            );
+          }) ||
+          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+        if (matched) {
+          selectedSlug = matched.slug;
+          hasExplicitBoard = true;
+        }
+      }
+    }
+
+    if (!selectedSlug && boardOptions.length > 0 && isLoggedIn) {
+      const c = customerData?.activeCustomer;
+      const userBoard = ((c as any)?.customFields?.board || '').toLowerCase();
+      const userClass = ((c as any)?.customFields?.studentClass || '')
+        .toString()
+        .replace(/\D/g, '');
+      if (userBoard) {
+        const matched =
+          boardOptions.find((o) => {
+            const oBoard = o.board.toLowerCase();
+            const oClass = o.class.replace(/\D/g, '');
+            return (
+              oBoard.includes(userBoard) &&
+              userClass &&
+              oClass.includes(userClass)
+            );
+          }) ||
+          boardOptions.find((o) => o.board.toLowerCase().includes(userBoard));
+        if (matched) {
+          selectedSlug = matched.slug;
+          hasExplicitBoard = true;
+        }
+      }
+    }
+
+    if (!selectedSlug && boardOptions.length > 0) {
+      selectedSlug = boardOptions[0]?.slug || '';
+    }
 
     let featuredCourses: any[] = [];
 
@@ -343,10 +409,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     return json({
-      isLoggedIn: !!customerData?.activeCustomer,
+      isLoggedIn,
       featuredCourses,
       boardOptions,
       selectedSlug,
+      hasExplicitBoard,
       teamSection: teamData,
       testimonialSection: testimonialsData,
       faqSection: faqsData,
@@ -358,6 +425,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       featuredCourses: [],
       boardOptions: [],
       selectedSlug: '',
+      hasExplicitBoard: false,
       teamSection: null,
       testimonialSection: null,
       faqSection: null,
@@ -371,6 +439,7 @@ export default function Index() {
     featuredCourses,
     boardOptions,
     selectedSlug,
+    hasExplicitBoard,
     teamSection,
     testimonialSection,
     faqSection,
@@ -398,6 +467,7 @@ export default function Index() {
                 cbse: teamSection.cbse || [],
                 cuet: teamSection.cuet || [],
               }}
+              hasExplicitBoard={hasExplicitBoard}
             />
           ) : (
             <OurTeam />

@@ -33,7 +33,7 @@ export default function StepCard({
         </div>
 
         {/* Card */}
-        <div className="h-[251.25px] w-[335px] overflow-hidden rounded-2xl">
+        <div className="h-[251.25px] w-[250px] sm:w-[335px] overflow-hidden rounded-2xl">
           <video
             src={videoSrc}
             autoPlay
