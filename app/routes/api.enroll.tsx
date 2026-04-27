@@ -2,6 +2,16 @@ import { json, type DataFunctionArgs } from '@remix-run/server-runtime';
 import { API_URL } from '~/constants';
 import { getSessionStorage } from '~/sessions';
 
+const ACTIVE_ORDER_QUERY = `
+  query ActiveOrderForDuplicateCheck {
+    activeOrder {
+      lines {
+        productVariant { id }
+      }
+    }
+  }
+`;
+
 const ADD_TO_ORDER_MUTATION = `
   mutation AddItemToOrder($productVariantId: ID!, $quantity: Int!) {
     addItemToOrder(productVariantId: $productVariantId, quantity: $quantity) {
@@ -60,6 +70,34 @@ export async function action({ request }: DataFunctionArgs) {
   }
 
   try {
+    // ── Duplicate guard: check active order first ──────────────────────────
+    const activeOrderRes = await fetch(API_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query: ACTIVE_ORDER_QUERY }),
+    });
+    const activeOrderData = await activeOrderRes.json();
+    const existingLines: Array<{ productVariant: { id: string } }> =
+      activeOrderData?.data?.activeOrder?.lines ?? [];
+    const alreadyInCart = existingLines.some(
+      (line) => line.productVariant?.id === variantId,
+    );
+    if (alreadyInCart) {
+      return json(
+        {
+          error: 'This course is already in your cart.',
+          order: null,
+          already_in_cart: true,
+        },
+        {
+          status: 409,
+          headers: {
+            'Set-Cookie': await sessionStorage.commitSession(session),
+          },
+        },
+      );
+    }
+    // ── Proceed to add item ────────────────────────────────────────────────
     const res = await fetch(API_URL, {
       method: 'POST',
       headers,

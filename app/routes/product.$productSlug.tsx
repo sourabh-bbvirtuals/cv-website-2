@@ -10,7 +10,8 @@ import {
   ActionFunctionArgs,
   json,
 } from '@remix-run/server-runtime';
-import { APP_META_TITLE } from '~/constants';
+import { APP_META_TITLE, API_URL } from '~/constants';
+import { getSessionStorage } from '~/sessions';
 
 import {
   ProductHeader,
@@ -140,7 +141,54 @@ export async function loader({ params, request }: DataFunctionArgs) {
       getCollectionContentBySlug('reviews', { request }),
     ]);
 
-    return { product: safeProduct, notes, reviews };
+    // ─── Check Enrollment ───────────────────────────────────────────────────
+    let isEnrolled = false;
+    try {
+      const sessionStorage = await getSessionStorage();
+      const session = await sessionStorage.getSession(
+        request.headers.get('Cookie'),
+      );
+      const authToken = session.get('authToken') as string | undefined;
+
+      if (authToken) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        };
+        const ordersRes = await fetch(API_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            query: `
+              query {
+                activeCustomer {
+                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
+                    items {
+                      lines {
+                        productVariant {
+                          product { slug }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+        const ordersData = await ordersRes.json();
+        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
+        isEnrolled = items.some((order: any) =>
+          (order.lines || []).some(
+            (line: any) => line.productVariant?.product?.slug === productSlug,
+          ),
+        );
+      }
+    } catch (e) {
+      console.error('Failed to check enrollment status', e);
+    }
+
+    return { product: safeProduct, notes, reviews, isEnrolled };
   } catch (error) {
     console.error('Error loading product:', error);
     throw new Response('Product Not Found2', {
@@ -375,7 +423,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function Course2ProductPage() {
-  const { product, notes, reviews } = useLoaderData<typeof loader>();
+  const { product, notes, reviews, isEnrolled } =
+    useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const addToCartFetcher = useFetcher<typeof action>();
   const googleSheetsFetcher = useFetcher<typeof action>();
@@ -922,6 +971,7 @@ export default function Course2ProductPage() {
                 validationErrors={validationErrors}
                 onAddToCart={handleAddProductToCart}
                 isAddingToCart={addToCartFetcher.state === 'submitting'}
+                isEnrolled={isEnrolled}
               />
             </div>
           </div>
