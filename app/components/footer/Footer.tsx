@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Phone, Instagram, Youtube } from 'lucide-react';
+import { useLocation } from '@remix-run/react';
 
 const YOUTUBE_CHANNELS = [
   {
@@ -56,6 +57,10 @@ function resolveYoutubeForBoard(board: string | null) {
 const Footer = () => {
   const userBoard = useUserBoard();
   const matchedYoutube = resolveYoutubeForBoard(userBoard);
+
+  const location = useLocation();
+
+  const isOlyampiadPath = location.pathname.startsWith('/olympiad');
 
   const footerLinks = [
     {
