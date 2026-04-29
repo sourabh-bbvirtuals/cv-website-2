@@ -53,8 +53,8 @@ export default function RegisterPopup({
   const phoneOtpFetcher = useFetcher<{ ok?: boolean; error?: string }>();
   const phoneOtpBusy = phoneOtpFetcher.state !== 'idle';
 
-  const verifyOtpFetcher = useFetcher<{ error?: string }>();
-  const verifyOtpBusy = verifyOtpFetcher.state !== 'idle';
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const verifyOtpBusy = isVerifyingOtp;
 
   // NEW: Register fetcher (creates customer account for new users)
   const registerFetcher = useFetcher<{
@@ -311,37 +311,42 @@ export default function RegisterPopup({
     verifyPhoneOtp();
   };
 
-  const verifyPhoneOtp = () => {
+  const verifyPhoneOtp = async () => {
     const otpValue = otp.join('');
     if (otpValue.length < 6) return;
     setOtpError(null);
-    const fullPhone = `+91${formData.phone}`;
-    verifyOtpFetcher.submit(
-      {
-        phone: fullPhone,
-        otp: otpValue,
-        name: formData.name,
-        email: formData.email,
-        redirectTo: '/',
-      },
-      { method: 'POST', action: '/login' },
-    );
-  };
+    setIsVerifyingOtp(true);
 
-  useEffect(() => {
-    if (verifyOtpFetcher.state !== 'idle' || !verifyOtpFetcher.data) return;
-    const d = verifyOtpFetcher.data;
-    if (d.error) {
-      setOtpError(d.error);
+    try {
+      const response = await fetch('/auth/otp-verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ otp: otpValue, redirectTo: '/' }),
+      });
+
+      const data = (await response.json()) as { error?: string };
+      if (!response.ok || data?.error) {
+        setOtpError(
+          data?.error || 'OTP verification failed. Please try again.',
+        );
+        setOtp(['', '', '', '', '', '']);
+        setTimeout(() => otpRefs.current[0]?.focus(), 100);
+        return;
+      }
+
+      console.log('[RegisterPopup] OTP verified');
+      submitToFreeEnrollment();
+    } catch (err: any) {
+      setOtpError(err?.message || 'OTP verification failed. Please try again.');
       setOtp(['', '', '', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
-    } else {
-      // OTP verified successfully - now handle profile update based on auth status
-      console.log('[RegisterPopup] OTP verified');
-      handleProfileUpdateIfNeeded();
-      // Don't call onRegistrationComplete here - wait until order is successfully created
+    } finally {
+      setIsVerifyingOtp(false);
     }
-  }, [verifyOtpFetcher.state, verifyOtpFetcher.data]);
+  };
 
   // Handle customer update response (after OTP verification for free products)
   useEffect(() => {
@@ -614,22 +619,20 @@ export default function RegisterPopup({
                 </p>
               </div>
             )}
+            {/* Buttons */}
+            <div className="flex items-center gap-2">
+              <AppStoreButton size="lg" className="w-full" />
+              <GooglePlayButton size="lg" className="w-full" />
+            </div>
           </div>
-
-          {/* Buttons */}
-          <div className="flex items-center gap-2">
-            <AppStoreButton size="lg" className="w-full" />
-            <GooglePlayButton size="lg" className="w-full" />
+          {/* right image */}
+          <div className="hidden md:flex w-[380px] h-[520px] ml-auto shrink-0">
+            <img
+              src="/assets/images/olympiad/RegistrationCompleted.png"
+              alt="Registration Success"
+              className="w-full h-full object-cover"
+            />
           </div>
-        </div>
-
-        {/* right image */}
-        <div className="hidden md:flex w-[380px] h-[520px] ml-auto shrink-0">
-          <img
-            src="/assets/images/olympiad/RegistrationCompleted.png"
-            alt="Registration Success"
-            className="w-full h-full object-cover"
-          />
         </div>
       </div>
     );
@@ -826,7 +829,7 @@ export default function RegisterPopup({
           <form onSubmit={handleOtpSubmit} className="flex flex-col gap-4">
             {/* OTP Input Field */}
             <div
-              className="flex items-center justify-center gap-2 sm:gap-8 mb-2"
+              className="flex items-center justify-center gap-2 sm:gap-1 mb-2"
               onPaste={handleOtpPaste}
             >
               {[0, 1, 2, 3, 4, 5].map((index) => (
