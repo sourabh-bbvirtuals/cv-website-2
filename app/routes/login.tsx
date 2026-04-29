@@ -16,6 +16,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const name = (formData.get('name') as string) || '';
   const email = (formData.get('email') as string) || '';
   const redirectTo = (formData.get('redirectTo') as string) || '/';
+  /** Olympiad popup: same OTP verify as `/login` but respond with JSON+cookies instead of redirects. */
+  const embedRegistration = formData.get('embedRegistration') === 'true';
 
   try {
     const result = await sdk.Authenticate(
@@ -125,6 +127,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (isIncomplete) {
           headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+          if (embedRegistration) {
+            return json({ ok: true as const }, { headers });
+          }
           return redirect('/sign-up', { headers });
         }
 
@@ -149,9 +154,15 @@ export async function action({ request }: ActionFunctionArgs) {
       } catch (e) {
         console.error('[login] getActiveCustomerDetails failed:', e);
         headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+        if (embedRegistration) {
+          return json({ ok: true as const }, { headers });
+        }
         return redirect('/sign-up', { headers });
       }
 
+      if (embedRegistration) {
+        return json({ ok: true as const }, { headers });
+      }
       return redirect(redirectTo, { headers });
     }
 
