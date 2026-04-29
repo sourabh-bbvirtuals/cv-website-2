@@ -4,6 +4,7 @@ import { getProductBySlug } from '~/providers/course2';
 import { getCollectionBySlug } from '~/providers/collections/collections';
 import sanitizeHtml from 'sanitize-html';
 import { API_URL } from '~/constants';
+import { getSessionStorage } from '~/sessions';
 import CourseDetailPage from '~/components/our-courses/CourseDetailPage';
 
 /**
@@ -45,6 +46,54 @@ export async function loader({ params, request }: DataFunctionArgs) {
     // ─── Product ────────────────────────────────────────────────────────────
     const product =
       productResult.status === 'fulfilled' ? productResult.value : null;
+
+    // ─── Check Enrollment ───────────────────────────────────────────────────
+    let isEnrolled = false;
+    try {
+      const sessionStorage = await getSessionStorage();
+      const session = await sessionStorage.getSession(
+        request.headers.get('Cookie'),
+      );
+      const authToken = session.get('authToken') as string | undefined;
+
+      if (authToken) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        };
+        const ordersRes = await fetch(API_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            query: `
+              query {
+                activeCustomer {
+                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
+                    items {
+                      lines {
+                        productVariant {
+                          product { slug }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+        const ordersData = await ordersRes.json();
+        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
+        isEnrolled = items.some((order: any) =>
+          (order.lines || []).some(
+            (line: any) =>
+              line.productVariant?.product?.slug === normalizedSlug,
+          ),
+        );
+      }
+    } catch (e) {
+      console.error('Failed to check enrollment status', e);
+    }
 
     // ─── Specifications (Priority: Product customFields -> Collection customFields) ──
     let specifications: any = null;
@@ -291,25 +340,32 @@ export async function loader({ params, request }: DataFunctionArgs) {
         }
       : null;
 
-    return json({ slug: normalizedSlug, product: productData, specifications });
+    return json({
+      slug: normalizedSlug,
+      product: productData,
+      specifications,
+      isEnrolled,
+    });
   } catch (error) {
     console.error('Error loading course detail:', error);
-    return json({ slug: normalizedSlug, product: null, specifications: null });
+    return json({
+      slug: normalizedSlug,
+      product: null,
+      specifications: null,
+      isEnrolled: false,
+    });
   }
 }
 
 export default function OurCoursesCourseDetailRoute() {
-  const { slug, product, specifications } = useLoaderData<typeof loader>();
-  console.log('🚀 Loaded course detail data:', {
-    slug,
-    product,
-    specifications,
-  });
+  const { slug, product, specifications, isEnrolled } =
+    useLoaderData<typeof loader>();
   return (
     <CourseDetailPage
       slug={slug}
       product={product}
       specifications={specifications}
+      isEnrolled={isEnrolled}
     />
   );
 }

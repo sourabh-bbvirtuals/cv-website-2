@@ -518,21 +518,6 @@ export default function CourseListings({
         : 'bg-white text-lightgray border-lightgray/10 hover:bg-lightgray/5'
     }`;
 
-  // Close any open dropdown when clicking outside the filter bar
-  useEffect(() => {
-    if (!activeModal) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        filterScrollRef.current &&
-        !filterScrollRef.current.contains(e.target as Node)
-      ) {
-        setActiveModal(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [activeModal]);
-
   return (
     <section className="w-full bg-white py-4 lg:py-8 4xl:py-16!">
       <div className="custom-container">
