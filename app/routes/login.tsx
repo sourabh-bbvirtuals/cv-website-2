@@ -13,6 +13,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const phone = formData.get('phone') as string;
   const otp = formData.get('otp') as string;
+  const name = (formData.get('name') as string) || '';
+  const email = (formData.get('email') as string) || '';
   const redirectTo = (formData.get('redirectTo') as string) || '/';
 
   try {
@@ -65,6 +67,46 @@ export async function action({ request }: ActionFunctionArgs) {
           c?.lastName,
         );
 
+        // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
+        // If name or email provided during OTP verification (from RegisterPopup)
+        // and customer profile is incomplete, update it
+        if ((name || email) && c) {
+          try {
+            const { updateCustomer } = await import(
+              '~/providers/account/account'
+            );
+            const updatePayload: any = {};
+
+            // Split name into first and last name
+            if (name && (!c.firstName || c.firstName === 'BB Virtual')) {
+              const nameParts = name.trim().split(/\s+/);
+              updatePayload.firstName = nameParts[0];
+              updatePayload.lastName = nameParts.slice(1).join(' ') || '';
+            }
+
+            // Update email if not set
+            if (email && !c.emailAddress) {
+              updatePayload.emailAddress = email;
+            }
+
+            // Update phone if not set
+            if (phone && !c.phoneNumber) {
+              updatePayload.phoneNumber = phone;
+            }
+
+            if (Object.keys(updatePayload).length > 0) {
+              await updateCustomer(updatePayload, { request: authedRequest });
+              console.log(
+                '[login] Updated customer profile with registration data:',
+                updatePayload,
+              );
+            }
+          } catch (e) {
+            console.error('[login] failed to update customer profile:', e);
+          }
+        }
+
+        // Update phone number if not already set
         if (c && !c.phoneNumber && phone) {
           try {
             const { updateCustomer } = await import(

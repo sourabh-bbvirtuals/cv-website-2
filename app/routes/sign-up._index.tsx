@@ -10,6 +10,9 @@ import {
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { updateCustomer } from '~/providers/account/account';
 
+const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
+const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
+
 const CLEAR_PROFILE_COOKIE =
   'bb-profile-incomplete=; Path=/; Max-Age=0; SameSite=Lax';
 
@@ -100,6 +103,28 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   } catch (verifyErr) {
     console.error('Failed to verify customer update:', verifyErr);
+  }
+
+  try {
+    const details = await getActiveCustomerDetails({ request });
+    const c = details?.activeCustomer;
+    if (c?.id) {
+      fetch(`${BB_SERVER_URL}/webhooks/vendure/customer-onboarded`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendureCustomerId: String(c.id),
+          businessVerticalId: BUSINESS_VERTICAL_ID,
+          name: fullName,
+          phone,
+          email,
+          board: (formData.get('board') as string) || '',
+          studentClass: (formData.get('studentClass') as string) || '',
+        }),
+      }).catch((err) => console.error('[sign-up] lead enrich failed:', err));
+    }
+  } catch (enrichErr) {
+    console.error('[sign-up] lead enrich error:', enrichErr);
   }
 
   const board = (formData.get('board') as string) || '';
