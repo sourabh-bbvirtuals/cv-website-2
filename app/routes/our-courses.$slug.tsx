@@ -300,6 +300,11 @@ export async function loader({ params, request }: DataFunctionArgs) {
 
 export default function OurCoursesCourseDetailRoute() {
   const { slug, product, specifications } = useLoaderData<typeof loader>();
+  console.log('🚀 Loaded course detail data:', {
+    slug,
+    product,
+    specifications,
+  });
   return (
     <CourseDetailPage
       slug={slug}

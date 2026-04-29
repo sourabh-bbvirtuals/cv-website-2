@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Phone, Instagram, Youtube } from 'lucide-react';
+import { Phone, Instagram, Youtube, ArrowRight } from 'lucide-react';
 import { useLocation } from '@remix-run/react';
 
 const YOUTUBE_CHANNELS = [
@@ -93,18 +93,32 @@ const Footer = () => {
               ? 'Win your seat.'
               : 'Call us Directly for Purchase Related Queries'}
           </h2>
-          <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
-            Get instant assistance from our team for any purchase-related
-            questions. <br />
-            We're here to help you make the right decision, faster.
-          </p>
-          <a
-            href="tel:+916291040600"
-            className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[270px] sm:w-[340px] md:w-[420px] h-[52px] md:h-[64px] font-medium py-4 px-8 text-[13px] sm:text-base md:text-xl leading-[120%]!"
-          >
-            <Phone size={20} fill="currentColor" />
-            Call Now (+91 6291 040 600)
-          </a>
+          {isOlyampiadPath ? (
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+              Free entry. Closes 3 May, 9:00 AM IST.
+            </p>
+          ) : (
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+              Get instant assistance from our team for any purchase-related
+              questions. <br />
+              We're here to help you make the right decision, faster.
+            </p>
+          )}
+          {isOlyampiadPath ? (
+            <div className="flex items-center justify-center text-center">
+              <div className="flex cursor-pointer text-xl font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-8 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]">
+                Register For Free <ArrowRight className="w-6 h-6" />
+              </div>
+            </div>
+          ) : (
+            <a
+              href="tel:+916291040600"
+              className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[270px] sm:w-[340px] md:w-[420px] h-[52px] md:h-[64px] font-medium py-4 px-8 text-[13px] sm:text-base md:text-xl leading-[120%]!"
+            >
+              <Phone size={20} fill="currentColor" />
+              Call Now (+91 6291 040 600)
+            </a>
+          )}
         </div>
 
         {/* 2. Watermark Text Container */}

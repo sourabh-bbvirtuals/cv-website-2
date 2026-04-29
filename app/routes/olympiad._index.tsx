@@ -1,3 +1,5 @@
+'use client';
+import { useLoaderData, useFetcher, useRevalidator } from '@remix-run/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,31 +12,306 @@ import {
   Star,
   Youtube,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import RegisterPopup from '~/components/Olympiad/RegisterPopup';
+import { useRootLoader } from '~/utils/use-root-loader';
+import { json, type DataFunctionArgs } from '@remix-run/server-runtime';
+import { getProductBySlug } from '~/providers/course2';
+import { getCollectionBySlug } from '~/providers/collections/collections';
+import sanitizeHtml from 'sanitize-html';
+import { API_URL } from '~/constants';
+export async function loader({ request }: DataFunctionArgs) {
+  const slug = 'commerce-olympiad-dc03f7'; // Hardcoded slug for the Commerce Olympiad course
+  if (!slug) throw new Response('Not Found', { status: 404 });
+
+  // Normalize slug: Vendure slugs almost always use hyphens,
+  // but URLs might contain spaces/percent-encoded spaces.
+  // const normalizedSlug = slug.trim().replace(/\s+/g, '-').toLowerCase();
+
+  try {
+    // Fetch product + collection + team data in parallel
+    const teamFetch = fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ collection(slug: "cv-team") { customFields { customData } } }`,
+      }),
+    })
+      .then((r) => r.json())
+      .catch(() => null);
+
+    const [productResult, collectionResult, teamResult] =
+      await Promise.allSettled([
+        getProductBySlug(slug, { request }),
+        getCollectionBySlug(slug, { request }),
+        teamFetch,
+      ]);
+
+    // ─── Product ────────────────────────────────────────────────────────────
+    const product =
+      productResult.status === 'fulfilled' ? productResult.value : null;
+
+    // ─── Specifications (Priority: Product customFields -> Collection customFields) ──
+    let specifications: any = null;
+
+    const findSpecs = (raw: string | undefined | null) => {
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return { product: parsed };
+        return parsed?.specifications ?? parsed ?? null;
+      } catch {
+        return null;
+      }
+    };
+
+    // 1. Try Product's specifications
+    // Direct GraphQL fetch for specifications as a workaround for SDK codegen issues
+    try {
+      const gqlResponse = (await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `
+            query getProductSpecs($slug: String!) {
+              product(slug: $slug) {
+                customFields {
+                  customData
+                }
+              }
+            }
+          `,
+          variables: { slug: slug },
+        }),
+      }).then((res) => res.json())) as {
+        data?: { product?: { customFields?: { customData?: string } } };
+      };
+
+      const directSpecs = gqlResponse?.data?.product?.customFields?.customData;
+      if (directSpecs) {
+        specifications = findSpecs(directSpecs);
+      }
+    } catch (e) {
+      console.error('Error in direct specifications fetch:', e);
+    }
+
+    if (!specifications) {
+      specifications = findSpecs(product?.customFields?.customData);
+    }
+
+    // 2. Fallback to Collection's customData
+    if (!specifications && collectionResult.status === 'fulfilled') {
+      specifications = findSpecs(
+        collectionResult.value?.collection?.customFields?.customData,
+      );
+    }
+
+    // ─── Sanitize description ───────────────────────────────────────────────
+    const safeDescription = product?.description
+      ? sanitizeHtml(product.description, {
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
+      : '';
+
+    const variants = product?.variantProperties ?? [];
+    const allOptionGroups = product?.optionProperties ?? [];
+    const firstVariantId = variants[0]?.id ?? null;
+
+    // Collect only the option group IDs that variants actually reference
+    const usedGroupIds = new Set<string>();
+    for (const v of variants) {
+      for (const o of v.options || []) {
+        if (o.group?.id) usedGroupIds.add(o.group.id);
+      }
+    }
+
+    // Filter to only groups used by variants, deduplicate by ID
+    const optionGroups = allOptionGroups.filter((og) =>
+      usedGroupIds.has(og.id),
+    );
+    const hasOptions = optionGroups.length > 0 && variants.length > 1;
+
+    // Enrich faculty images from specifications when collection-based images are missing
+    let faculties = product?.faculties ?? [];
+    if (specifications?.product) {
+      const facultySpec = specifications.product.find(
+        (s: any) =>
+          s.identifier === 'our_faculty' ||
+          s.identifier === 'faculty_info' ||
+          s.identifier === 'faculties',
+      );
+      const facultyInfos: Array<{
+        name?: string;
+        imageUrl?: string;
+        description?: string;
+      }> = facultySpec?.facultyInfos ?? [];
+      if (facultyInfos.length > 0) {
+        if (faculties.length === 0) {
+          faculties = facultyInfos.map((f: any) => ({
+            name: f.name || 'Faculty',
+            image: f.imageUrl || '',
+            description: f.description || '',
+          }));
+        } else {
+          faculties = faculties.map((fd: any) => {
+            const fdName = fd.name?.toLowerCase() || '';
+            const match = facultyInfos.find((f: any) => {
+              const fName = f.name?.toLowerCase() || '';
+              return (
+                fName &&
+                (fName === fdName ||
+                  fName.includes(fdName) ||
+                  fdName.includes(fName))
+              );
+            });
+            if (match) {
+              return {
+                ...fd,
+                image: fd.image || match.imageUrl || '',
+                description: fd.description || match.description || '',
+              };
+            }
+            return fd;
+          });
+        }
+      }
+    }
+
+    // Prefer the short_description spec over the Vendure description field
+    const specList = specifications?.product || [];
+    const shortDescSpec = specList.find(
+      (s: any) => s.identifier === 'short_description',
+    );
+    const finalDescription = shortDescSpec?.text
+      ? sanitizeHtml(shortDescSpec.text, {
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
+      : safeDescription;
+
+    const productData = product
+      ? {
+          id: product.id,
+          title: product.title,
+          description: finalDescription,
+          price: product.priceWithTax
+            ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
+            : '',
+          priceWithTax: product.priceWithTax,
+          featuredAsset: product.featuredAsset ?? null,
+          faculties,
+          facetValues: product.facetValues ?? [],
+          variantId: firstVariantId,
+          ...(hasOptions && {
+            optionGroups: optionGroups.map((og) => ({
+              id: og.id,
+              name: og.name,
+              code: og.code,
+              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+            })),
+            variants: variants.map((v) => ({
+              id: v.id,
+              name: v.name,
+              priceWithTax: v.priceWithTax,
+              currencyCode: v.currencyCode,
+              sku: v.sku,
+              stockLevel: v.stockLevel,
+              options: (v.options || []).map((o: any) => ({
+                id: o.id,
+                name: o.name,
+                group: o.group
+                  ? { id: o.group.id, name: o.group.name }
+                  : undefined,
+              })),
+            })),
+          }),
+        }
+      : null;
+
+    return json({ slug: slug, product: productData, specifications });
+  } catch (error) {
+    console.error('Error loading course detail:', error);
+    return json({ slug: slug, product: null, specifications: null });
+  }
+}
 
 export default function Olympiad() {
-  const items = [
-    {
-      question: '1. How to attend Live Classes after purchase?',
-      answer:
-        'You will get the notification of every class in your app and registered email, or you can access it from My Purchased Courses.',
-    },
-    {
-      question: '2. How to check the study plan?',
-      answer:
-        'To check the study plan, open your purchased live batch. If you are looking to make a purchase, you can also view the plan on the course details page.',
-    },
-    {
-      question: '3. What should I do if I forget my password?',
-      answer:
-        "If you forget your password, click on the 'Forgot Password?' link on the login page. An email will be sent with instructions to reset your password.",
-    },
-    {
-      question: '4. How can I contact customer support?',
-      answer:
-        'You can contact customer support through the help center on our website or by emailing support@ourwebsite.com.',
-    },
-  ];
+  const { activeCustomer: customerData } = useRootLoader();
+  const { slug, product, specifications } = useLoaderData<typeof loader>();
+
+  // Log loader data once on mount to avoid infinite console logs
+  useEffect(() => {
+    console.log('🚀 Loader data:', { slug, product, specifications });
+  }, []);
+
+  // Extract specifications data
+  const extractSpecData = (identifier: string) => {
+    if (!specifications?.product || !Array.isArray(specifications.product))
+      return null;
+    const spec = specifications.product.find(
+      (s: any) => s.identifier === identifier,
+    );
+    if (!spec) return null;
+
+    // Handle different data structures
+    if (spec.items) return spec.items;
+    if (spec.data) return Array.isArray(spec.data) ? spec.data : [spec.data];
+    if (spec.text) {
+      try {
+        const parsed = JSON.parse(spec.text);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return spec.text;
+      }
+    }
+    return spec;
+  };
+
+  const keyDetails = extractSpecData('key-details') || [];
+  const prizePool = extractSpecData('prize-pool') || [];
+  const subjects = extractSpecData('subjects') || [];
+  const rules = extractSpecData('rules') || [];
+  const faqs = extractSpecData('faqs') || [];
+  const images = extractSpecData('images') || [];
+
+  // console.log('🚀 Extracted specifications:', {
+  //   keyDetails,
+  //   prizePool,
+  //   subjects,
+  //   rules,
+  //   faqs,
+  //   images,
+  // });
+
+  // Use real FAQ data from specifications
+  const items = Array.isArray(faqs?.faqItems) ? faqs.faqItems : [];
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   const [countdown, setCountdown] = useState({
     days: 0,
@@ -43,7 +320,23 @@ export default function Olympiad() {
     seconds: 0,
   });
   const [isContentInView, setIsContentInView] = useState(false);
+  const [isRegisterPopupOpen, setIsRegisterPopupOpen] = useState(false);
+  const [cartMessage, setCartMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Track login status
+  const isLoggedIn = !!customerData?.activeCustomer;
+
+  // Initialize revalidator for refreshing customer data
+  const revalidator = useRevalidator();
+
+  // Handle registration completion - refresh customer data
+  const handleRegistrationComplete = useCallback(() => {
+    revalidator.revalidate();
+  }, [revalidator]);
 
   useEffect(() => {
     const calculateCountdown = () => {
@@ -91,6 +384,19 @@ export default function Olympiad() {
 
   return (
     <>
+      {/* Toast Notification */}
+      {cartMessage && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-in fade-in duration-300 ${
+            cartMessage.type === 'success'
+              ? 'bg-green-500 text-white'
+              : 'bg-red-500 text-white'
+          }`}
+        >
+          {cartMessage.text}
+        </div>
+      )}
+
       {/* top bar */}
       <header className={`md:flex hidden py-3`}>
         <div className="flex justify-between items-center gap-2 w-full custom-container">
@@ -183,49 +489,33 @@ export default function Olympiad() {
                   </h1>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <div className="inline-flex items-center gap-2 px-5 py-3  leading-[120%] rounded-full bg-white/25 text-xs sm:text-lg font-semibold  border border-white/5">
-                    <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
-                      DATE
-                    </span>
+                  {Array.isArray(keyDetails) && keyDetails.length > 0 ? (
+                    keyDetails.slice(0, 4).map((detail: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="inline-flex items-center gap-2 px-5 py-3  leading-[120%] rounded-full bg-white/25 text-xs sm:text-lg font-semibold  border border-white/5"
+                      >
+                        <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
+                          {detail.name}
+                        </span>
 
-                    <span className="w-[1px] h-[16px] font-bold bg-[#09425D]/25"></span>
+                        <span className="w-[1px] h-[16px] font-bold bg-[#09425D]/25"></span>
 
-                    <span className="text-[#09425D]">3–5 May 2026</span>
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 px-5 py-3  leading-[120%] rounded-full bg-white/25 text-xs sm:text-lg font-semibold  border border-white/5">
-                    <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
-                      SUBJECTS
-                    </span>
-
-                    <span className="w-[1px] h-[16px] font-bold bg-[#09425D]/25"></span>
-
-                    <span className="text-[#09425D]">4</span>
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 px-5 py-3  leading-[120%] rounded-full bg-white/25 text-xs sm:text-lg font-semibold  border border-white/5">
-                    <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
-                      QUESTION
-                    </span>
-
-                    <span className="w-[1px] h-[16px] font-bold bg-[#09425D]/25"></span>
-
-                    <span className="text-[#09425D]">50 Qs (min.40)</span>
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 px-5 py-3  leading-[120%] rounded-full bg-white/25 text-xs sm:text-lg font-semibold  border border-white/5">
-                    <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
-                      MARKING
-                    </span>
-
-                    <span className="w-[1px] h-[16px] font-bold bg-[#09425D]/25"></span>
-
-                    <span className="text-[#09425D]">+5 / −1</span>
-                  </div>
+                        <span className="text-[#09425D]">
+                          {detail.extraFields?.value}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-white/70">Loading details...</span>
+                  )}
                 </div>
               </div>
               {/* button */}
-              <button className="flex text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-8 py-4 rounded-full shadow-xl shadow-white/40">
+              <button
+                onClick={() => setIsRegisterPopupOpen(true)}
+                className="flex text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-8 py-4 rounded-full shadow-xl shadow-white/40"
+              >
                 Register For Free <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -278,43 +568,37 @@ export default function Olympiad() {
 
                   {/* box infos FULL EDGE TO EDGE */}
                   <div className="grid grid-cols-2 w-screen">
-                    <div className="flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/25 text-xs font-semibold border-r border-white/20">
-                      <span className="text-[#09425D]/55 uppercase tracking-[1.4px] mr-1/2">
-                        DATE
-                      </span>
-                      <span className="w-[1px] h-[16px] bg-[#09425D]/25"></span>
-                      <span className="text-[#09425D]">3–5 May 2026</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/25 text-xs font-semibold">
-                      <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
-                        SUBJECTS
-                      </span>
-                      <span className="w-[1px] h-[16px] bg-[#09425D]/25"></span>
-                      <span className="text-[#09425D]">4</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/25 text-xs font-semibold border-r border-white/20">
-                      <span className="text-[#09425D]/55 uppercase tracking-[1.4px] mr-4">
-                        QS
-                      </span>
-                      <span className="w-[1px] h-[16px] backdrop-blur-2xl bg-[#09425D]/25"></span>
-                      <span className="text-[#09425D]">50 Qs (min.40)</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 px-3 py-3 bg-white/25 text-xs font-semibold">
-                      <span className="text-[#09425D]/55 uppercase tracking-[1.4px] mr-2">
-                        MARKING
-                      </span>
-                      <span className="w-[1px] h-[16px] bg-[#09425D]/25"></span>
-                      <span className="text-[#09425D]">+5 / −1</span>
-                    </div>
+                    {Array.isArray(keyDetails) && keyDetails.length > 0 ? (
+                      keyDetails.slice(0, 4).map((detail: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/25 text-xs font-semibold ${
+                            idx === 0 || idx === 2
+                              ? 'border-r border-white/20'
+                              : ''
+                          }`}
+                        >
+                          <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
+                            {detail.name}
+                          </span>
+                          <span className="w-[1px] h-[16px] bg-[#09425D]/25"></span>
+                          <span className="text-[#09425D]">
+                            {detail.extraFields?.value}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-white/70">Loading details...</span>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* button */}
-              <button className="flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-3 md:py-4 rounded-full shadow-xl shadow-white/40">
+              <button
+                onClick={() => setIsRegisterPopupOpen(true)}
+                className="flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-3 md:py-4 rounded-full shadow-xl shadow-white/40"
+              >
                 Register For Free <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -327,25 +611,6 @@ export default function Olympiad() {
             </div>
           </div>
         </section>
-
-        {/* mobile overlay button */}
-        <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
-            isContentInView
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-0 pointer-events-none'
-          }`}
-        >
-          <div className="flex items-start flex-col gap-1">
-            <p className="font-bold text-xl text-[#081627]">Free</p>
-            <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
-              Closes 3 May, 9:00 AM IST
-            </p>
-          </div>
-          <button className="flex cursor-pointer text-[14px] font-semibold items-center justify-center gap-1  text-white bg-[#39BEFD] px-4 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]">
-            Register For Free <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
 
         {/* content */}
         <div
@@ -371,287 +636,108 @@ export default function Olympiad() {
                       Cash + BB Virtuals CA Foundation Course (worth ₹15,999)
                     </h3>
                   </div>
-                  {/* desktop lines */}
-                  <div className="p-5 bg-[#F5B100]/6 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
-                    <div className="flex items-center justify-center gap-3">
-                      <img
-                        src="/assets/images/olympiad/prize-pool/1.png"
-                        alt="1st"
-                        className="w-[40px] h-[40px]"
-                      />
+                  {/* Medal color mapping */}
+                  {Array.isArray(prizePool) && prizePool.length > 0 ? (
+                    <>
+                      {/* Desktop view */}
+                      {prizePool.map((prize: any, idx: number) => {
+                        const medalColorMap: { [key: string]: string } = {
+                          gold: '#FFD700',
+                          silver: '#C0C0C0',
+                          bronze: '#CD7F32',
+                          blue: '#1A56DB',
+                          green: '#10B981',
+                        };
+                        const medalColor =
+                          medalColorMap[prize.extraFields?.medal_color] ||
+                          '#1A56DB';
+                        const isImage = idx < 3; // First 3 have images
+                        const useStar = idx >= 3; // Rest use medal badges
 
-                      <div className="flex flex-col">
-                        <p className="font-bold text-base leading-[120%]">
-                          1st
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-                    </div>
-                    <div className="font-bold text-xl leading-[120%]">
-                      ₹29,999
-                    </div>
-                  </div>
-                  <div className="p-5  hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
-                    <div className="flex items-center justify-center gap-3">
-                      <img
-                        src="/assets/images/olympiad/prize-pool/2.png"
-                        alt="2st"
-                        className="w-[40px] h-[40px]"
-                      />
+                        return (
+                          <div key={`desktop-${idx}`}>
+                            {/* Desktop */}
+                            <div className="p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
+                              <div className="flex items-center justify-center gap-3">
+                                {isImage ? (
+                                  <img
+                                    src={prize.extraFields?.icon_url}
+                                    alt={prize.name}
+                                    className="w-[40px] h-[40px]"
+                                  />
+                                ) : (
+                                  <div
+                                    className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+                                    style={{ backgroundColor: medalColor }}
+                                  >
+                                    <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
+                                  </div>
+                                )}
 
-                      <div className="flex flex-col">
-                        <p className="font-bold text-base leading-[120%]">
-                          2nd
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-                    </div>
-                    <div className="font-bold text-xl leading-[120%]">
-                      ₹29,999
-                    </div>
-                  </div>
-                  <div className="p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
-                    <div className="flex items-center justify-center gap-3">
-                      <img
-                        src="/assets/images/olympiad/prize-pool/3.png"
-                        alt="3st"
-                        className="w-[40px] h-[40px]"
-                      />
+                                <div className="flex flex-col">
+                                  <p className="font-bold text-base leading-[120%]">
+                                    {prize.name}
+                                  </p>
+                                  <p className="text-[#0A232F]/50 font-medium">
+                                    {prize.extraFields?.cash_prize && (
+                                      <span className="text-[#0A232F] font-bold">
+                                        {prize.extraFields?.cash_prize}{' '}
+                                      </span>
+                                    )}
+                                    {prize.extraFields?.cash_prize && <>+ </>}
+                                    {prize.extraFields?.course_scholarship}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="font-bold text-xl leading-[120%]">
+                                {prize.extraFields?.total_value}
+                              </div>
+                            </div>
 
-                      <div className="flex flex-col">
-                        <p className="font-bold text-base leading-[120%]">
-                          3rd
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-                    </div>
-                    <div className="font-bold text-xl leading-[120%]">
-                      ₹29,999
-                    </div>
-                  </div>
-                  <div className="p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-[40px] h-[40px] rounded-full bg-[#1A56DB] flex items-center justify-center">
-                        <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
-                      </div>
+                            {/* Mobile */}
+                            <div className="px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
+                              {isImage ? (
+                                <img
+                                  src={prize.extraFields?.icon_url}
+                                  alt={prize.name}
+                                  className="w-[40px] h-[40px]"
+                                />
+                              ) : (
+                                <div
+                                  className="w-[70px] h-[40px] rounded-full flex items-center justify-center"
+                                  style={{ backgroundColor: medalColor }}
+                                >
+                                  <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
+                                </div>
+                              )}
+                              <div className="flex flex-col items-start gap-5">
+                                <div className="flex flex-col gap-2">
+                                  <p className="font-bold text-base leading-[120%]">
+                                    {prize.name}
+                                  </p>
+                                  <p className="text-[#0A232F]/50 font-medium">
+                                    {prize.extraFields?.cash_prize && (
+                                      <span className="text-[#0A232F] font-bold">
+                                        {prize.extraFields?.cash_prize}{' '}
+                                      </span>
+                                    )}
+                                    {prize.extraFields?.cash_prize && <>+ </>}
+                                    {prize.extraFields?.course_scholarship}
+                                  </p>
+                                </div>
 
-                      <div className="flex flex-col">
-                        <p className="font-bold text-base leading-[120%]">
-                          4-10
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          {/* <span className="text-[#0A232F] font-bold">
-                          ₹14,000 cash{' '}
-                        </span> */}
-                          ₹7,999 scholarship each in BB Virtuals CA Foundation
-                          Course (worth ₹15,999)
-                        </p>
-                      </div>
-                    </div>
-                    <div className="font-bold text-xl leading-[120%]">
-                      ₹29,999
-                    </div>
-                  </div>
-                  <div className="p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-[40px] h-[40px] rounded-full bg-[#1A56DB] flex items-center justify-center">
-                        <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
-                      </div>
-
-                      <div className="flex flex-col">
-                        <p className="font-bold text-base leading-[120%]">
-                          11-25
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          {/* <span className="text-[#0A232F] font-bold">
-                          ₹14,000 cash{' '}
-                        </span> */}
-                          ₹7,999 scholarship each in BB Virtuals CA Foundation
-                          Course (worth ₹15,999)
-                        </p>
-                      </div>
-                    </div>
-                    <div className="font-bold text-xl leading-[120%]">
-                      ₹29,999
-                    </div>
-                  </div>
-                  <div className="p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-[40px] h-[40px] rounded-full bg-[#10B981] flex items-center justify-center">
-                        <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
-                      </div>
-
-                      <div className="flex flex-col">
-                        <p className="font-bold text-base leading-[120%]">
-                          26-50
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          {/* <span className="text-[#0A232F] font-bold">
-                          ₹14,000 cash{' '}
-                        </span> */}
-                          ₹7,999 scholarship each in BB Virtuals CA Foundation
-                          Course (worth ₹15,999)
-                        </p>
-                      </div>
-                    </div>
-                    <div className="font-bold text-xl leading-[120%]">
-                      ₹29,999
-                    </div>
-                  </div>
-                  {/* mobile lines */}
-                  <div className="px-3 py-4 bg-[#F5B100]/6 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
-                    <img
-                      src="/assets/images/olympiad/prize-pool/1.png"
-                      alt="1st"
-                      className="w-[40px] h-[40px]"
-                    />
-                    <div className="flex flex-col items-start  gap-5">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-bold text-base leading-[120%]">
-                          1st
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-
-                      <div className="font-bold text-xl leading-[120%]">
-                        ₹29,999
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-3 py-4  md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
-                    <img
-                      src="/assets/images/olympiad/prize-pool/2.png"
-                      alt="1st"
-                      className="w-[40px] h-[40px]"
-                    />
-                    <div className="flex flex-col items-start  gap-5">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-bold text-base leading-[120%]">
-                          2nd
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-
-                      <div className="font-bold text-xl leading-[120%]">
-                        ₹29,999
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-3 py-4  md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
-                    <img
-                      src="/assets/images/olympiad/prize-pool/3.png"
-                      alt="1st"
-                      className="w-[40px] h-[40px]"
-                    />
-                    <div className="flex flex-col items-start  gap-5">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-bold text-base leading-[120%]">
-                          3rd
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-
-                      <div className="font-bold text-xl leading-[120%]">
-                        ₹29,999
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-3 py-4  md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
-                    <div className="w-[70px] h-[40px] rounded-full bg-[#1A56DB] flex items-center justify-center">
-                      <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
-                    </div>
-                    <div className="flex flex-col items-start  gap-5">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-bold text-base leading-[120%]">
-                          4-10
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-
-                      <div className="font-bold text-xl leading-[120%]">
-                        ₹29,999
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-3 py-4  md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
-                    <div className="w-[70px] h-[40px] rounded-full bg-[#1A56DB] flex items-center justify-center">
-                      <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
-                    </div>
-                    <div className="flex flex-col items-start  gap-5">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-bold text-base leading-[120%]">
-                          11-25
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-
-                      <div className="font-bold text-xl leading-[120%]">
-                        ₹29,999
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-3 py-4  md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
-                    <div className="w-[70px] h-[40px] rounded-full bg-[#10B981] flex items-center justify-center">
-                      <Star className="w-[15px] h-[15px] text-white fill-white translate-x-[0.5px]" />
-                    </div>
-                    <div className="flex flex-col items-start  gap-5">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-bold text-base leading-[120%]">
-                          26-50
-                        </p>
-                        <p className="text-[#0A232F]/50 font-medium">
-                          <span className="text-[#0A232F] font-bold">
-                            ₹14,000 cash{' '}
-                          </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
-                        </p>
-                      </div>
-
-                      <div className="font-bold text-xl leading-[120%]">
-                        ₹29,999
-                      </div>
-                    </div>
-                  </div>
+                                <div className="font-bold text-xl leading-[120%]">
+                                  {prize.extraFields?.total_value}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <p className="p-5 text-[#0A232F]/50">No prizes available</p>
+                  )}
                 </div>
               </div>
 
@@ -662,116 +748,92 @@ export default function Olympiad() {
                   Subjects
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-                  {/* card */}
-                  <div className="bg-white flex flex-col p-4 md:p-5 gap-5 border w-full border-[#1A56DB]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(26,86,219,0.5)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center rounded-xl text-[#1A56DB] uppercase font-semibold text-2xl bg-[#1A56DB]/10 w-[48px] h-[48px]">
-                        A
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-[#0A232F]">
-                          Accounting
-                        </p>
-                        <p className="font-medium text-sm text-[#0A232FCC]/80 opacity-70">
-                          Financial & partnership Accounts
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 md:gap-3">
-                      <div className="py-1 px-3 bg-[#1A56DB]/10 text-[#1A56DB] font-semibold text-sm rounded-full max-w-max">
-                        50 Qs (40 attempt)
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        60 min
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        +5 / −1
-                      </div>
-                    </div>
-                  </div>
+                  {Array.isArray(subjects) && subjects.length > 0 ? (
+                    subjects.map((subject: any, idx: number) => {
+                      // Define color scheme (cycles through 4 colors)
+                      const colorSchemes = [
+                        {
+                          borderColor: '#1A56DB',
+                          borderClass: 'border-[#1A56DB]/50',
+                          shadowClass:
+                            'shadow-[6px_6px_0px_0px_rgba(26,86,219,0.5)]',
+                          bgLight: 'rgba(26, 86, 219, 0.1)',
+                          textColor: '#1A56DB',
+                        },
+                        {
+                          borderColor: '#0E9488',
+                          borderClass: 'border-[#0E9488]/50',
+                          shadowClass:
+                            'shadow-[6px_6px_0px_0px_rgba(14,148,136,0.5)]',
+                          bgLight: 'rgba(20, 184, 166, 0.14)',
+                          textColor: '#0E9488',
+                        },
+                        {
+                          borderColor: '#E11D48',
+                          borderClass: 'border-[#E11D48]/90',
+                          shadowClass:
+                            'shadow-[6px_6px_0px_0px_rgba(225,29,72,0.5)]',
+                          bgLight: 'rgba(225, 29, 72, 0.1)',
+                          textColor: '#E11D48',
+                        },
+                        {
+                          borderColor: '#B45309',
+                          borderClass: 'border-[#B45309]/90',
+                          shadowClass:
+                            'shadow-[6px_6px_0px_0px_rgba(180,83,9,0.5)]',
+                          bgLight: '#FEF3C7',
+                          textColor: '#B45309',
+                        },
+                      ];
+                      const colorScheme = colorSchemes[idx % 4];
 
-                  <div className="bg-white flex flex-col p-4 md:p-5 gap-5 border w-full border-[#0E9488]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(14,148,136,0.5)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center rounded-xl text-[#0E9488] uppercase font-semibold text-2xl bg-[#14B8A6]/14 w-[48px] h-[48px]">
-                        E
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-[#0A232F]">
-                          Economics
-                        </p>
-                        <p className="font-medium text-sm text-[#0A232FCC]/80 opacity-70">
-                          Micro & Macro Economics
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 md:gap-3">
-                      <div className="py-1 px-3 bg-[#14B8A6]/14 text-[#0E9488] font-semibold text-sm rounded-full max-w-max">
-                        50 Qs (40 attempt)
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        60 min
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        +5 / −1
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-4 md:p-5 gap-5 border w-full border-[#E11D48]/90 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(225,29,72,0.5)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center rounded-xl text-[#E11D48] uppercase font-semibold text-2xl bg-[#E11D48]/10 w-[48px] h-[48px]">
-                        EN
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-[#0A232F]">English</p>
-                        <p className="font-medium text-sm text-[#0A232FCC]/80 opacity-70">
-                          Language & Comprehension
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 md:gap-3">
-                      <div className="py-1 px-3 bg-[#E11D48]/10 text-[#E11D48] font-semibold text-sm rounded-full max-w-max">
-                        50 Qs (40 attempt)
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        60 min
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        +5 / −1
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-4 md:p-5 gap-5 border w-full border-[#B45309]/90 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(180,83,9,0.5)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center rounded-xl text-[#B45309] uppercase font-semibold text-2xl bg-[#FEF3C7] w-[48px] h-[48px]">
-                        B
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-[#0A232F]">
-                          Business Studies
-                        </p>
-                        <p className="font-medium text-sm text-[#0A232FCC]/80 opacity-70">
-                          Management & Marketing
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 md:gap-3">
-                      <div className="py-1 px-3 bg-[#FEF3C7] text-[#B45309] font-semibold text-sm rounded-full max-w-max">
-                        50 Qs (40 attempt)
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        60 min
-                      </div>
-                      <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
-                        +5 / −1
-                      </div>
-                    </div>
-                  </div>
+                      return (
+                        <div
+                          key={idx}
+                          className={`bg-white flex flex-col p-4 md:p-5 gap-5 border w-full ${colorScheme.borderClass} min-h-[139px] overflow-hidden rounded-2xl ${colorScheme.shadowClass}`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div
+                              className="flex items-center justify-center rounded-xl uppercase font-semibold text-2xl w-[48px] h-[48px]"
+                              style={{
+                                color: colorScheme.textColor,
+                                backgroundColor: colorScheme.bgLight,
+                              }}
+                            >
+                              {subject.extraFields?.badge_letter}
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="font-semibold text-[#0A232F]">
+                                {subject.name}
+                              </p>
+                              <p className="font-medium text-sm text-[#0A232FCC]/80 opacity-70">
+                                {subject.extraFields?.topics}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 md:gap-3">
+                            <div
+                              className="py-1 px-3 font-semibold text-sm rounded-full max-w-max"
+                              style={{
+                                backgroundColor: colorScheme.bgLight,
+                                color: colorScheme.textColor,
+                              }}
+                            >
+                              {subject.extraFields?.questions}
+                            </div>
+                            <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
+                              {subject.extraFields?.duration}
+                            </div>
+                            <div className="py-1 px-3 bg-[#F3F4F6] text-[#0A232FCC]/90 font-semibold text-sm rounded-full max-w-max">
+                              {subject.extraFields?.marking}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-[#0A232F]/50">No subjects available</p>
+                  )}
                 </div>
               </div>
 
@@ -782,96 +844,27 @@ export default function Olympiad() {
                   Rules
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-                  {/* card */}
-                  <div className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <p className="font-semibold leading-[120%] text-[#0A232]">
-                          1. Mock Test per subject
-                        </p>
+                  {Array.isArray(rules) && rules.length > 0 ? (
+                    rules.map((rule: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col">
+                            <p className="font-semibold leading-[120%] text-[#0A232]">
+                              {rule.extraFields?.rule_number}. {rule.name}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-[#0A232F]/50 leading-[150%]">
+                          {rule.extraFields?.detail}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-[#0A232F]/50 leading-[150%] ">
-                      4 mock tests total — one each for Accounts, Economics,
-                      English & Business Studies.
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <p className="font-semibold leading-[120%] text-[#0A232]">
-                          1. Mock Test per subject
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-[#0A232F]/50 leading-[150%] ">
-                      4 mock tests total — one each for Accounts, Economics,
-                      English & Business Studies.
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <p className="font-semibold leading-[120%] text-[#0A232]">
-                          1. Mock Test per subject
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-[#0A232F]/50 leading-[150%] ">
-                      4 mock tests total — one each for Accounts, Economics,
-                      English & Business Studies.
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <p className="font-semibold leading-[120%] text-[#0A232]">
-                          1. Mock Test per subject
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-[#0A232F]/50 leading-[150%] ">
-                      4 mock tests total — one each for Accounts, Economics,
-                      English & Business Studies.
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <p className="font-semibold leading-[120%] text-[#0A232]">
-                          1. Mock Test per subject
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-[#0A232F]/50 leading-[150%] ">
-                      4 mock tests total — one each for Accounts, Economics,
-                      English & Business Studies.
-                    </div>
-                  </div>
-
-                  <div className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]">
-                    {' '}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <p className="font-semibold leading-[120%] text-[#0A232]">
-                          1. Mock Test per subject
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-[#0A232F]/50 leading-[150%] ">
-                      4 mock tests total — one each for Accounts, Economics,
-                      English & Business Studies.
-                    </div>
-                  </div>
+                    ))
+                  ) : (
+                    <p className="text-[#0A232F]/50">No rules available</p>
+                  )}
                 </div>
               </div>
 
@@ -882,7 +875,7 @@ export default function Olympiad() {
                   Faqs
                 </h2>
                 <div className="space-y-4">
-                  {items.map((item, i) => {
+                  {items.map((item: any, i: number) => {
                     const open = openIdx === i;
                     return (
                       <div
@@ -1006,7 +999,10 @@ export default function Olympiad() {
                 </div>
                 {/* button */}
                 <div className="flex items-center flex-col justify-center gap-3 mt-4">
-                  <button className="flex cursor-pointer text-lg font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-4 py-3 rounded-full w-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]">
+                  <button
+                    onClick={() => setIsRegisterPopupOpen(true)}
+                    className="flex cursor-pointer text-lg font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-4 py-3 rounded-full w-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]"
+                  >
                     Register For Free <ArrowRight className="w-4 h-4" />
                   </button>
                   <div className="text-[#0A232F]/80 font-medium text-sm">
@@ -1018,6 +1014,14 @@ export default function Olympiad() {
           </div>
         </div>
       </div>
+      <RegisterPopup
+        customer={customerData}
+        isOpen={isRegisterPopupOpen}
+        onClose={() => setIsRegisterPopupOpen(false)}
+        onRegistrationComplete={handleRegistrationComplete}
+        autoCloseDelay={3000}
+        productVariantId={product?.variantId || null}
+      />
     </>
   );
 }
