@@ -1227,7 +1227,9 @@ export default function CartPage() {
                       <input
                         type="text"
                         value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        onChange={(e) =>
+                          setCity(e.target.value.replace(/[^a-zA-Z\s]/g, ''))
+                        }
                         className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
                       />
                     </div>

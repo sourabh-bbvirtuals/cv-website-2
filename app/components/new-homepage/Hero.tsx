@@ -210,7 +210,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
           >
             {/* card content */}
             <div
-              className={`flex flex-col h-full gap-6 md:gap-16 ${
+              className={`flex flex-col h-full gap-6 md:gap-16 mx-auto ${
                 isLoggedIn ? 'items-center text-center' : ''
               }`}
             >
@@ -230,19 +230,19 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   <span>CUET</span>
                 </div>
                 {/* Headline */}
-                <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em]">
+                <h1 className="text-3xl xl:text-[60px] font-semibold tracking-[-0.03em] max-md:self-center">
                   Commerce Virtuals |<br className="" /> Courses for Class 11 &
                   12
                 </h1>
                 {/* Subheadline */}
-                <p className="text-[13px] sm:text-base xl:text-xl text-lightgray w-[275px] sm:w-[345px] md:w-full  leading-[150%]">
+                <p className="text-[13px] sm:text-base xl:text-xl text-lightgray w-[275px] sm:w-[345px] md:w-full  leading-[150%] max-md:text-center">
                   India's only commerce-exclusive EdTech platform. Structured
                   courses, test series & mentorship for CBSE, Maharashtra Board
                   HSC and CUET-UG. Built for Class 11 & 12 commerce students.
                 </p>
                 {/* CTA Button */}
                 <div
-                  className={`flex w-full mt-4 gap-[3px] sm:gap-4 ${
+                  className={`flex w-full mt-4 gap-[5px] sm:gap-4 ${
                     isLoggedIn
                       ? 'justify-center'
                       : 'justify-center sm:justify-start'
@@ -268,7 +268,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   isLoggedIn ? 'w-full' : ''
                 }`}
               >
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Enrolled Students
                   </p>
@@ -276,7 +276,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     10,000+
                   </p>
                 </div>
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Free Resources
                   </p>
@@ -284,7 +284,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     100+
                   </p>
                 </div>
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Average Rating
                   </p>
@@ -292,7 +292,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                     4.9
                   </p>
                 </div>
-                <div>
+                <div className="text-center md:text-left">
                   <p className="text-sm sm:text-base text-gray-800 leading-[150%] mb-2 xl:mb-3">
                     Available Courses
                   </p>

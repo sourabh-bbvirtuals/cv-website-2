@@ -244,7 +244,7 @@ export default function ProfileTab() {
                     Phone Number
                   </label>
                   <input
-                    type="tel"
+                    type="number"
                     name="phone"
                     defaultValue={userData.phone}
                     required

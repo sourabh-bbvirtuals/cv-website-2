@@ -24,6 +24,7 @@ import {
 } from '~/utils/bbServer';
 import { resolveSelectedBoardAndClass } from '~/utils/resolveBoardClass.server';
 import { resolveNavbarBoardSelection } from '~/utils/resolveNavbarBoard.server';
+import { isFreeResourcesTabContentEmpty } from '~/utils/freeResourcesTabFallback.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -77,10 +78,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
         };
       }
 
-      const tabNames = selectedClassId
+      const fetchedTabNames = selectedClassId
         ? await fetchTabNames(token, selectedBoardId, selectedClassId)
         : [];
-      const activeTab = tabNames[0] ?? '';
+      const tabNames =
+        fetchedTabNames.length > 0
+          ? fetchedTabNames
+          : [
+              'Mock Tests',
+              'Study Notes',
+              'Past Papers',
+              'Quizzes',
+              'Free Videos',
+            ];
+      let activeTab = tabNames[0] ?? '';
 
       let content = null;
       if (activeTab) {
@@ -93,6 +104,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
           chapterNames,
           q,
         });
+      }
+
+      const mayAutoSwitchTab =
+        !subjectId && !chapterNames && !q && page === '1';
+
+      if (mayAutoSwitchTab && isFreeResourcesTabContentEmpty(content)) {
+        for (const candidate of tabNames) {
+          if (candidate === activeTab) continue;
+          const probed = await fetchTabContent(token, {
+            boardId: selectedBoardId,
+            tabName: candidate,
+            classId: selectedClassId || undefined,
+            page: '1',
+          });
+          if (!isFreeResourcesTabContentEmpty(probed)) {
+            activeTab = candidate;
+            content = probed;
+            break;
+          }
+        }
       }
 
       return {

@@ -27,14 +27,11 @@ export default function ContactUsRoute() {
 
     const form = e.currentTarget;
     const data = {
-      name: (form.elements.namedItem('name') as HTMLInputElement).value,
-      email: (form.elements.namedItem('email') as HTMLInputElement).value,
-      phone:
-        (form.elements.namedItem('phone') as HTMLInputElement).value ||
-        undefined,
-      subject: (form.elements.namedItem('subject') as HTMLSelectElement).value,
-      message: (form.elements.namedItem('message') as HTMLTextAreaElement)
-        .value,
+      name: (form.elements.namedItem('name') as any).value,
+      email: (form.elements.namedItem('email') as any).value,
+      phone: (form.elements.namedItem('phone') as any).value || undefined,
+      subject: (form.elements.namedItem('subject') as any).value,
+      message: (form.elements.namedItem('message') as any).value,
     };
 
     try {
@@ -45,7 +42,7 @@ export default function ContactUsRoute() {
       });
 
       if (!resp.ok) {
-        const err = await resp
+        const err: any = await resp
           .json()
           .catch(() => ({ error: 'Something went wrong' }));
         throw new Error(err.error || 'Failed to submit');

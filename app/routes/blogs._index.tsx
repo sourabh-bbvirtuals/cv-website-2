@@ -2,7 +2,7 @@ import {
   json,
   type LoaderFunctionArgs,
   type MetaFunction,
-} from '@remix-run/server-runtime';
+} from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { getBlogCollections } from '~/providers/blog/blog-collections';
