@@ -612,6 +612,28 @@ export default function Olympiad() {
           </div>
         </section>
 
+        {/* mobile overlay button */}
+        <div
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
+            isContentInView
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="flex items-start flex-col gap-1">
+            <p className="font-bold text-xl text-[#081627]">Free</p>
+            <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
+              Closes 3 May, 9:00 AM IST
+            </p>
+          </div>
+          <button
+            onClick={() => setIsRegisterPopupOpen(true)}
+            className="flex cursor-pointer text-[14px] font-semibold items-center justify-center gap-1  text-white bg-[#39BEFD] px-4 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]"
+          >
+            Register For Free <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* content */}
         <div
           ref={contentRef}
