@@ -5,6 +5,7 @@ import {
   AppStoreButton,
   GooglePlayButton,
 } from '../base/buttons/app-store-buttons';
+import { PLATFORMS } from '~/routes/download';
 import { ActiveCustomerQuery } from '~/generated/graphql';
 
 interface RegisterPopupProps {
@@ -51,6 +52,11 @@ export default function RegisterPopup({
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const location = useLocation();
+
+  const appStoreLink =
+    PLATFORMS.find((platform) => platform.name === 'iOS')?.href ?? '#';
+  const playStoreLink =
+    PLATFORMS.find((platform) => platform.name === 'Android')?.href ?? '#';
 
   const phoneOtpFetcher = useFetcher<{ ok?: boolean; error?: string }>();
   const phoneOtpBusy = phoneOtpFetcher.state !== 'idle';
@@ -340,28 +346,21 @@ export default function RegisterPopup({
     const otpValue = otp.join('');
     if (otpValue.length < 6) return;
     setOtpError(null);
-    setIsVerifyingOtp(true);
-
-    try {
-      console.log('[RegisterPopup] verifyPhoneOtp submit', { otp: otpValue });
-      const response = await fetch('/auth/otp-verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ otp: otpValue, redirectTo: '/' }),
-      });
 
     const fullPhone = `+91${formData.phone}`;
+    console.log('[RegisterPopup] verifyPhoneOtp submit', {
+      phone: fullPhone,
+      otp: otpValue,
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+    });
     loginVerifyFetcher.submit(
       {
         phone: fullPhone,
         otp: otpValue,
         name: formData.name.trim(),
         email: formData.email.trim(),
-        redirectTo:
-          location.pathname + (location.search || '') || '/',
+        redirectTo: location.pathname + (location.search || '') || '/',
         embedRegistration: 'true',
       },
       { method: 'POST', action: '/login' },
@@ -384,11 +383,7 @@ export default function RegisterPopup({
       console.log('[RegisterPopup] OTP verified');
       submitToFreeEnrollment();
     }
-  }, [
-    currentStep,
-    loginVerifyFetcher.state,
-    loginVerifyFetcher.data,
-  ]);
+  }, [currentStep, loginVerifyFetcher.state, loginVerifyFetcher.data]);
 
   // Handle customer update response (after OTP verification for free products)
   useEffect(() => {
@@ -663,8 +658,16 @@ export default function RegisterPopup({
             )}
             {/* Buttons */}
             <div className="flex items-center gap-2">
-              <AppStoreButton size="lg" className="w-full" />
-              <GooglePlayButton size="lg" className="w-full" />
+              <AppStoreButton
+                href={appStoreLink}
+                size="lg"
+                className="w-full"
+              />
+              <GooglePlayButton
+                href={playStoreLink}
+                size="lg"
+                className="w-full"
+              />
             </div>
           </div>
           {/* right image */}

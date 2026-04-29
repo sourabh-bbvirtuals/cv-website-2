@@ -60,6 +60,7 @@ export async function action({ request }: DataFunctionArgs) {
       firstName,
       lastName,
       phone,
+      rawPhoneInput: body.get('phone')?.toString(),
     });
 
     // Step 1: Register the customer account in Vendure
