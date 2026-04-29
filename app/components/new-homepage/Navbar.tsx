@@ -93,6 +93,21 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+          {/* Olympiad  button */}
+          <Link to={'/olympiad'}>
+            <button
+              style={
+                {
+                  // WebkitTextStroke: '0.5px #012372',
+                  // color: 'white',
+                  // filter: 'drop-shadow(0px -12px 0px #012372)',
+                }
+              }
+              className=" py-2 px-2 md:py-2 md:px-3 text-xs md:text-base font-medium md:font-bold rounded-full border  text-white leading-[120%] font-oswald uppercase bg-[url('/assets/images/olympiad/button-bg.png')] bg-cover bg-center bg-no-repeat"
+            >
+              Olympiad 2026
+            </button>
+          </Link>
           {/* 1. Desktop Board Dropdown (Pill UI) */}
           {showBoardDropdown && (
             <div className="hidden lg:block">
@@ -164,7 +179,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
           ) : (
             <Link
               to="/sign-in"
-              className="primary-btn text-xs sm:text-base font-medium leading-3 sm:leading-[120%] px-3 sm:px-6 py-2 sm:py-2.75"
+              className="primary-btn text-xs sm:text-base font-medium leading-3 sm:leading-[120%] px-2 md:px-3 sm:px-6 py-2 sm:py-2.75"
             >
               Start For Free
             </Link>

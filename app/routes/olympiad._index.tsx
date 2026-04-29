@@ -1,5 +1,10 @@
 'use client';
-import { useLoaderData, useFetcher, useRevalidator } from '@remix-run/react';
+import {
+  useLoaderData,
+  useFetcher,
+  useRevalidator,
+  Link,
+} from '@remix-run/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -564,7 +569,9 @@ export default function Olympiad() {
                 <div className="flex flex-col items-center justify-center gap-4 relative w-full">
                   {/* left arrow */}
                   <div className="absolute left-4 top-0">
-                    <ArrowLeft className="w-6 h-6 text-white/50" />
+                    <Link to="/">
+                      <ArrowLeft className="w-6 h-6 text-white/50" />
+                    </Link>
                   </div>
                   <div className="pt-10 flex flex-col items-center gap-4">
                     <div className="inline-flex  items-center gap-2 px-3 py-1 leading-[120%] rounded-full bg-white/25 text-xs sm:text-base font-medium text-white/90 border border-white/5">
