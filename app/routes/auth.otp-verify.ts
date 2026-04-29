@@ -52,6 +52,7 @@ export async function action({ request }: ActionFunctionArgs) {
     request.headers.get('Cookie'),
   );
   const identifier = session.get('otpIdentifier');
+  console.log('[auth.otp-verify] session otpIdentifier:', identifier);
 
   if (!identifier || typeof identifier !== 'string') {
     return json(

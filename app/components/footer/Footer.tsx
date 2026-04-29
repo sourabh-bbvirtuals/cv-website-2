@@ -80,7 +80,7 @@ const Footer = () => {
       className="w-full  pt-10 lg:pt-25 "
       style={{
         background: isOlyampiadPath
-          ? 'linear-gradient(360deg, #3A7FFF 0%, rgba(229, 246, 254, 1) 10%, rgba(229, 246, 254, 1)'
+          ? 'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(237, 241, 255, 1)'
           : 'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 0, 0) )',
       }}
     >
@@ -94,7 +94,7 @@ const Footer = () => {
               : 'Call us Directly for Purchase Related Queries'}
           </h2>
           {isOlyampiadPath ? (
-            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-7 text-sm md:text-xl leading-[120%]">
               Free entry. Closes 3 May, 9:00 AM IST.
             </p>
           ) : (
@@ -106,8 +106,15 @@ const Footer = () => {
           )}
           {isOlyampiadPath ? (
             <div className="flex items-center justify-center text-center">
-              <div className="flex cursor-pointer text-xl font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-8 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]">
-                Register For Free <ArrowRight className="w-6 h-6" />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  window.dispatchEvent(new Event('bb-olympiad-register-open'))
+                }
+                className="flex cursor-pointer w-full md:max-w-max text-base font-semibold items-center justify-center gap-2  text-white px-8 py-3 rounded-full primary-btn"
+              >
+                Register For Free <ArrowRight className="w-5 h-5" />
               </div>
             </div>
           ) : (

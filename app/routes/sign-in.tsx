@@ -3,6 +3,7 @@ import { MetaFunction, useFetcher, useSearchParams } from '@remix-run/react';
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { API_URL } from '~/constants';
+import { getSessionStorage } from '~/sessions';
 
 export const meta: MetaFunction = () => {
   return [
@@ -54,7 +55,21 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const data = result?.data?.requestOtp;
     if (data?.success) {
-      return json({ ok: true });
+      const sessionStorage = await getSessionStorage();
+      const session = await sessionStorage.getSession(
+        request.headers.get('Cookie'),
+      );
+      session.set('otpIdentifier', phone);
+      session.set('otpMethod', 'PHONE');
+
+      return json(
+        { ok: true },
+        {
+          headers: {
+            'Set-Cookie': await sessionStorage.commitSession(session),
+          },
+        },
+      );
     }
 
     return json(

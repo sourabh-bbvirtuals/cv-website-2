@@ -20,6 +20,11 @@ import { getProductBySlug } from '~/providers/course2';
 import { getCollectionBySlug } from '~/providers/collections/collections';
 import sanitizeHtml from 'sanitize-html';
 import { API_URL } from '~/constants';
+import {
+  instagramPages,
+  SocialDropdown,
+  youtubeChannels,
+} from '~/components/new-homepage/TopHeader';
 export async function loader({ request }: DataFunctionArgs) {
   const slug = 'commerce-olympiad-dc03f7'; // Hardcoded slug for the Commerce Olympiad course
   if (!slug) throw new Response('Not Found', { status: 404 });
@@ -327,6 +332,20 @@ export default function Olympiad() {
   } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handleFooterRegisterClick = () => setIsRegisterPopupOpen(true);
+    window.addEventListener(
+      'bb-olympiad-register-open',
+      handleFooterRegisterClick,
+    );
+    return () => {
+      window.removeEventListener(
+        'bb-olympiad-register-open',
+        handleFooterRegisterClick,
+      );
+    };
+  }, []);
+
   // Track login status
   const isLoggedIn = !!customerData?.activeCustomer;
 
@@ -421,25 +440,25 @@ export default function Olympiad() {
 
           {/* Right Side: Social Media */}
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <a
-              href="#"
-              className="text-slate-400 hover:text-pink-600 transition-colors"
-              aria-label="Instagram"
-            >
-              <Instagram size={18} />
-            </a>
-            <a
-              href="#"
-              className="text-slate-400 hover:text-red-600 transition-colors"
-              aria-label="YouTube"
-            >
-              <Youtube size={20} />
-            </a>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <SocialDropdown
+                icon={<Instagram size={18} />}
+                label="Instagram"
+                items={instagramPages}
+                hoverColor="hover:text-pink-600"
+              />
+              <SocialDropdown
+                icon={<Youtube size={20} />}
+                label="YouTube"
+                items={youtubeChannels}
+                hoverColor="hover:text-red-600"
+              />
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="min-h-screen bg-[#E5F6FE] ">
+      <div className="min-h-screen bg-[#EDF1FF] ">
         {/* nav bar */}
         <nav className="w-full py-5 relative z-20 hidden md:flex items-center justify-center">
           {/* Logo */}
@@ -455,9 +474,9 @@ export default function Olympiad() {
         </nav>
 
         {/* desktop hero */}
-        <section className="hidden md:flex relative w-full">
+        <section className="hidden sm:flex relative w-full">
           <img
-            src="/assets/images/olympiad/bg.png"
+            src="/assets/images/olympiad/bg2.png"
             alt="Olympiad Banner"
             className="w-full h-auto object-cover"
           />
@@ -465,11 +484,11 @@ export default function Olympiad() {
           {/* overlay content */}
           <div className="absolute inset-0 flex flex-col justify-between items-center py-8">
             {/* top content */}
-            <div className="flex flex-col gap-9 justify-center items-center w-full pt-24">
+            <div className="flex flex-col gap-9 justify-center items-center w-full lg:pt-24">
               <div className="flex flex-col items-center justify-center gap-5">
                 <div className="flex flex-col items-center justify-center gap-4">
                   {/* pill note */}
-                  <div className="inline-flex items-center gap-2 px-4 py-2  leading-[120%] rounded-full bg-white/25 text-xs sm:text-base font-medium text-white/70 border border-white/5">
+                  <div className="inline-flex items-center gap-2 md:px-4 px-3 py-1 md:py-2  leading-[120%] rounded-full bg-white/25 text-xs md:text-base font-medium text-white/70 border border-white/5">
                     <span>All India</span>
 
                     <span className="w-1 h-1 rounded-full bg-white/70"></span>
@@ -478,11 +497,11 @@ export default function Olympiad() {
                   </div>
 
                   <h1
-                    className="font-oswald text-4xl md:text-[110px] leading-[120%] uppercase font-bold text-center text-white"
+                    className="font-oswald text-5xl md:text-7xl xl:text-[115px] leading-[120%] tracking-[0%] uppercase font-bold text-center text-white"
                     style={{
-                      WebkitTextStroke: '2px #108CC7',
+                      WebkitTextStroke: '2px #012372',
                       color: 'white',
-                      filter: 'drop-shadow(0px -8px 0px #108CC7)',
+                      filter: 'drop-shadow(0px -12px 0px #012372)',
                     }}
                   >
                     Commerce Olympiad 2026
@@ -493,15 +512,15 @@ export default function Olympiad() {
                     keyDetails.slice(0, 4).map((detail: any, idx: number) => (
                       <div
                         key={idx}
-                        className="inline-flex items-center gap-2 px-5 py-3  leading-[120%] rounded-full bg-white/25 text-xs sm:text-lg font-semibold  border border-white/5"
+                        className="inline-flex items-center gap-2 px-4 md:px-5 py-3  leading-[120%] rounded-full bg-white/10 backdrop-blur-2xl text-xs md:text-base lg:text-lg font-semibold"
                       >
-                        <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
+                        <span className="text-white/55 uppercase tracking-[1.4px]">
                           {detail.name}
                         </span>
 
-                        <span className="w-[1px] h-[16px] font-bold bg-[#09425D]/25"></span>
+                        <span className="w-[1px] h-[16px] font-bold bg-white/25"></span>
 
-                        <span className="text-[#09425D]">
+                        <span className="text-white">
                           {detail.extraFields?.value}
                         </span>
                       </div>
@@ -514,7 +533,7 @@ export default function Olympiad() {
               {/* button */}
               <button
                 onClick={() => setIsRegisterPopupOpen(true)}
-                className="flex text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-8 py-4 rounded-full shadow-xl shadow-white/40"
+                className="flex text-base md:text-lg lg:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40"
               >
                 Register For Free <ArrowRight className="w-4 h-4" />
               </button>
@@ -522,17 +541,17 @@ export default function Olympiad() {
 
             {/* bottom content */}
             <div className="flex justify-center w-full pt-4">
-              <button className="text-4xl font-bold leading-[120%] px-8 py-5 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_6px_0px_0px_rgba(163,114,0,1)]">
+              <div className="text-3xl lg:text-4xl font-bold leading-[120%] px-5 md:px-8 py-4 md:py-5 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_6px_0px_0px_rgba(163,114,0,1)]">
                 ₹3.2 Lakh Pool
-              </button>
+              </div>
             </div>
           </div>
         </section>
 
         {/* mobile hero */}
-        <section className="md:hidden flex relative w-full">
+        <section className="sm:hidden flex relative w-full">
           <img
-            src="/assets/images/olympiad/mobile-bg.png"
+            src="/assets/images/olympiad/mobile-bg2.png"
             alt="Olympiad Banner"
             className="w-full h-auto object-cover"
           />
@@ -545,7 +564,7 @@ export default function Olympiad() {
                 <div className="flex flex-col items-center justify-center gap-4 relative w-full">
                   {/* left arrow */}
                   <div className="absolute left-4 top-0">
-                    <ArrowLeft className="w-6 h-6 text-[#0A232F]/50" />
+                    <ArrowLeft className="w-6 h-6 text-white/50" />
                   </div>
                   <div className="pt-10 flex flex-col items-center gap-4">
                     <div className="inline-flex  items-center gap-2 px-3 py-1 leading-[120%] rounded-full bg-white/25 text-xs sm:text-base font-medium text-white/90 border border-white/5">
@@ -557,9 +576,9 @@ export default function Olympiad() {
                     <h1
                       className="font-oswald text-[50px] leading-[120%] uppercase font-bold text-center text-white"
                       style={{
-                        WebkitTextStroke: '1px #108CC7',
+                        WebkitTextStroke: '1px #012372',
                         color: 'white',
-                        filter: 'drop-shadow(0px -3px 0px #108CC7)',
+                        filter: 'drop-shadow(0px -3px 0px #012372)',
                       }}
                     >
                       Commerce <br /> Olympiad 2026
@@ -567,28 +586,32 @@ export default function Olympiad() {
                   </div>
 
                   {/* box infos FULL EDGE TO EDGE */}
-                  <div className="grid grid-cols-2 w-screen">
+                  <div className="grid grid-cols-2 grid-rows-2 w-screen mt-2 overflow-hidden">
                     {Array.isArray(keyDetails) && keyDetails.length > 0 ? (
                       keyDetails.slice(0, 4).map((detail: any, idx: number) => (
                         <div
                           key={idx}
-                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/25 text-xs font-semibold ${
-                            idx === 0 || idx === 2
-                              ? 'border-r border-white/20'
+                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/10 text-xs font-semibold relative ${
+                            idx % 2 === 0
+                              ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
                               : ''
                           }`}
                         >
-                          <span className="text-[#09425D]/55 uppercase tracking-[1.4px]">
+                          <span className="text-white/55 uppercase tracking-[1.4px]">
                             {detail.name}
                           </span>
-                          <span className="w-[1px] h-[16px] bg-[#09425D]/25"></span>
-                          <span className="text-[#09425D]">
+
+                          <span className="w-[1px] h-[16px] bg-white/20"></span>
+
+                          <span className="text-white">
                             {detail.extraFields?.value}
                           </span>
                         </div>
                       ))
                     ) : (
-                      <span className="text-white/70">Loading details...</span>
+                      <span className="col-span-2 text-white/70 p-3">
+                        Loading details...
+                      </span>
                     )}
                   </div>
                 </div>
@@ -599,22 +622,22 @@ export default function Olympiad() {
                 onClick={() => setIsRegisterPopupOpen(true)}
                 className="flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-3 md:py-4 rounded-full shadow-xl shadow-white/40"
               >
-                Register For Free <ArrowRight className="w-4 h-4" />
+                Register For Freee <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* bottom content */}
             <div className="flex justify-center w-full pt-2">
-              <button className="text-2xl md:text-4xl font-bold leading-[120%] px-3 md:px-8 py-2 md:py-5 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_2.15px_0px_0px_rgba(163,114,0,1)]">
+              <div className="text-2xl md:text-4xl font-bold leading-[120%] px-3 md:px-8 py-2 md:py-5 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_2.15px_0px_0px_rgba(163,114,0,1)]">
                 ₹3.2 Lakh Pool
-              </button>
+              </div>
             </div>
           </div>
         </section>
 
         {/* mobile overlay button */}
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#EDF1FF] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
             isContentInView
               ? 'opacity-100 pointer-events-auto'
               : 'opacity-0 pointer-events-none'
@@ -628,7 +651,7 @@ export default function Olympiad() {
           </div>
           <button
             onClick={() => setIsRegisterPopupOpen(true)}
-            className="flex cursor-pointer text-[14px] font-semibold items-center justify-center gap-1  text-white bg-[#39BEFD] px-4 py-3 rounded-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]"
+            className="flex cursor-pointer text-[14px] font-semibold items-center justify-center gap-1  text-white px-4 py-3 rounded-full primary-btn"
           >
             Register For Free <ArrowRight className="w-4 h-4" />
           </button>
@@ -679,7 +702,11 @@ export default function Olympiad() {
                         return (
                           <div key={`desktop-${idx}`}>
                             {/* Desktop */}
-                            <div className="p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8">
+                            <div
+                              className={`p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8 ${
+                                idx === 0 ? 'bg-[#F5B100]/6' : ''
+                              }`}
+                            >
                               <div className="flex items-center justify-center gap-3">
                                 {isImage ? (
                                   <img
@@ -717,7 +744,11 @@ export default function Olympiad() {
                             </div>
 
                             {/* Mobile */}
-                            <div className="px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8">
+                            <div
+                              className={`px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8 ${
+                                idx === 0 ? 'bg-[#F5B100]/6' : ''
+                              }`}
+                            >
                               {isImage ? (
                                 <img
                                   src={prize.extraFields?.icon_url}
@@ -870,7 +901,7 @@ export default function Olympiad() {
                     rules.map((rule: any, idx: number) => (
                       <div
                         key={idx}
-                        className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3ABFFE]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(152,208,235,1)]"
+                        className="bg-white flex flex-col p-5 gap-4 border w-full border-[#3A6BFC]/50 min-h-[139px] overflow-hidden rounded-2xl shadow-[6px_6px_0px_0px_rgba(58,107,252,0.5)]"
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex flex-col">
@@ -891,8 +922,7 @@ export default function Olympiad() {
               </div>
 
               {/* Faqs */}
-              <div className="flex flex-col gap-9">
-                {/* title */}
+              {/* <div className="flex flex-col gap-9">
                 <h2 className="font-bold text-[#0A232F]/35 text-2xl md:text-[30px] uppercase leading-[150%] tracking-wide font-oswald text-center lg:text-left">
                   Faqs
                 </h2>
@@ -909,7 +939,6 @@ export default function Olympiad() {
                           className="w-full text-left"
                           onClick={() => setOpenIdx(open ? null : i)}
                         >
-                          {/* TOP ROW */}
                           <div className="flex items-center justify-between gap-4">
                             <p className="text-base sm:text-lg font-medium text-slate-800">
                               {item.question}
@@ -924,7 +953,6 @@ export default function Olympiad() {
                             </div>
                           </div>
 
-                          {/* ANSWER */}
                           <div
                             className={`grid transition-[grid-template-rows] duration-200 ${
                               open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -941,12 +969,12 @@ export default function Olympiad() {
                     );
                   })}
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Sticky Sidebar - Right Column */}
             <aside className="shrink-0 lg:sticky lg:top-32 mt-20  w-[360px] hidden  lg:block ">
-              <div className="flex flex-col rounded-[24px] h-[553px] border border-[#3ABFFE] shadow-[6px_6px_0px_0px_rgba(152,208,235,0.7)] bg-white p-5 gap-4">
+              <div className="flex flex-col rounded-[24px] h-[553px] border border-[#3A6BFC]/50 shadow-[6px_6px_0px_0px_rgba(58,107,252,0.5)] bg-white p-5 gap-4">
                 {' '}
                 <p className="font-bold text-xs uppercase tracking-[1.32px] text-[#9CA3AF]">
                   Exam dates
@@ -1023,7 +1051,7 @@ export default function Olympiad() {
                 <div className="flex items-center flex-col justify-center gap-3 mt-4">
                   <button
                     onClick={() => setIsRegisterPopupOpen(true)}
-                    className="flex cursor-pointer text-lg font-semibold items-center justify-center gap-2  text-white bg-[#39BEFD] px-4 py-3 rounded-full w-full shadow-[0_14px_50px_-10px_rgba(57,190,253,0.3)]"
+                    className="flex cursor-pointer text-base font-semibold items-center justify-center gap-2  text-white primary-btn px-4 py-3 rounded-full w-full "
                   >
                     Register For Free <ArrowRight className="w-4 h-4" />
                   </button>

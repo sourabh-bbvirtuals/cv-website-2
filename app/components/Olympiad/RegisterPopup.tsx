@@ -98,6 +98,23 @@ export default function RegisterPopup({
     }
   }, [isOpen, customer?.activeCustomer]);
 
+  const normalizePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 10) return `+91${digits}`;
+    if (digits.length === 12 && digits.startsWith('91'))
+      return `+91${digits.slice(2)}`;
+    if (digits.length === 11 && digits.startsWith('0'))
+      return `+91${digits.slice(1)}`;
+    return `+91${digits.slice(-10)}`;
+  };
+
+  const getRawPhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+    if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+    return digits.slice(-10);
+  };
+
   const validateForm = () => {
     const newErrors = { name: '', email: '', phone: '' };
     let isValid = true;
@@ -195,11 +212,13 @@ export default function RegisterPopup({
       otpSkipped: skipOtp,
     });
 
+    const rawPhone = getRawPhone(formData.phone);
+    console.log('[RegisterPopup] updateCustomerProfile rawPhone:', rawPhone);
     customerUpdateFetcher.submit(
       {
         fullName: formData.name,
         email: formData.email,
-        phone: formData.phone,
+        phone: rawPhone,
       },
       { method: 'post', action: '/sign-up' },
     );
@@ -256,9 +275,13 @@ export default function RegisterPopup({
   const sendPhoneOtp = () => {
     if (formData.phone.length !== 10) return;
     setOtpError(null);
-    const fullPhone = `+91${formData.phone}`;
+    const normalizedPhone = normalizePhone(formData.phone);
+    console.log('[RegisterPopup] sendPhoneOtp', {
+      rawPhone: formData.phone,
+      normalizedPhone,
+    });
     phoneOtpFetcher.submit(
-      { phone: fullPhone },
+      { phone: normalizedPhone },
       { method: 'POST', action: '/sign-in' },
     );
   };
@@ -318,6 +341,7 @@ export default function RegisterPopup({
     setIsVerifyingOtp(true);
 
     try {
+      console.log('[RegisterPopup] verifyPhoneOtp submit', { otp: otpValue });
       const response = await fetch('/auth/otp-verify', {
         method: 'POST',
         headers: {
@@ -642,10 +666,7 @@ export default function RegisterPopup({
 
   if (currentStep === 'form') {
     return (
-      <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
-        onClick={handleClosePopup}
-      >
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
         <div
           className="bg-white flex items-center justify-between flex-col gap-5 rounded-3xl shadow-2xl max-w-md w-full p-6"
           onClick={(e) => e.stopPropagation()}
@@ -800,10 +821,7 @@ export default function RegisterPopup({
 
   // OTP Verification Step
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
-      onClick={handleClosePopup}
-    >
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
       <div
         className="bg-white flex items-center justify-between flex-col gap-5 rounded-3xl shadow-2xl max-w-md w-full p-6 min-h-[520px]"
         onClick={(e) => e.stopPropagation()}
@@ -888,7 +906,7 @@ export default function RegisterPopup({
             className="primary-btn font-medium leading-[120%] py-4 w-full disabled:opacity-60"
           >
             {isSubmittingCart
-              ? 'Adding to cart...'
+              ? 'Enrolling...'
               : verifyOtpBusy
               ? 'Registering...'
               : isLoggedIn

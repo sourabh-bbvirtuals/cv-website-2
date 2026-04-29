@@ -2,6 +2,13 @@ import { json, type DataFunctionArgs } from '@remix-run/server-runtime';
 import { API_URL } from '~/constants';
 import { getSessionStorage } from '~/sessions';
 
+const getRawPhone = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits.slice(-10);
+};
+
 const REGISTER_CUSTOMER_MUTATION = `
   mutation RegisterCustomerAccount($input: RegisterCustomerInput!) {
     registerCustomerAccount(input: $input) {
@@ -27,7 +34,7 @@ export async function action({ request }: DataFunctionArgs) {
   const body = await request.formData();
   const fullName = body.get('fullName')?.toString();
   const email = body.get('email')?.toString();
-  const phone = body.get('phone')?.toString();
+  const phone = getRawPhone(body.get('phone')?.toString() || '');
   const password = body.get('password')?.toString() || 'temp-' + Date.now(); // Generate temp password
 
   if (!fullName || !email) {
@@ -75,7 +82,7 @@ export async function action({ request }: DataFunctionArgs) {
       }),
     });
 
-    const registerResult = await registerRes.json();
+    const registerResult = (await registerRes.json()) as any;
 
     // Check for GraphQL errors
     if (registerResult.errors && registerResult.errors.length > 0) {
