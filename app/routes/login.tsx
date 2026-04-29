@@ -9,22 +9,48 @@ import { getActiveCustomerDetails } from '~/providers/customer/customer';
 const PROFILE_INCOMPLETE_COOKIE =
   'bb-profile-incomplete=1; Path=/; Max-Age=86400; SameSite=Lax';
 
+function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91'))
+    return `+91${digits.slice(2)}`;
+  if (digits.length === 11 && digits.startsWith('0'))
+    return `+91${digits.slice(1)}`;
+  return `+91${digits.slice(-10)}`;
+}
+
+function getRawPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits.slice(-10);
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const phone = formData.get('phone') as string;
+  const phone = (formData.get('phone') as string) || '';
   const otp = formData.get('otp') as string;
   const name = (formData.get('name') as string) || '';
   const email = (formData.get('email') as string) || '';
   const redirectTo = (formData.get('redirectTo') as string) || '/';
-  /** Olympiad popup: same OTP verify as `/login` but respond with JSON+cookies instead of redirects. */
-  const embedRegistration = formData.get('embedRegistration') === 'true';
+  const normalizedPhone = normalizePhone(phone);
+  const rawPhone = getRawPhone(phone);
+
+  console.log('[login] action input phone values:', {
+    originalPhone: phone,
+    normalizedPhone,
+    rawPhone,
+    name,
+    email,
+    redirectTo,
+  });
 
   try {
     const result = await sdk.Authenticate(
       {
         input: {
           otp: {
-            identifier: phone,
+            identifier: normalizedPhone,
             otp,
           },
         } as any,
@@ -93,10 +119,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
             // Update phone if not set
             if (phone && !c.phoneNumber) {
-              updatePayload.phoneNumber = phone;
+              updatePayload.phoneNumber = rawPhone;
             }
 
             if (Object.keys(updatePayload).length > 0) {
+              console.log('[login] updateCustomer payload:', updatePayload);
               await updateCustomer(updatePayload, { request: authedRequest });
               console.log(
                 '[login] Updated customer profile with registration data:',
@@ -114,8 +141,9 @@ export async function action({ request }: ActionFunctionArgs) {
             const { updateCustomer } = await import(
               '~/providers/account/account'
             );
+            console.log('[login] setting phoneNumber on customer:', rawPhone);
             await updateCustomer(
-              { phoneNumber: phone },
+              { phoneNumber: rawPhone },
               { request: authedRequest },
             );
           } catch (e) {
@@ -236,10 +264,11 @@ const Login: React.FC = () => {
 
     setIsLoading(true);
     setServerError('');
+    const normalizedPhone = normalizePhone(phoneNumber);
+    console.log('[login] requestOtp phone:', normalizedPhone);
 
     try {
       // GraphQL mutation to request OTP
-      const fullPhone = `+91${phoneNumber}`;
       const query = `
         mutation RequestOtp($phone: String!) {
           requestOtp(phone: $phone)
@@ -250,7 +279,7 @@ const Login: React.FC = () => {
         cleanApiUrl,
         {
           query,
-          variables: { phone: fullPhone },
+          variables: { phone: normalizedPhone },
         },
         {
           headers: {
@@ -315,7 +344,8 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setServerError('');
 
-    const fullPhone = `+91${phoneNumber}`;
+    const fullPhone = normalizePhone(phoneNumber);
+    console.log('[login] verifyPhoneOtp phone:', fullPhone);
     fetcher.submit({ phone: fullPhone, otp: otpValue }, { method: 'POST' });
   };
 
