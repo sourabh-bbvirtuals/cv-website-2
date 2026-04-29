@@ -10,8 +10,18 @@ import {
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { updateCustomer } from '~/providers/account/account';
 
+const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
+const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
+
 const CLEAR_PROFILE_COOKIE =
   'bb-profile-incomplete=; Path=/; Max-Age=0; SameSite=Lax';
+
+const getRawPhone = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits.slice(-10);
+};
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let phone = '';
@@ -46,7 +56,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
 
-  const phone = (formData.get('phone') as string) || '';
+  const phone = getRawPhone((formData.get('phone') as string) || '');
   const dob = (formData.get('dob') as string) || '';
   const gender = (formData.get('gender') as string) || '';
 
@@ -100,6 +110,28 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   } catch (verifyErr) {
     console.error('Failed to verify customer update:', verifyErr);
+  }
+
+  try {
+    const details = await getActiveCustomerDetails({ request });
+    const c = details?.activeCustomer;
+    if (c?.id) {
+      fetch(`${BB_SERVER_URL}/webhooks/vendure/customer-onboarded`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendureCustomerId: String(c.id),
+          businessVerticalId: BUSINESS_VERTICAL_ID,
+          name: fullName,
+          phone,
+          email,
+          board: (formData.get('board') as string) || '',
+          studentClass: (formData.get('studentClass') as string) || '',
+        }),
+      }).catch((err) => console.error('[sign-up] lead enrich failed:', err));
+    }
+  } catch (enrichErr) {
+    console.error('[sign-up] lead enrich error:', enrichErr);
   }
 
   const board = (formData.get('board') as string) || '';
@@ -236,9 +268,7 @@ const SignUp: React.FC = () => {
           <input
             type="hidden"
             name="phone"
-            value={
-              formData.phone ? `+91${formData.phone.replace(/\D/g, '')}` : ''
-            }
+            value={formData.phone ? formData.phone.replace(/\D/g, '') : ''}
           />
           <input type="hidden" name="gender" value={formData.gender} />
           <input type="hidden" name="board" value={formData.board} />

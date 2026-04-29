@@ -37,7 +37,7 @@ import {
   HeaderNavigationData,
 } from './providers/header/header-navigation';
 import { getFooterData } from './providers/footer/footer';
-import { setApiUrl } from './constants';
+import { API_URL, setApiUrl } from './constants';
 import { setSessionSecret } from './sessions';
 
 export const links: LinksFunction = () => [
@@ -154,9 +154,7 @@ export async function loader({ request, context }: DataFunctionArgs) {
     headerNavigation: headerNavigationData,
     ENV: {
       VENDURE_API_URL:
-        (context as any)?.cloudflare?.env?.VENDURE_API_URL ||
-        process.env.VENDURE_API_URL ||
-        '',
+        (context as any)?.cloudflare?.env?.VENDURE_API_URL || API_URL || '',
     },
   };
   const headers = activeCustomer?._headers || new Headers();

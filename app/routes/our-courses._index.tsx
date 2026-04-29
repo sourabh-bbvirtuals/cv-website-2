@@ -92,7 +92,7 @@ const COURSE_CATEGORIES = [
 /** Listings only — layout + outlet live in `our-courses.tsx` */
 export default function OurCoursesIndexRoute() {
   const { products, error } = useLoaderData<typeof loader>();
-
+  // console.log('🚀 Fetched products:', products);
   return (
     <>
       <Hero />

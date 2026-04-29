@@ -1,0 +1,72 @@
+name: Deploy to Dev
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+env:
+  GCP_PROJECT: grepvideos-server
+  GCP_REGION: asia-south1
+  GKE_CLUSTER: bbv-dev
+  K8S_NAMESPACE: bbvirtuals-dev
+  AR_HOST: asia-south1-docker.pkg.dev
+  AR_REPO: bbvirtuals
+  IMAGE_NAME: bbv-cv-website
+  K8S_DEPLOYMENT: cv-website
+  K8S_CONTAINER: cv-website
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.AR_HOST }} --quiet
+
+      - id: meta
+        run: |
+          IMAGE_BASE="${AR_HOST}/${GCP_PROJECT}/${AR_REPO}/${IMAGE_NAME}"
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "image_dev=${IMAGE_BASE}:dev"           >> $GITHUB_OUTPUT
+          echo "image_sha=${IMAGE_BASE}:dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_dev }}
+            ${{ steps.meta.outputs.image_sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GCP_REGION }}
+
+      - name: Roll out new image
+        run: |
+          kubectl -n "$K8S_NAMESPACE" set image \
+            "deployment/${K8S_DEPLOYMENT}" \
+            "${K8S_CONTAINER}=${{ steps.meta.outputs.image_sha }}"
+          kubectl -n "$K8S_NAMESPACE" rollout status \
+            "deployment/${K8S_DEPLOYMENT}" --timeout=5m
+          kubectl -n "$K8S_NAMESPACE" get pods -l app="${K8S_DEPLOYMENT}"

@@ -1,12 +1,11 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 import 'dotenv/config';
+import { API_URL } from '~/constants';
 
 const config: CodegenConfig = {
   overwrite: true,
   schema: [
-    process.env.VENDURE_API_URL ??
-      process.env.VENDURE_LOCAL_API_URL ??
-      'https://websiteadmin.appwallah.com/shop-api',
+    API_URL,
     // Schema extension for SearchResult.offers field from SearchResultExtensionPlugin
     `
       extend type SearchResult {

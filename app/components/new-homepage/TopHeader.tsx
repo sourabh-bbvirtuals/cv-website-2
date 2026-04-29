@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Phone, Mail, Instagram, Youtube } from 'lucide-react';
 import { useLocation } from '@remix-run/react';
 
-const youtubeChannels = [
+export const youtubeChannels = [
   { label: 'MH Board', href: 'https://youtube.com/@commercevirtualsmh' },
   {
     label: 'CBSE Board',
@@ -11,7 +11,7 @@ const youtubeChannels = [
   { label: 'CUET', href: 'https://youtube.com/@commercevirtualscuet' },
 ];
 
-const instagramPages = [
+export const instagramPages = [
   { label: 'MH Board', href: 'https://www.instagram.com/commercevirtualsmh' },
   {
     label: 'CBSE Board',
@@ -19,7 +19,7 @@ const instagramPages = [
   },
 ];
 
-function SocialDropdown({
+export function SocialDropdown({
   icon,
   label,
   items,

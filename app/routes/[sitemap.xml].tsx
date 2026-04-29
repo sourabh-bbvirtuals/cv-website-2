@@ -14,7 +14,7 @@ const FREE_RESOURCE_TABS = [
 
 async function fetchProductSlugs(): Promise<string[]> {
   try {
-    const apiUrl = process.env.VENDURE_API_URL || API_URL;
+    const apiUrl = API_URL;
     const allSlugs: string[] = [];
     let skip = 0;
     const take = 100;
