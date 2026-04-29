@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher, useLocation } from '@remix-run/react';
 import {
   AppStoreButton,
   GooglePlayButton,
@@ -50,11 +50,13 @@ export default function RegisterPopup({
 
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  const location = useLocation();
+
   const phoneOtpFetcher = useFetcher<{ ok?: boolean; error?: string }>();
   const phoneOtpBusy = phoneOtpFetcher.state !== 'idle';
 
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const verifyOtpBusy = isVerifyingOtp;
+  const loginVerifyFetcher = useFetcher<{ ok?: boolean; error?: string }>();
+  const verifyOtpBusy = loginVerifyFetcher.state !== 'idle';
 
   // NEW: Register fetcher (creates customer account for new users)
   const registerFetcher = useFetcher<{
@@ -334,7 +336,7 @@ export default function RegisterPopup({
     verifyPhoneOtp();
   };
 
-  const verifyPhoneOtp = async () => {
+  const verifyPhoneOtp = () => {
     const otpValue = otp.join('');
     if (otpValue.length < 6) return;
     setOtpError(null);
@@ -351,26 +353,42 @@ export default function RegisterPopup({
         body: JSON.stringify({ otp: otpValue, redirectTo: '/' }),
       });
 
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok || data?.error) {
-        setOtpError(
-          data?.error || 'OTP verification failed. Please try again.',
-        );
-        setOtp(['', '', '', '', '', '']);
-        setTimeout(() => otpRefs.current[0]?.focus(), 100);
-        return;
-      }
+    const fullPhone = `+91${formData.phone}`;
+    loginVerifyFetcher.submit(
+      {
+        phone: fullPhone,
+        otp: otpValue,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        redirectTo:
+          location.pathname + (location.search || '') || '/',
+        embedRegistration: 'true',
+      },
+      { method: 'POST', action: '/login' },
+    );
+  };
 
-      console.log('[RegisterPopup] OTP verified');
-      submitToFreeEnrollment();
-    } catch (err: any) {
-      setOtpError(err?.message || 'OTP verification failed. Please try again.');
+  useEffect(() => {
+    if (currentStep !== 'otp') return;
+    if (loginVerifyFetcher.state !== 'idle' || !loginVerifyFetcher.data) {
+      return;
+    }
+    const d = loginVerifyFetcher.data;
+    if ('error' in d && d.error) {
+      setOtpError(d.error);
       setOtp(['', '', '', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
-    } finally {
-      setIsVerifyingOtp(false);
+      return;
     }
-  };
+    if (d.ok === true) {
+      console.log('[RegisterPopup] OTP verified');
+      submitToFreeEnrollment();
+    }
+  }, [
+    currentStep,
+    loginVerifyFetcher.state,
+    loginVerifyFetcher.data,
+  ]);
 
   // Handle customer update response (after OTP verification for free products)
   useEffect(() => {

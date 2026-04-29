@@ -155,6 +155,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (isIncomplete) {
           headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+          if (embedRegistration) {
+            return json({ ok: true as const }, { headers });
+          }
           return redirect('/sign-up', { headers });
         }
 
@@ -179,9 +182,15 @@ export async function action({ request }: ActionFunctionArgs) {
       } catch (e) {
         console.error('[login] getActiveCustomerDetails failed:', e);
         headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
+        if (embedRegistration) {
+          return json({ ok: true as const }, { headers });
+        }
         return redirect('/sign-up', { headers });
       }
 
+      if (embedRegistration) {
+        return json({ ok: true as const }, { headers });
+      }
       return redirect(redirectTo, { headers });
     }
 
