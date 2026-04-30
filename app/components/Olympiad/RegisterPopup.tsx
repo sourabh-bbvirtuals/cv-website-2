@@ -36,6 +36,17 @@ export default function RegisterPopup({
       );
     }
   }, [skipOtp]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
   const [currentStep, setCurrentStep] = useState<'form' | 'otp' | 'completion'>(
     'form',
   );
