@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { MetaFunction, useFetcher, useSearchParams } from '@remix-run/react';
-import type { ActionFunctionArgs } from '@remix-run/node';
-import { json } from '@remix-run/node';
+import {
+  MetaFunction,
+  useFetcher,
+  useNavigate,
+  useSearchParams,
+} from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 import { API_URL } from '~/constants';
 import { getSessionStorage } from '~/sessions';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 
 export const meta: MetaFunction = () => {
   return [
@@ -16,13 +22,25 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const redirectTo = url.searchParams.get('redirectTo') || '/';
+
+  try {
+    const customer = await getActiveCustomerDetails({ request });
+    if (customer?.activeCustomer?.id) {
+      return redirect(redirectTo);
+    }
+  } catch {
+    // ignore failures and allow unauthenticated access
+  }
+
+  return json({});
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const phone = formData.get('phone') as string;
-
-  if (!phone || phone.length < 12) {
-    return json({ error: 'Valid phone number is required' }, { status: 400 });
-  }
 
   try {
     const resp = await fetch(API_URL, {
@@ -103,7 +121,7 @@ export default function SignInPage() {
   const phoneOtpFetcher = useFetcher<{ ok?: boolean; error?: string }>();
   const phoneOtpBusy = phoneOtpFetcher.state !== 'idle';
 
-  const verifyOtpFetcher = useFetcher<{ error?: string }>();
+  const verifyOtpFetcher = useFetcher<{ ok?: boolean; error?: string }>();
   const verifyOtpBusy = verifyOtpFetcher.state !== 'idle';
   const [otpError, setOtpError] = useState<string | null>(null);
 
@@ -133,6 +151,7 @@ export default function SignInPage() {
   }, [phoneOtpFetcher.state, phoneOtpFetcher.data]);
 
   const redirectTo = searchParams.get('redirectTo') || '/';
+  const navigate = useNavigate();
 
   const verifyPhoneOtp = () => {
     const otpValue = otp.join('');
@@ -140,7 +159,7 @@ export default function SignInPage() {
     setOtpError(null);
     const fullPhone = `+91${phoneNumber}`;
     verifyOtpFetcher.submit(
-      { phone: fullPhone, otp: otpValue, redirectTo },
+      { phone: fullPhone, otp: otpValue, redirectTo, fetcher: 'true' },
       { method: 'POST', action: '/login' },
     );
   };
@@ -152,8 +171,12 @@ export default function SignInPage() {
       setOtpError(d.error);
       setOtp(['', '', '', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      return;
     }
-  }, [verifyOtpFetcher.state, verifyOtpFetcher.data]);
+    if (d.ok) {
+      navigate(redirectTo);
+    }
+  }, [verifyOtpFetcher.state, verifyOtpFetcher.data, navigate, redirectTo]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;

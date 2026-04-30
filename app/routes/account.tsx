@@ -400,29 +400,41 @@ export default function AccountLayout() {
   const rootData = useRouteLoaderData('root') as RootLoaderData | undefined;
   const activeCustomer = rootData?.activeCustomer?.activeCustomer;
   const { customer: vendureCustomer } = useLoaderData<typeof loader>();
-
   const [userData, setUserData] = useState<UserProfileData>(emptyProfile);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     const stored = getStoredProfile();
-    if (stored && isProfileComplete(stored)) {
+    const currentEmail =
+      vendureCustomer?.customFields?.contactEmail ||
+      activeCustomer?.customFields?.contactEmail ||
+      (vendureCustomer?.emailAddress?.endsWith('@bbvirtuals.tech')
+        ? ''
+        : vendureCustomer?.emailAddress || '') ||
+      (activeCustomer?.emailAddress?.endsWith('@bbvirtuals.tech')
+        ? ''
+        : activeCustomer?.emailAddress || '');
+    const currentPhone =
+      vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
+    const storedMatchesCurrentCustomer = stored
+      ? (!currentEmail || stored.email === currentEmail) &&
+        (!currentPhone || stored.phone === currentPhone)
+      : false;
+
+    if (stored && storedMatchesCurrentCustomer) {
       if (stored.email?.endsWith('@bbvirtuals.tech')) {
-        stored.email =
-          vendureCustomer?.customFields?.contactEmail ||
-          activeCustomer?.customFields?.contactEmail ||
-          '';
+        stored.email = currentEmail || stored.email;
       }
-      if (
-        !stored.phone &&
-        (vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber)
-      ) {
-        stored.phone =
-          vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
+      if (!stored.phone && currentPhone) {
+        stored.phone = currentPhone;
       }
       setUserData(stored);
       setProfileLoaded(true);
       return;
+    }
+
+    if (stored && !storedMatchesCurrentCustomer) {
+      localStorage.removeItem(STORAGE_KEY);
     }
 
     if (
@@ -458,7 +470,7 @@ export default function AccountLayout() {
       }
     }
 
-    if (stored) {
+    if (stored && storedMatchesCurrentCustomer) {
       setUserData(stored);
     }
     setProfileLoaded(true);

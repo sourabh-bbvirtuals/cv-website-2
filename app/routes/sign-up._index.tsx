@@ -188,6 +188,13 @@ const SignUp: React.FC = () => {
     phone: prefillPhone || '',
   });
 
+  console.log(
+    'SignUp component render with formData:',
+    formData,
+    'and actionData:',
+    actionData,
+  );
+
   const [errors, setErrors] = useState<FormErrors>({});
   const isSubmitting = navigation.state !== 'idle';
 
