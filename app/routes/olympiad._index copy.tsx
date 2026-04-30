@@ -109,22 +109,22 @@ export async function loader({ request }: DataFunctionArgs) {
     // ─── Sanitize description ───────────────────────────────────────────────
     const safeDescription = product?.description
       ? sanitizeHtml(product.description, {
-          allowedTags: [
-            'p',
-            'br',
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ul',
-            'ol',
-            'li',
-            'div',
-            'span',
-          ],
-          allowedAttributes: { '*': ['style'] },
-        })
+        allowedTags: [
+          'p',
+          'br',
+          'b',
+          'strong',
+          'i',
+          'em',
+          'u',
+          'ul',
+          'ol',
+          'li',
+          'div',
+          'span',
+        ],
+        allowedAttributes: { '*': ['style'] },
+      })
       : '';
 
     const variants = product?.variantProperties ?? [];
@@ -198,61 +198,61 @@ export async function loader({ request }: DataFunctionArgs) {
     );
     const finalDescription = shortDescSpec?.text
       ? sanitizeHtml(shortDescSpec.text, {
-          allowedTags: [
-            'p',
-            'br',
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ul',
-            'ol',
-            'li',
-            'div',
-            'span',
-          ],
-          allowedAttributes: { '*': ['style'] },
-        })
+        allowedTags: [
+          'p',
+          'br',
+          'b',
+          'strong',
+          'i',
+          'em',
+          'u',
+          'ul',
+          'ol',
+          'li',
+          'div',
+          'span',
+        ],
+        allowedAttributes: { '*': ['style'] },
+      })
       : safeDescription;
 
     const productData = product
       ? {
-          id: product.id,
-          title: product.title,
-          description: finalDescription,
-          price: product.priceWithTax
-            ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
-            : '',
-          priceWithTax: product.priceWithTax,
-          featuredAsset: product.featuredAsset ?? null,
-          faculties,
-          facetValues: product.facetValues ?? [],
-          variantId: firstVariantId,
-          ...(hasOptions && {
-            optionGroups: optionGroups.map((og) => ({
-              id: og.id,
-              name: og.name,
-              code: og.code,
-              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+        id: product.id,
+        title: product.title,
+        description: finalDescription,
+        price: product.priceWithTax
+          ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
+          : '',
+        priceWithTax: product.priceWithTax,
+        featuredAsset: product.featuredAsset ?? null,
+        faculties,
+        facetValues: product.facetValues ?? [],
+        variantId: firstVariantId,
+        ...(hasOptions && {
+          optionGroups: optionGroups.map((og) => ({
+            id: og.id,
+            name: og.name,
+            code: og.code,
+            options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+          })),
+          variants: variants.map((v) => ({
+            id: v.id,
+            name: v.name,
+            priceWithTax: v.priceWithTax,
+            currencyCode: v.currencyCode,
+            sku: v.sku,
+            stockLevel: v.stockLevel,
+            options: (v.options || []).map((o: any) => ({
+              id: o.id,
+              name: o.name,
+              group: o.group
+                ? { id: o.group.id, name: o.group.name }
+                : undefined,
             })),
-            variants: variants.map((v) => ({
-              id: v.id,
-              name: v.name,
-              priceWithTax: v.priceWithTax,
-              currencyCode: v.currencyCode,
-              sku: v.sku,
-              stockLevel: v.stockLevel,
-              options: (v.options || []).map((o: any) => ({
-                id: o.id,
-                name: o.name,
-                group: o.group
-                  ? { id: o.group.id, name: o.group.name }
-                  : undefined,
-              })),
-            })),
-          }),
-        }
+          })),
+        }),
+      }
       : null;
 
     return json({ slug: normalizedSlug, product: productData, specifications });
@@ -357,19 +357,19 @@ export default function Olympiad() {
           {/* Left Side: Contact Info */}
           <div className="flex items-center space-x-3 sm:space-x-5 text-lightgray text-base leading-[100%]">
             <a
-              href="tel:7718866966"
+              href="tel:+916291040600"
               className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
             >
               <Phone size={14} className="text-lightgray" />
-              <span className="text-base">7718866966</span>
+              <span className="text-base">+91 6291 040 600</span>
             </a>
 
             <a
-              href="mailto:global@bbvirtuals.com"
+              href="mailto:support@commercevirtuals.com"
               className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
             >
               <Mail size={14} className="text-lightgray" />
-              <span className="text-base">global@bbvirtuals.com</span>
+              <span className="text-base">support@commercevirtuals.com</span>
             </a>
           </div>
 
@@ -596,11 +596,10 @@ export default function Olympiad() {
 
         {/* mobile overlay button */}
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
-            isContentInView
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-0 pointer-events-none'
-          }`}
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${isContentInView
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+            }`}
         >
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">Free</p>
@@ -1180,9 +1179,8 @@ export default function Olympiad() {
 
                           {/* ANSWER */}
                           <div
-                            className={`grid transition-[grid-template-rows] duration-200 ${
-                              open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                            }`}
+                            className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                              }`}
                           >
                             <div className="overflow-hidden">
                               <p className="mt-2 text-sm sm:text-base leading-relaxed text-lightgray/50">
