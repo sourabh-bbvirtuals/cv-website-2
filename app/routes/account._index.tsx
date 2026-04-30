@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { useOutletContext } from '@remix-run/react';
+import { useEffect, useState } from 'react';
+import {
+  Form,
+  useActionData,
+  useNavigation,
+  useOutletContext,
+} from '@remix-run/react';
+import { json, type ActionFunctionArgs } from '@remix-run/node';
+import { updateCustomer } from '~/providers/account/account';
 
 interface UserProfileData {
   firstName: string;
@@ -21,6 +28,13 @@ interface OutletContextType {
   setUserData: React.Dispatch<React.SetStateAction<UserProfileData>>;
 }
 
+type AccountProfileActionData = {
+  success?: boolean;
+  formType?: 'profile' | 'preference';
+  profile?: Partial<UserProfileData>;
+  errors?: Record<string, string>;
+};
+
 const STORAGE_KEY = 'bb_user_profile';
 
 function persistProfile(data: UserProfileData) {
@@ -28,6 +42,124 @@ function persistProfile(data: UserProfileData) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {}
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const formType = formData.get('formType');
+  const errors: Record<string, string> = {};
+
+  if (formType === 'profile') {
+    const firstName = (formData.get('firstName') as string)?.trim() || '';
+    const lastName = (formData.get('lastName') as string)?.trim() || '';
+    const email = (formData.get('email') as string)?.trim() || '';
+    const dob = (formData.get('dob') as string) || '';
+    const gender = (formData.get('gender') as string) || '';
+    const phone = (formData.get('phone') as string)
+      .replace(/\D/g, '')
+      .slice(-10);
+
+    if (!firstName) errors.firstName = 'First name is required';
+    if (!phone) errors.phone = 'Phone number is required';
+    else if (phone.length !== 10)
+      errors.phone = 'Enter a valid 10-digit number';
+    if (!gender) errors.gender = 'Please select your gender';
+
+    if (Object.keys(errors).length > 0) {
+      return json({ formType: 'profile', errors }, { status: 400 });
+    }
+
+    try {
+      await updateCustomer(
+        {
+          firstName,
+          lastName,
+          phoneNumber: `+91${phone}`,
+          customFields: {
+            dateOfBirth: dob || null,
+            gender: gender || null,
+            contactEmail: email || null,
+          },
+        },
+        { request },
+      );
+    } catch (error) {
+      return json(
+        {
+          formType: 'profile',
+          errors: {
+            submit: 'Unable to save your profile. Please try again.',
+          },
+        },
+        { status: 500 },
+      );
+    }
+
+    return json({
+      success: true,
+      formType: 'profile',
+      profile: {
+        firstName,
+        lastName,
+        email,
+        phone: `+91 ${phone}`,
+        dob,
+        gender,
+      },
+    });
+  }
+
+  if (formType === 'preference') {
+    const board = (formData.get('board') as string) || '';
+    const classLevel = (formData.get('classLevel') as string) || '';
+
+    if (!board) errors.board = 'Please select your board';
+    if (!classLevel) errors.classLevel = 'Please select your class';
+
+    if (Object.keys(errors).length > 0) {
+      return json({ formType: 'preference', errors }, { status: 400 });
+    }
+
+    try {
+      await updateCustomer(
+        {
+          customFields: {
+            board: board || null,
+            studentClass: classLevel || null,
+          },
+        },
+        { request },
+      );
+    } catch (error) {
+      return json(
+        {
+          formType: 'preference',
+          errors: {
+            submit: 'Unable to save your preferences. Please try again.',
+          },
+        },
+        { status: 500 },
+      );
+    }
+
+    return json({
+      success: true,
+      formType: 'preference',
+      profile: {
+        board,
+        classLevel,
+      },
+    });
+  }
+
+  return json(
+    {
+      errors: {
+        submit: 'Unrecognized form submission.',
+      },
+    },
+    { status: 400 },
+  );
 }
 
 const EditIcon = () => (
@@ -52,41 +184,82 @@ export default function ProfileTab() {
   const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
   const [isEditingPreference, setIsEditingPreference] =
     useState<boolean>(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState('');
+  const actionData = useActionData<AccountProfileActionData>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+
+  useEffect(() => {
+    if (!actionData) return;
+
+    if (actionData.errors) {
+      setErrors(actionData.errors);
+      setSubmitError(actionData.errors.submit || '');
+      return;
+    }
+
+    if (actionData.success && actionData.profile) {
+      const updated = {
+        ...userData,
+        ...actionData.profile,
+      };
+      setUserData(updated);
+      persistProfile(updated);
+      setErrors({});
+      setSubmitError('');
+
+      if (actionData.formType === 'profile') {
+        setIsEditingProfile(false);
+      }
+      if (actionData.formType === 'preference') {
+        setIsEditingPreference(false);
+      }
+    }
+  }, [actionData, userData, setUserData]);
 
   const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const firstName = (formData.get('firstName') as string)?.trim() || '';
+    const phone = (formData.get('phone') as string)
+      .replace(/\D/g, '')
+      .slice(-10);
+    const newErrors: Record<string, string> = {};
 
-    const updated = {
-      ...userData,
-      firstName: formData.get('firstName') as string,
-      lastName: formData.get('lastName') as string,
-      email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
-      dob: formData.get('dob') as string,
-      gender: formData.get('gender') as string,
-      address: formData.get('address') as string,
-      state: formData.get('state') as string,
-      city: formData.get('city') as string,
-      pincode: formData.get('pincode') as string,
-    };
-    setUserData(updated);
-    persistProfile(updated);
-    setIsEditingProfile(false);
+    if (!firstName) newErrors.firstName = 'First name is required';
+    if (!phone) newErrors.phone = 'Phone number is required';
+    else if (phone.length !== 10)
+      newErrors.phone = 'Enter a valid 10-digit number';
+    if (!(formData.get('gender') as string))
+      newErrors.gender = 'Please select your gender';
+
+    if (Object.keys(newErrors).length > 0) {
+      e.preventDefault();
+      setErrors(newErrors);
+      setSubmitError('');
+    } else {
+      setErrors({});
+      setSubmitError('');
+    }
   };
 
   const handlePreferenceSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const board = (formData.get('board') as string) || '';
+    const classLevel = (formData.get('classLevel') as string) || '';
+    const newErrors: Record<string, string> = {};
 
-    const updated = {
-      ...userData,
-      board: formData.get('board') as string,
-      classLevel: formData.get('classLevel') as string,
-    };
-    setUserData(updated);
-    persistProfile(updated);
-    setIsEditingPreference(false);
+    if (!board) newErrors.board = 'Please select your board';
+    if (!classLevel) newErrors.classLevel = 'Please select your class';
+
+    if (Object.keys(newErrors).length > 0) {
+      e.preventDefault();
+      setErrors(newErrors);
+      setSubmitError('');
+    } else {
+      setErrors({});
+      setSubmitError('');
+    }
   };
 
   const displayValue = (val: string, fallback = '—') => val || fallback;
@@ -202,7 +375,12 @@ export default function ProfileTab() {
               )}
             </div>
           ) : (
-            <form className="space-y-6" onSubmit={handleProfileSubmit}>
+            <Form
+              method="post"
+              className="space-y-6"
+              onSubmit={handleProfileSubmit}
+            >
+              <input type="hidden" name="formType" value="profile" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 xl:gap-x-8 gap-y-4 xl:gap-y-9">
                 <div className="flex flex-col gap-2 xl:gap-3">
                   <label className="text-sm sm:text-base lg:text-lg xl:text-xl text-lightgray leading-[120%] font-medium opacity-50">
@@ -243,7 +421,7 @@ export default function ProfileTab() {
                     Phone Number
                   </label>
                   <input
-                    type="number"
+                    type="tel"
                     name="phone"
                     defaultValue={userData.phone}
                     required
@@ -324,9 +502,21 @@ export default function ProfileTab() {
               <div className="flex items-center gap-4 pt-2">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition"
+                  disabled={isSubmitting}
+                  className={`px-6 py-2.5 bg-blue-600 text-white rounded-full font-medium transition ${
+                    isSubmitting
+                      ? 'opacity-60 cursor-not-allowed'
+                      : 'hover:bg-blue-700'
+                  }`}
                 >
-                  Save Changes
+                  {isSubmitting ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      Saving...
+                    </span>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
                 <button
                   type="button"
@@ -336,7 +526,7 @@ export default function ProfileTab() {
                   Cancel
                 </button>
               </div>
-            </form>
+            </Form>
           )}
         </div>
       </div>
@@ -378,20 +568,32 @@ export default function ProfileTab() {
               </div>
             </div>
           ) : (
-            <form className="space-y-5" onSubmit={handlePreferenceSubmit}>
+            <Form
+              method="post"
+              className="space-y-5"
+              onSubmit={handlePreferenceSubmit}
+            >
+              <input type="hidden" name="formType" value="preference" />
               <div className="flex flex-col gap-2 xl:gap-3">
                 <label className="text-sm sm:text-base lg:text-lg xl:text-xl text-lightgray leading-[120%] font-medium opacity-50">
                   Board
                 </label>
                 <select
                   name="board"
-                  defaultValue={userData.board}
+                  defaultValue={userData.board || ''}
+                  required
                   className="px-4 xl:px-6 py-2 xl:py-3.5 rounded-full border border-[#0816271A] focus:outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white appearance-none"
                 >
+                  <option value="">Select board</option>
                   <option value="CBSE">CBSE</option>
                   <option value="MH">MH</option>
                   <option value="CUET">CUET</option>
                 </select>
+                {errors.board && (
+                  <span className="text-red-500 text-xs px-2">
+                    {errors.board}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-2 xl:gap-3">
                 <label className="text-sm sm:text-base lg:text-lg xl:text-xl text-lightgray leading-[120%] font-medium opacity-50">
@@ -399,19 +601,38 @@ export default function ProfileTab() {
                 </label>
                 <select
                   name="classLevel"
-                  defaultValue={userData.classLevel}
+                  defaultValue={userData.classLevel || ''}
+                  required
                   className="px-4 xl:px-6 py-2 xl:py-3.5 rounded-full border border-[#0816271A] focus:outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white appearance-none"
                 >
+                  <option value="">Select class</option>
                   <option value="11th">11th</option>
                   <option value="12th">12th</option>
                 </select>
+                {errors.classLevel && (
+                  <span className="text-red-500 text-xs px-2">
+                    {errors.classLevel}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-3 pt-2">
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 text-white text-sm rounded-full font-medium hover:bg-blue-700 transition"
+                  disabled={isSubmitting}
+                  className={`px-5 py-2 bg-blue-600 text-white text-sm rounded-full font-medium transition ${
+                    isSubmitting
+                      ? 'opacity-60 cursor-not-allowed'
+                      : 'hover:bg-blue-700'
+                  }`}
                 >
-                  Save Changes
+                  {isSubmitting ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      Saving...
+                    </span>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
                 <button
                   type="button"
@@ -421,7 +642,7 @@ export default function ProfileTab() {
                   Cancel
                 </button>
               </div>
-            </form>
+            </Form>
           )}
         </div>
       </div>

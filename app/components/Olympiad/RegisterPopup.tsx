@@ -673,7 +673,7 @@ export default function RegisterPopup({
           {/* right image */}
           <div className="hidden md:flex w-[380px] h-[520px] ml-auto shrink-0">
             <img
-              src="/assets/images/olympiad/RegistrationCompleted.png"
+              src="/assets/images/olympiad/RegistrationComplete.png"
               alt="Registration Success"
               className="w-full h-full object-cover"
             />

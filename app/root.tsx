@@ -21,7 +21,7 @@ import {
   redirect,
 } from '@remix-run/server-runtime';
 import { useEffect } from 'react';
-import { getActiveCustomer } from '~/providers/customer/customer';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { useActiveOrder } from '~/utils/use-active-order';
 import { useChangeLanguage } from 'remix-i18next/react';
 import { useTranslation } from 'react-i18next';
@@ -97,7 +97,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 };
 
 export type RootLoaderData = {
-  activeCustomer: Awaited<ReturnType<typeof getActiveCustomer>>;
+  activeCustomer: Awaited<ReturnType<typeof getActiveCustomerDetails>>;
   announcements: Awaited<ReturnType<typeof getTopAnnouncementsForLayout>>;
   locale: string;
   footerData: Awaited<ReturnType<typeof getFooterData>>;
@@ -126,7 +126,7 @@ export async function loader({ request, context }: DataFunctionArgs) {
     return redirect('/sign-up');
   }
 
-  const activeCustomer = await getActiveCustomer({ request });
+  const activeCustomer = await getActiveCustomerDetails({ request });
 
   const locale = await getI18NextServer().then((i18next) =>
     i18next.getLocale(request),
