@@ -36,6 +36,17 @@ export default function RegisterPopup({
       );
     }
   }, [skipOtp]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
   const [currentStep, setCurrentStep] = useState<'form' | 'otp' | 'completion'>(
     'form',
   );
@@ -651,8 +662,8 @@ export default function RegisterPopup({
                   Olympiad 2026.
                   <br />
                   <br />
-                  Download the BB Virtuals app to start preparing mock tests,
-                  past papers, and practice sets are waiting.
+                  Competition is exclusively available on mobile app, please
+                  download app to play.
                 </p>
               </div>
             )}

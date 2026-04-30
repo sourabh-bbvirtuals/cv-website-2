@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Form,
   useActionData,
@@ -187,11 +187,13 @@ export default function ProfileTab() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
   const actionData = useActionData<AccountProfileActionData>();
+  const actionDataRef = useRef<AccountProfileActionData | null>(null);
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
   useEffect(() => {
-    if (!actionData) return;
+    if (!actionData || actionData === actionDataRef.current) return;
+    actionDataRef.current = actionData;
 
     if (actionData.errors) {
       setErrors(actionData.errors);
@@ -200,12 +202,14 @@ export default function ProfileTab() {
     }
 
     if (actionData.success && actionData.profile) {
-      const updated = {
-        ...userData,
-        ...actionData.profile,
-      };
-      setUserData(updated);
-      persistProfile(updated);
+      setUserData((current) => {
+        const updated = {
+          ...current,
+          ...actionData.profile,
+        };
+        persistProfile(updated);
+        return updated;
+      });
       setErrors({});
       setSubmitError('');
 
@@ -216,7 +220,7 @@ export default function ProfileTab() {
         setIsEditingPreference(false);
       }
     }
-  }, [actionData, userData, setUserData]);
+  }, [actionData, setUserData]);
 
   const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const formData = new FormData(e.currentTarget);

@@ -26,27 +26,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const customer = await getActiveCustomerDetails({ request });
     const c = customer?.activeCustomer;
 
-    if (c) {
-      const hasFirstName = !!c.firstName;
-      const hasPhone = !!c.phoneNumber;
-      const gender = (c as any).customFields?.gender || '';
-      const board = (c as any).customFields?.board || '';
-      const studentClass = (c as any).customFields?.studentClass || '';
-
-      if (hasFirstName && hasPhone && gender && board && studentClass) {
-        return redirect('/account');
-      }
-
-      if (c.phoneNumber) {
-        phone = c.phoneNumber.replace(/^\+91/, '');
-      }
-      if (!phone && c.emailAddress?.endsWith('@bbvirtuals.tech')) {
-        phone = c.emailAddress
-          .replace('@bbvirtuals.tech', '')
-          .replace(/^\+?91/, '');
-      }
+    if (!c) {
+      return redirect('/sign-in');
     }
-  } catch {}
+
+    const hasFirstName = !!c.firstName;
+    const hasPhone = !!c.phoneNumber;
+    const gender = (c as any).customFields?.gender || '';
+    const board = (c as any).customFields?.board || '';
+    const studentClass = (c as any).customFields?.studentClass || '';
+
+    if (hasFirstName && hasPhone && gender && board && studentClass) {
+      return redirect('/account');
+    }
+
+    if (c.phoneNumber) {
+      phone = c.phoneNumber.replace(/^\+91/, '');
+    }
+    if (!phone && c.emailAddress?.endsWith('@bbvirtuals.tech')) {
+      phone = c.emailAddress
+        .replace('@bbvirtuals.tech', '')
+        .replace(/^\+?91/, '');
+    }
+  } catch {
+    return redirect('/sign-in');
+  }
   return json({ phone });
 }
 
