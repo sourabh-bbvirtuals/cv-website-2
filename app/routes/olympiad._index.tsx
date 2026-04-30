@@ -119,22 +119,22 @@ export async function loader({ request }: DataFunctionArgs) {
     // ─── Sanitize description ───────────────────────────────────────────────
     const safeDescription = product?.description
       ? sanitizeHtml(product.description, {
-        allowedTags: [
-          'p',
-          'br',
-          'b',
-          'strong',
-          'i',
-          'em',
-          'u',
-          'ul',
-          'ol',
-          'li',
-          'div',
-          'span',
-        ],
-        allowedAttributes: { '*': ['style'] },
-      })
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
       : '';
 
     const variants = product?.variantProperties ?? [];
@@ -208,61 +208,61 @@ export async function loader({ request }: DataFunctionArgs) {
     );
     const finalDescription = shortDescSpec?.text
       ? sanitizeHtml(shortDescSpec.text, {
-        allowedTags: [
-          'p',
-          'br',
-          'b',
-          'strong',
-          'i',
-          'em',
-          'u',
-          'ul',
-          'ol',
-          'li',
-          'div',
-          'span',
-        ],
-        allowedAttributes: { '*': ['style'] },
-      })
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
       : safeDescription;
 
     const productData = product
       ? {
-        id: product.id,
-        title: product.title,
-        description: finalDescription,
-        price: product.priceWithTax
-          ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
-          : '',
-        priceWithTax: product.priceWithTax,
-        featuredAsset: product.featuredAsset ?? null,
-        faculties,
-        facetValues: product.facetValues ?? [],
-        variantId: firstVariantId,
-        ...(hasOptions && {
-          optionGroups: optionGroups.map((og) => ({
-            id: og.id,
-            name: og.name,
-            code: og.code,
-            options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
-          })),
-          variants: variants.map((v) => ({
-            id: v.id,
-            name: v.name,
-            priceWithTax: v.priceWithTax,
-            currencyCode: v.currencyCode,
-            sku: v.sku,
-            stockLevel: v.stockLevel,
-            options: (v.options || []).map((o: any) => ({
-              id: o.id,
-              name: o.name,
-              group: o.group
-                ? { id: o.group.id, name: o.group.name }
-                : undefined,
+          id: product.id,
+          title: product.title,
+          description: finalDescription,
+          price: product.priceWithTax
+            ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
+            : '',
+          priceWithTax: product.priceWithTax,
+          featuredAsset: product.featuredAsset ?? null,
+          faculties,
+          facetValues: product.facetValues ?? [],
+          variantId: firstVariantId,
+          ...(hasOptions && {
+            optionGroups: optionGroups.map((og) => ({
+              id: og.id,
+              name: og.name,
+              code: og.code,
+              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
             })),
-          })),
-        }),
-      }
+            variants: variants.map((v) => ({
+              id: v.id,
+              name: v.name,
+              priceWithTax: v.priceWithTax,
+              currencyCode: v.currencyCode,
+              sku: v.sku,
+              stockLevel: v.stockLevel,
+              options: (v.options || []).map((o: any) => ({
+                id: o.id,
+                name: o.name,
+                group: o.group
+                  ? { id: o.group.id, name: o.group.name }
+                  : undefined,
+              })),
+            })),
+          }),
+        }
       : null;
 
     return json({ slug: slug, product: productData, specifications });
@@ -411,34 +411,51 @@ export default function Olympiad() {
       {/* Toast Notification */}
       {cartMessage && (
         <div
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-in fade-in duration-300 ${cartMessage.type === 'success'
-            ? 'bg-green-500 text-white'
-            : 'bg-red-500 text-white'
-            }`}
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-in fade-in duration-300 ${
+            cartMessage.type === 'success'
+              ? 'bg-green-500 text-white'
+              : 'bg-red-500 text-white'
+          }`}
         >
           {cartMessage.text}
         </div>
       )}
 
       {/* top bar */}
-      <header className={`md:flex hidden py-3`}>
+      <header className={`flex py-3 bg-[#003FBC]`}>
         <div className="flex justify-between items-center gap-2 w-full custom-container">
           {/* Left Side: Contact Info */}
-          <div className="flex items-center space-x-3 sm:space-x-5 text-lightgray text-base leading-[100%]">
+          <div className="flex items-center space-x-4 sm:space-x-6 text-lightgray text-base leading-[100%]">
             <a
               href="tel:+916291040600"
-              className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <Phone size={14} className="text-lightgray" />
-              <span className="text-base">+91 6291 040 600</span>
+              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                <img
+                  src="/assets/images/olympiad/call.png"
+                  alt="call"
+                  className="w-4 h-4 object-contain"
+                />
+              </div>
+              <span className="text-base text-white hidden sm:flex">
+                +91 6291 040 600
+              </span>
             </a>
 
             <a
               href="mailto:support@commercevirtuals.com"
-              className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <Mail size={14} className="text-lightgray" />
-              <span className="text-base">support@commercevirtuals.com</span>
+              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                <img
+                  src="/assets/images/olympiad/mail.png"
+                  alt="mail"
+                  className="w-4 h-4 object-contain"
+                />
+              </div>
+              <span className="text-base text-white hidden sm:flex">
+                support@commercevirtuals.com
+              </span>
             </a>
           </div>
 
@@ -463,34 +480,25 @@ export default function Olympiad() {
       </header>
 
       <div className="min-h-screen bg-[#EDF1FF] ">
-        {/* nav bar */}
-        <nav className="w-full py-5 relative z-20 hidden md:flex items-center justify-center">
-          {/* Logo */}
-          <div className="shrink-0">
-            <a href="/" className="flex items-center justify-center">
-              <img
-                className="w-30 md:w-37.5 xl:w-40.75"
-                src="/assets/logo.png"
-                alt="Logo"
-              />
-            </a>
-          </div>
-        </nav>
-
         {/* desktop hero */}
         <section className="hidden sm:flex relative w-full">
           <img
-            src="/assets/images/olympiad/bg2.png"
+            src="/assets/images/olympiad/bg.png"
             alt="Olympiad Banner"
             className="w-full h-auto object-cover"
           />
 
           {/* overlay content */}
-          <div className="absolute inset-0 flex flex-col justify-between items-center py-8">
+          <div className="absolute inset-0 flex flex-col justify-between items-center py-6">
             {/* top content */}
-            <div className="flex flex-col gap-9 justify-center items-center w-full lg:pt-24">
+            <div className="flex flex-col gap-3 md:gap-9 justify-center items-center w-full ">
               <div className="flex flex-col items-center justify-center gap-5">
-                <div className="flex flex-col items-center justify-center gap-4">
+                <img
+                  className=" w-[151px] md:w-[181px] h-[30px] md:h-[36px] "
+                  src="/assets/images/olympiad/commerce.png"
+                  alt="commerce"
+                />
+                <div className="flex flex-col items-center justify-center gap-4 pt-5 md:pt-11">
                   {/* pill note */}
                   <div className="inline-flex items-center gap-2 md:px-4 px-3 py-1 md:py-2  leading-[120%] rounded-full bg-white/25 text-xs md:text-base font-medium text-white/70 border border-white/5">
                     <span>All India</span>
@@ -533,19 +541,45 @@ export default function Olympiad() {
                     <span className="text-white/70">Loading details...</span>
                   )}
                 </div>
+                <p className="flex lg:hidden text-white text-base md:text-xl font-medium tracking-wide">
+                  Result will be announced on{' '}
+                  <span className="font-bold">6th May , 2026</span>
+                </p>
               </div>
               {/* button */}
               <button
                 onClick={() => setIsRegisterPopupOpen(true)}
-                className="flex text-base md:text-lg lg:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40"
+                className="hero-shine-btn flex text-base md:text-lg lg:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40 relative overflow-hidden"
               >
+                <style>{`
+                  .hero-shine-btn::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 50%;
+                    height: 100%;
+                    background: linear-gradient(
+                      100deg,
+                      rgba(255,255,255,0) 0%,
+                      rgba(255,255,255,0.8) 50%,
+                      rgba(255,255,255,0) 100%
+                    );
+                    transform: skewX(-20deg);
+                    animation: hero-btn-shine 3s ease-in-out infinite;
+                  }
+                  @keyframes hero-btn-shine {
+                    0% { left: -100%; }
+                    60%, 100% { left: 150%; }
+                  }
+                `}</style>
                 Register For Free <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* bottom content */}
-            <div className="flex justify-center w-full pt-4">
-              <div className="text-3xl lg:text-4xl font-bold leading-[120%] px-5 md:px-8 py-4 md:py-5 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_6px_0px_0px_rgba(163,114,0,1)]">
+            <div className="flex justify-center w-full pt-2 md:pt-4">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold leading-[120%] px-3 sm:px-5 md:px-8 py-1 sm:py-2 md:py-3 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_6px_0px_0px_rgba(163,114,0,1)]">
                 ₹3.2 Lakh Pool
               </div>
             </div>
@@ -553,34 +587,40 @@ export default function Olympiad() {
         </section>
 
         {/* mobile hero */}
-        <section className="sm:hidden flex relative w-full">
+        <section className="sm:hidden flex relative w-full h-[740px] min-[450px]:h-[620px] min-[550px]:h-[600px] overflow-hidden">
           <img
-            src="/assets/images/olympiad/mobile-bg2.png"
+            src="/assets/images/olympiad/mobile_bg.png"
             alt="Olympiad Banner"
-            className="w-full h-auto object-cover"
+            className="w-full h-full object-cover object-bottom"
           />
 
           {/* overlay content */}
           <div className="absolute inset-0 flex flex-col justify-between items-center py-5">
             {/* top content */}
-            <div className="flex flex-col gap-9 justify-center items-center w-full pt-10">
-              <div className="flex flex-col items-center justify-center gap-5 w-full">
-                <div className="flex flex-col items-center justify-center gap-4 relative w-full">
+            <div className="flex flex-col gap-3 md:gap-9 justify-center items-center w-full pt-10">
+              <div className="flex flex-col items-center justify-center gap-3 md:gap-5 w-full">
+                <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 relative w-full">
                   {/* left arrow */}
                   <div className="absolute left-4 top-0">
                     <Link to="/">
                       <ArrowLeft className="w-6 h-6 text-white/50" />
                     </Link>
                   </div>
-                  <div className="pt-10 flex flex-col items-center gap-4">
-                    <div className="inline-flex  items-center gap-2 px-3 py-1 leading-[120%] rounded-full bg-white/25 text-xs sm:text-base font-medium text-white/90 border border-white/5">
+                  <div className="pt-6 flex flex-col items-center gap-4">
+                    <img
+                      className="w-[151px] h-[30px] mb-2"
+                      src="/assets/images/olympiad/commerce.png"
+                      alt="commerce"
+                    />
+
+                    <div className="inline-flex items-center gap-2 px-3 py-1 leading-[120%] rounded-full bg-white/25 text-xs sm:text-base font-medium text-white/90 border border-white/5">
                       <span>All India</span>
                       <span className="w-1 h-1 rounded-full bg-white/90"></span>
                       <span>CUET</span>
                     </div>
 
                     <h1
-                      className="font-oswald text-[50px] leading-[120%] uppercase font-bold text-center text-white"
+                      className="font-oswald text-[44px] sm:text-[50px] leading-[120%] uppercase font-bold text-center text-white"
                       style={{
                         WebkitTextStroke: '1px #012372',
                         color: 'white',
@@ -597,10 +637,11 @@ export default function Olympiad() {
                       keyDetails.slice(0, 4).map((detail: any, idx: number) => (
                         <div
                           key={idx}
-                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/10 text-xs font-semibold relative ${idx % 2 === 0
-                            ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
-                            : ''
-                            }`}
+                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/10 text-xs font-semibold relative ${
+                            idx % 2 === 0
+                              ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
+                              : ''
+                          }`}
                         >
                           <span className="text-white/55 uppercase tracking-[1.4px]">
                             {detail.name}
@@ -619,20 +660,24 @@ export default function Olympiad() {
                       </span>
                     )}
                   </div>
+                  <p className="text-white text-sm sm:text-base font-medium tracking-wide mt-0 md:mt-6">
+                    Result will be announced on{' '}
+                    <span className="font-bold">6th May , 2026</span>
+                  </p>
                 </div>
               </div>
 
               {/* button */}
               <button
                 onClick={() => setIsRegisterPopupOpen(true)}
-                className="flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-3 md:py-4 rounded-full shadow-xl shadow-white/40"
+                className="hero-shine-btn flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40 relative overflow-hidden"
               >
-                Register For Freee <ArrowRight className="w-4 h-4" />
+                Register For Free <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* bottom content */}
-            <div className="flex justify-center w-full pt-2">
+            <div className="flex justify-center w-full mb-3 sm:pt-2">
               <div className="text-2xl md:text-4xl font-bold leading-[120%] px-3 md:px-8 py-2 md:py-5 bg-[#FFC600] rounded-full font-oswald tracking-[2%] uppercase text-[#3B310B] shadow-[0px_2.15px_0px_0px_rgba(163,114,0,1)]">
                 ₹3.2 Lakh Pool
               </div>
@@ -642,10 +687,11 @@ export default function Olympiad() {
 
         {/* mobile overlay button */}
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#EDF1FF] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${isContentInView
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none'
-            }`}
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#EDF1FF] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
+            isContentInView
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-0 pointer-events-none'
+          }`}
         >
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">Free</p>
@@ -664,13 +710,13 @@ export default function Olympiad() {
         {/* content */}
         <div
           ref={contentRef}
-          className="w-full max-w-350 mx-auto px-4 py-12 space-y-20 lg:space-y-32"
+          className="w-full max-w-350 mx-auto px-4 py-3 sm:py-12 space-y-20 lg:space-y-32"
         >
           <div className="flex flex-col lg:flex-row lg:items-start gap-20 ">
             {/* Main Content - Left Column */}
             <div className="min-w-0 flex-1 space-y-20 lg:max-w-none">
               {/* Prize Pool */}
-              <div className="flex flex-col gap-9">
+              <div className="flex flex-col gap-4 sm:gap-9">
                 {/* title */}
                 <h2 className="font-bold text-[#0A232F]/35 text-2xl md:text-[30px] uppercase leading-[150%] tracking-wide font-oswald text-center lg:text-left">
                   Prize Pool
@@ -682,7 +728,8 @@ export default function Olympiad() {
                   {/* header */}
                   <div className="py-[16px] px-[24px] border-b border-[#F5B100]/25 bg-[#F5B100]/16">
                     <h3 className="text-sm font-bold leading-[100%] uppercase text-[#A37200] text-center">
-                      Cash + BB Virtuals CA Foundation Course (worth ₹15,999)
+                      Cash + BB Virtuals CA Foundation Course{' '}
+                      <span className="font-bold ">(worth ₹15,999)</span>
                     </h3>
                   </div>
                   {/* Medal color mapping */}
@@ -707,8 +754,9 @@ export default function Olympiad() {
                           <div key={`desktop-${idx}`}>
                             {/* Desktop */}
                             <div
-                              className={`p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8 ${idx === 0 ? 'bg-[#F5B100]/6' : ''
-                                }`}
+                              className={`p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8 ${
+                                idx === 0 ? 'bg-[#F5B100]/6' : ''
+                              }`}
                             >
                               <div className="flex items-center justify-center gap-3">
                                 {isImage ? (
@@ -737,7 +785,20 @@ export default function Olympiad() {
                                       </span>
                                     )}
                                     {prize.extraFields?.cash_prize && <>+ </>}
-                                    {prize.extraFields?.course_scholarship}
+                                    {prize.extraFields?.course_scholarship
+                                      ?.split(/(\(worth.*?\))/g)
+                                      .map((part: string, i: number) =>
+                                        part.startsWith('(worth') ? (
+                                          <span
+                                            key={i}
+                                            className="font-bold text-[#0A232F]"
+                                          >
+                                            {part}
+                                          </span>
+                                        ) : (
+                                          part
+                                        ),
+                                      )}
                                   </p>
                                 </div>
                               </div>
@@ -748,8 +809,9 @@ export default function Olympiad() {
 
                             {/* Mobile */}
                             <div
-                              className={`px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8 ${idx === 0 ? 'bg-[#F5B100]/6' : ''
-                                }`}
+                              className={`px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8 ${
+                                idx === 0 ? 'bg-[#F5B100]/6' : ''
+                              }`}
                             >
                               {isImage ? (
                                 <img
@@ -777,7 +839,20 @@ export default function Olympiad() {
                                       </span>
                                     )}
                                     {prize.extraFields?.cash_prize && <>+ </>}
-                                    {prize.extraFields?.course_scholarship}
+                                    {prize.extraFields?.course_scholarship
+                                      ?.split(/(\(worth.*?\))/g)
+                                      .map((part: string, i: number) =>
+                                        part.startsWith('(worth') ? (
+                                          <span
+                                            key={i}
+                                            className="font-bold text-[#0A232F]"
+                                          >
+                                            {part}
+                                          </span>
+                                        ) : (
+                                          part
+                                        ),
+                                      )}
                                   </p>
                                 </div>
 
@@ -976,7 +1051,7 @@ export default function Olympiad() {
 
             {/* Sticky Sidebar - Right Column */}
             <aside className="shrink-0 lg:sticky lg:top-32 mt-20  w-[360px] hidden  lg:block ">
-              <div className="flex flex-col rounded-[24px] h-[553px] border border-[#3A6BFC]/50 shadow-[6px_6px_0px_0px_rgba(58,107,252,0.5)] bg-white p-5 gap-4">
+              <div className="flex flex-col rounded-[24px] h-[553px] border border-[#024DE199]/50 shadow-[6px_6px_0px_0px_rgba(58,107,252,0.5)] bg-white p-5 gap-4">
                 {' '}
                 <p className="font-bold text-xs uppercase tracking-[1.32px] text-[#9CA3AF]">
                   Exam dates
@@ -984,9 +1059,14 @@ export default function Olympiad() {
                 <p className="font-semibold text-3xl leading-[120%] uppercase font-oswald">
                   3–5 May 2026
                 </p>
-                <p className="font-medium text-[14px] text-[#0A232F]/80">
-                  1 mock test per subject
-                </p>
+                <div className="bg-[#F4F7FF] border border-[#E0E7FF] rounded-full px-4 py-2 flex items-center justify-center">
+                  <p className="text-[13px] text-[#3B82F6] font-medium leading-tight">
+                    Result will be announced on{' '}
+                    <span className="font-bold text-[#1D4ED8]">
+                      6th May , 2026
+                    </span>
+                  </p>
+                </div>
                 <div className="border-t mt-2 border-[#0A232F14]/50" />
                 {/* timer */}
                 <div className="flex items-center justify-center px-4 my-1">
@@ -1044,9 +1124,6 @@ export default function Olympiad() {
                   </p>
                   <p className="flex items-center gap-2">
                     <Check className="text-[#F5B100]" /> ₹3.2 Lakh prize pool
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Check className="text-[#10B981]" /> Results in 24 hours
                   </p>
                 </div>
                 {/* button */}

@@ -93,21 +93,121 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
-          {/* Olympiad  button */}
-          <Link to={'/olympiad'}>
-            <button
-              style={
-                {
-                  // WebkitTextStroke: '0.5px #012372',
-                  // color: 'white',
-                  // filter: 'drop-shadow(0px -12px 0px #012372)',
+          <Link
+            to="/olympiad"
+            style={{
+              position: 'relative',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none',
+              borderRadius: '999px',
+              fontFamily: "'Oswald', sans-serif",
+              fontWeight: 700,
+              letterSpacing: '1.5px',
+              color: 'white',
+              background:
+                'linear-gradient(180deg, #3B8BFF 0%, #0165FD 50%, #014BC4 100%)',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+              boxShadow:
+                '0 1px 0 rgba(255,255,255,0.45) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 6px 18px rgba(1,101,253,0.45)',
+              whiteSpace: 'nowrap',
+              textDecoration: 'none',
+              animation:
+                'btn-pulse 2s ease-in-out infinite, btn-breathe 2.4s ease-in-out infinite',
+            }}
+            className="olympiad-nav-btn"
+          >
+            <style>{`
+                @keyframes btn-pulse {
+                  0%, 100% { box-shadow: 0 1px 0 rgba(255,255,255,0.45) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 6px 18px rgba(1,101,253,0.45), 0 0 0 0 rgba(1,101,253,0.55); }
+                  50% { box-shadow: 0 1px 0 rgba(255,255,255,0.45) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 8px 24px rgba(1,101,253,0.6), 0 0 0 10px rgba(1,101,253,0); }
                 }
-              }
-              className=" py-2 px-2 md:py-2 md:px-3 text-xs md:text-base font-medium md:font-bold rounded-full border  text-white leading-[120%] font-oswald uppercase bg-[url('/assets/images/olympiad/button-bg.png')] bg-cover bg-center bg-no-repeat"
+                @keyframes btn-breathe {
+                  0%, 100% { transform: scale(1); }
+                  50% { transform: scale(1.04); }
+                }
+                @keyframes btn-shine {
+                  0% { left: -75%; }
+                  60%, 100% { left: 125%; }
+                }
+                @keyframes btn-twinkle {
+                  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+                  50% { opacity: 1; transform: scale(1.25); }
+                }
+                .olympiad-nav-btn::before {
+                  content: "";
+                  position: absolute;
+                  top: 0;
+                  left: -75%;
+                  width: 50%;
+                  height: 100%;
+                  background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
+                  transform: skewX(-20deg);
+                  animation: btn-shine 3s ease-in-out infinite;
+                  pointer-events: none;
+                }
+                .olympiad-nav-btn:hover { filter: brightness(1.08); }
+                .olympiad-nav-btn:active { filter: brightness(0.95); }
+                /* Responsive sizing: Hidden on mobile, shown after 425px */
+                .olympiad-nav-btn { display: none !important; }
+                @media (min-width: 426px) {
+                  .olympiad-nav-btn { height: 36px; padding: 0 14px; font-size: 12px; display: inline-flex !important; }
+                }
+                @media (min-width: 1024px) {
+                  .olympiad-nav-btn { height: 40px; padding: 0 20px; font-size: 14px; }
+                }
+              `}</style>
+            OLYMPIAD 2026
+            <span
+              style={{
+                position: 'absolute',
+                color: 'rgba(255,255,255,0.95)',
+                pointerEvents: 'none',
+                animation: 'btn-twinkle 2s ease-in-out infinite',
+                textShadow: '0 0 6px rgba(255,255,255,0.6)',
+                top: '5px',
+                right: '12px',
+                fontSize: '10px',
+                animationDelay: '0s',
+              }}
             >
-              Olympiad 2026
-            </button>
+              ✦
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                color: 'rgba(255,255,255,0.95)',
+                pointerEvents: 'none',
+                animation: 'btn-twinkle 2s ease-in-out infinite',
+                textShadow: '0 0 6px rgba(255,255,255,0.6)',
+                bottom: '6px',
+                left: '14px',
+                fontSize: '8px',
+                animationDelay: '0.7s',
+              }}
+            >
+              ✦
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                color: 'rgba(255,255,255,0.95)',
+                pointerEvents: 'none',
+                animation: 'btn-twinkle 2s ease-in-out infinite',
+                textShadow: '0 0 6px rgba(255,255,255,0.6)',
+                top: '8px',
+                left: '18%',
+                fontSize: '6px',
+                animationDelay: '1.3s',
+              }}
+            >
+              ✦
+            </span>
           </Link>
+
           {/* 1. Desktop Board Dropdown (Pill UI) */}
           {showBoardDropdown && (
             <div className="hidden lg:block">

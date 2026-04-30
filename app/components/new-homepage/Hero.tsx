@@ -225,7 +225,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
   return (
     <section className="bg-[url('/assets/images/homepage/hero-bg.png')] bg-no-repeat bg-cover bg-center relative">
       <div className="custom-container pb-10 lg:pb-12 4xl:pb-28! pt-28.5 md:pt-57.5 xl:pt-65.75 w-full">
-        <div className="flex flex-col lg:flex-row gap-8 sm:gap-4">
+        <div className="flex flex-col lg:flex-row gap-8 sm:gap-4 mt-7">
           {/* Left Column: Content & Stats */}
           <div
             className={`w-full sm:p-4 lg:py-9 lg:pr-12 rounded-3xl max-sm:bg-none! flex flex-col ${
