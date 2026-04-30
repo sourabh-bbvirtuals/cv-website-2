@@ -33,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const name = (formData.get('name') as string) || '';
   const email = (formData.get('email') as string) || '';
   const redirectTo = (formData.get('redirectTo') as string) || '/';
+  const embedRegistration = formData.get('embedRegistration') === 'true';
   const normalizedPhone = normalizePhone(phone);
   const rawPhone = getRawPhone(phone);
 
@@ -43,6 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
     name,
     email,
     redirectTo,
+    embedRegistration,
   });
 
   try {
@@ -93,6 +95,10 @@ export async function action({ request }: ActionFunctionArgs) {
           c?.id,
           c?.firstName,
           c?.lastName,
+          'email=',
+          c?.emailAddress,
+          'phone=',
+          c?.phoneNumber,
         );
 
         // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
@@ -129,25 +135,34 @@ export async function action({ request }: ActionFunctionArgs) {
                 '[login] Updated customer profile with registration data:',
                 updatePayload,
               );
+            } else {
+              console.log(
+                '[login] No customer profile update required after auth',
+              );
             }
           } catch (e) {
             console.error('[login] failed to update customer profile:', e);
           }
         }
 
-        // Update phone number if not already set
-        if (c && !c.phoneNumber && phone) {
+        // Correct malformed or prefixed phone numbers stored in customer profile
+        if (c && phone && c.phoneNumber !== rawPhone) {
           try {
             const { updateCustomer } = await import(
               '~/providers/account/account'
             );
-            console.log('[login] setting phoneNumber on customer:', rawPhone);
+            console.log(
+              '[login] correcting customer phone from',
+              c.phoneNumber,
+              'to',
+              rawPhone,
+            );
             await updateCustomer(
               { phoneNumber: rawPhone },
               { request: authedRequest },
             );
           } catch (e) {
-            console.error('[login] failed to set phoneNumber:', e);
+            console.error('[login] failed to normalize customer phone:', e);
           }
         }
 
