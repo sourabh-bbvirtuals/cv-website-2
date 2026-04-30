@@ -493,11 +493,13 @@ export default function Olympiad() {
             {/* top content */}
             <div className="flex flex-col gap-3 md:gap-9 justify-center items-center w-full ">
               <div className="flex flex-col items-center justify-center gap-5">
-                <img
-                  className=" w-[151px] md:w-[181px] h-[30px] md:h-[36px] "
-                  src="/assets/images/olympiad/commerce.png"
-                  alt="commerce"
-                />
+                <Link to={'/'}>
+                  <img
+                    className=" w-[151px] md:w-[181px] h-[30px] md:h-[36px] "
+                    src="/assets/images/olympiad/commerce.png"
+                    alt="commerce"
+                  />
+                </Link>
                 <div className="flex flex-col items-center justify-center gap-4 pt-5 md:pt-11">
                   {/* pill note */}
                   <div className="inline-flex items-center gap-2 md:px-4 px-3 py-1 md:py-2  leading-[120%] rounded-full bg-white/25 text-xs md:text-base font-medium text-white/70 border border-white/5">

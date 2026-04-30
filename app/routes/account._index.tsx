@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Form,
   useActionData,
   useNavigation,
   useOutletContext,
@@ -375,7 +376,7 @@ export default function ProfileTab() {
               )}
             </div>
           ) : (
-            <form
+            <Form
               method="post"
               className="space-y-6"
               onSubmit={handleProfileSubmit}
@@ -526,7 +527,7 @@ export default function ProfileTab() {
                   Cancel
                 </button>
               </div>
-            </form>
+            </Form>
           )}
         </div>
       </div>
@@ -568,7 +569,7 @@ export default function ProfileTab() {
               </div>
             </div>
           ) : (
-            <form
+            <Form
               method="post"
               className="space-y-5"
               onSubmit={handlePreferenceSubmit}
@@ -580,13 +581,20 @@ export default function ProfileTab() {
                 </label>
                 <select
                   name="board"
-                  defaultValue={userData.board}
+                  defaultValue={userData.board || ''}
+                  required
                   className="px-4 xl:px-6 py-2 xl:py-3.5 rounded-full border border-[#0816271A] focus:outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white appearance-none"
                 >
+                  <option value="">Select board</option>
                   <option value="CBSE">CBSE</option>
                   <option value="MH">MH</option>
                   <option value="CUET">CUET</option>
                 </select>
+                {errors.board && (
+                  <span className="text-red-500 text-xs px-2">
+                    {errors.board}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-2 xl:gap-3">
                 <label className="text-sm sm:text-base lg:text-lg xl:text-xl text-lightgray leading-[120%] font-medium opacity-50">
@@ -594,12 +602,19 @@ export default function ProfileTab() {
                 </label>
                 <select
                   name="classLevel"
-                  defaultValue={userData.classLevel}
+                  defaultValue={userData.classLevel || ''}
+                  required
                   className="px-4 xl:px-6 py-2 xl:py-3.5 rounded-full border border-[#0816271A] focus:outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white appearance-none"
                 >
+                  <option value="">Select class</option>
                   <option value="11th">11th</option>
                   <option value="12th">12th</option>
                 </select>
+                {errors.classLevel && (
+                  <span className="text-red-500 text-xs px-2">
+                    {errors.classLevel}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-3 pt-2">
                 <button
@@ -628,7 +643,7 @@ export default function ProfileTab() {
                   Cancel
                 </button>
               </div>
-            </form>
+            </Form>
           )}
         </div>
       </div>
