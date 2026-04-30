@@ -169,10 +169,12 @@ export async function action({ request }: ActionFunctionArgs) {
         const isIncomplete = !c || !c.firstName || c.firstName === 'BB Virtual';
 
         if (isIncomplete) {
-          headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
           if (embedRegistration) {
+            // Embedded registration flow should not force a redirect to /sign-up.
+            // The popup handles onboarding, so we return success without setting the cookie.
             return json({ ok: true as const }, { headers });
           }
+          headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
           return redirect('/sign-up', { headers });
         }
 
@@ -196,10 +198,11 @@ export async function action({ request }: ActionFunctionArgs) {
         }
       } catch (e) {
         console.error('[login] getActiveCustomerDetails failed:', e);
-        headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
         if (embedRegistration) {
+          // Embedded registration should not fall back to the global profile interruption path.
           return json({ ok: true as const }, { headers });
         }
+        headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
         return redirect('/sign-up', { headers });
       }
 
