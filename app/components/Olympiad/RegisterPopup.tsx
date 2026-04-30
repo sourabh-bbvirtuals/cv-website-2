@@ -96,11 +96,11 @@ export default function RegisterPopup({
   // Pre-fill form if customer exists
   useEffect(() => {
     if (isOpen && customer?.activeCustomer) {
-      const { firstName, lastName, emailAddress, phoneNumber } =
+      const { firstName, lastName, customFields, phoneNumber } =
         customer.activeCustomer;
       setFormData({
         name: `${firstName} ${lastName}`.trim(),
-        email: emailAddress || '',
+        email: customFields?.contactEmail || '',
         phone: phoneNumber?.replace(/\D/g, '').slice(-10) || '',
       });
     }

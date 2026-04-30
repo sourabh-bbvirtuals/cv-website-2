@@ -34,6 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = (formData.get('email') as string) || '';
   const redirectTo = (formData.get('redirectTo') as string) || '/';
   const embedRegistration = formData.get('embedRegistration') === 'true';
+  const fetcherSubmit = formData.get('fetcher') === 'true';
   const normalizedPhone = normalizePhone(phone);
   const rawPhone = getRawPhone(phone);
 
@@ -102,30 +103,53 @@ export async function action({ request }: ActionFunctionArgs) {
         );
 
         // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
-        // If name or email provided during OTP verification (from RegisterPopup)
-        // and customer profile is incomplete, update it
-        if ((name || email) && c) {
+        // If this is embedded registration, always update the customer when
+        // name/email/phone are supplied from the popup.
+        if (embedRegistration && c && (name || email || phone)) {
           try {
             const { updateCustomer } = await import(
               '~/providers/account/account'
             );
             const updatePayload: any = {};
 
-            // Split name into first and last name
-            if (name && (!c.firstName || c.firstName === 'BB Virtual')) {
+            if (name) {
               const nameParts = name.trim().split(/\s+/);
-              updatePayload.firstName = nameParts[0];
-              updatePayload.lastName = nameParts.slice(1).join(' ') || '';
+              const firstName = nameParts[0] || '';
+              const lastName = nameParts.slice(1).join(' ') || '';
+              if (
+                !c.firstName ||
+                c.firstName === 'BB Virtual' ||
+                c.firstName !== firstName
+              ) {
+                updatePayload.firstName = firstName;
+              }
+              if (!c.lastName || c.lastName !== lastName) {
+                updatePayload.lastName = lastName;
+              }
             }
 
-            // Update email if not set
-            if (email && !c.emailAddress) {
-              updatePayload.emailAddress = email;
+            if (email) {
+              const isPlaceholderEmail =
+                c.emailAddress?.endsWith('@bbvirtuals.tech');
+              const currentContactEmail = c.customFields?.contactEmail;
+              if (
+                !c.emailAddress ||
+                isPlaceholderEmail ||
+                c.emailAddress !== email ||
+                !currentContactEmail ||
+                currentContactEmail !== email
+              ) {
+                updatePayload.customFields = {
+                  ...(updatePayload.customFields || {}),
+                  contactEmail: email,
+                };
+              }
             }
 
-            // Update phone if not set
-            if (phone && !c.phoneNumber) {
-              updatePayload.phoneNumber = rawPhone;
+            if (phone) {
+              if (c.phoneNumber !== rawPhone) {
+                updatePayload.phoneNumber = rawPhone;
+              }
             }
 
             if (Object.keys(updatePayload).length > 0) {
@@ -146,7 +170,8 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         // Correct malformed or prefixed phone numbers stored in customer profile
-        if (c && phone && c.phoneNumber !== rawPhone) {
+        // Only run this when embedRegistration did not already normalize the phone.
+        if (!embedRegistration && c && phone && c.phoneNumber !== rawPhone) {
           try {
             const { updateCustomer } = await import(
               '~/providers/account/account'
@@ -206,8 +231,8 @@ export async function action({ request }: ActionFunctionArgs) {
         return redirect('/sign-up', { headers });
       }
 
-      if (embedRegistration) {
-        return json({ ok: true as const }, { headers });
+      if (embedRegistration || fetcherSubmit) {
+        return json({ ok: true as const, redirectTo }, { headers });
       }
       return redirect(redirectTo, { headers });
     }
