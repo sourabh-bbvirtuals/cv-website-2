@@ -18,7 +18,7 @@ export const meta: MetaFunction = () => [
   },
 ];
 
-const PLATFORMS = [
+export const PLATFORMS = [
   {
     name: 'Android',
     subtitle: 'Google Play',

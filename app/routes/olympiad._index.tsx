@@ -502,7 +502,7 @@ export default function Olympiad() {
                   </div>
 
                   <h1
-                    className="font-oswald text-5xl md:text-7xl xl:text-[115px] leading-[120%] tracking-[0%] uppercase font-bold text-center text-white"
+                    className="font-oswald text-5xl md:text-7xl xl:text-[110px] leading-[120%] tracking-[0%] uppercase font-bold text-center text-white"
                     style={{
                       WebkitTextStroke: '2px #012372',
                       color: 'white',
@@ -517,7 +517,7 @@ export default function Olympiad() {
                     keyDetails.slice(0, 4).map((detail: any, idx: number) => (
                       <div
                         key={idx}
-                        className="inline-flex items-center gap-2 px-4 md:px-5 py-3  leading-[120%] rounded-full bg-white/10 backdrop-blur-2xl text-xs md:text-base lg:text-lg font-semibold"
+                        className="inline-flex items-center gap-2 px-4 md:px-5 py-3  leading-[120%] rounded-full bg-white/10 backdrop-blur-2xl text-xs md:text-base font-semibold"
                       >
                         <span className="text-white/55 uppercase tracking-[1.4px]">
                           {detail.name}
@@ -525,7 +525,7 @@ export default function Olympiad() {
 
                         <span className="w-[1px] h-[16px] font-bold bg-white/25"></span>
 
-                        <span className="text-white">
+                        <span className="text-white md:text-lg">
                           {detail.extraFields?.value}
                         </span>
                       </div>
