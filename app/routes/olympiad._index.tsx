@@ -119,22 +119,22 @@ export async function loader({ request }: DataFunctionArgs) {
     // ─── Sanitize description ───────────────────────────────────────────────
     const safeDescription = product?.description
       ? sanitizeHtml(product.description, {
-          allowedTags: [
-            'p',
-            'br',
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ul',
-            'ol',
-            'li',
-            'div',
-            'span',
-          ],
-          allowedAttributes: { '*': ['style'] },
-        })
+        allowedTags: [
+          'p',
+          'br',
+          'b',
+          'strong',
+          'i',
+          'em',
+          'u',
+          'ul',
+          'ol',
+          'li',
+          'div',
+          'span',
+        ],
+        allowedAttributes: { '*': ['style'] },
+      })
       : '';
 
     const variants = product?.variantProperties ?? [];
@@ -208,61 +208,61 @@ export async function loader({ request }: DataFunctionArgs) {
     );
     const finalDescription = shortDescSpec?.text
       ? sanitizeHtml(shortDescSpec.text, {
-          allowedTags: [
-            'p',
-            'br',
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ul',
-            'ol',
-            'li',
-            'div',
-            'span',
-          ],
-          allowedAttributes: { '*': ['style'] },
-        })
+        allowedTags: [
+          'p',
+          'br',
+          'b',
+          'strong',
+          'i',
+          'em',
+          'u',
+          'ul',
+          'ol',
+          'li',
+          'div',
+          'span',
+        ],
+        allowedAttributes: { '*': ['style'] },
+      })
       : safeDescription;
 
     const productData = product
       ? {
-          id: product.id,
-          title: product.title,
-          description: finalDescription,
-          price: product.priceWithTax
-            ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
-            : '',
-          priceWithTax: product.priceWithTax,
-          featuredAsset: product.featuredAsset ?? null,
-          faculties,
-          facetValues: product.facetValues ?? [],
-          variantId: firstVariantId,
-          ...(hasOptions && {
-            optionGroups: optionGroups.map((og) => ({
-              id: og.id,
-              name: og.name,
-              code: og.code,
-              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+        id: product.id,
+        title: product.title,
+        description: finalDescription,
+        price: product.priceWithTax
+          ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
+          : '',
+        priceWithTax: product.priceWithTax,
+        featuredAsset: product.featuredAsset ?? null,
+        faculties,
+        facetValues: product.facetValues ?? [],
+        variantId: firstVariantId,
+        ...(hasOptions && {
+          optionGroups: optionGroups.map((og) => ({
+            id: og.id,
+            name: og.name,
+            code: og.code,
+            options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+          })),
+          variants: variants.map((v) => ({
+            id: v.id,
+            name: v.name,
+            priceWithTax: v.priceWithTax,
+            currencyCode: v.currencyCode,
+            sku: v.sku,
+            stockLevel: v.stockLevel,
+            options: (v.options || []).map((o: any) => ({
+              id: o.id,
+              name: o.name,
+              group: o.group
+                ? { id: o.group.id, name: o.group.name }
+                : undefined,
             })),
-            variants: variants.map((v) => ({
-              id: v.id,
-              name: v.name,
-              priceWithTax: v.priceWithTax,
-              currencyCode: v.currencyCode,
-              sku: v.sku,
-              stockLevel: v.stockLevel,
-              options: (v.options || []).map((o: any) => ({
-                id: o.id,
-                name: o.name,
-                group: o.group
-                  ? { id: o.group.id, name: o.group.name }
-                  : undefined,
-              })),
-            })),
-          }),
-        }
+          })),
+        }),
+      }
       : null;
 
     return json({ slug: slug, product: productData, specifications });
@@ -411,11 +411,10 @@ export default function Olympiad() {
       {/* Toast Notification */}
       {cartMessage && (
         <div
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-in fade-in duration-300 ${
-            cartMessage.type === 'success'
-              ? 'bg-green-500 text-white'
-              : 'bg-red-500 text-white'
-          }`}
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-in fade-in duration-300 ${cartMessage.type === 'success'
+            ? 'bg-green-500 text-white'
+            : 'bg-red-500 text-white'
+            }`}
         >
           {cartMessage.text}
         </div>
@@ -427,19 +426,19 @@ export default function Olympiad() {
           {/* Left Side: Contact Info */}
           <div className="flex items-center space-x-3 sm:space-x-5 text-lightgray text-base leading-[100%]">
             <a
-              href="tel:7718866966"
+              href="tel:+916291040600"
               className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
             >
               <Phone size={14} className="text-lightgray" />
-              <span className="text-base">7718866966</span>
+              <span className="text-base">+91 6291 040 600</span>
             </a>
 
             <a
-              href="mailto:global@bbvirtuals.com"
+              href="mailto:support@commercevirtuals.com"
               className="flex items-center gap-1 sm:gap-2 hover:text-blue-600 transition-colors text-xs sm:text-base"
             >
               <Mail size={14} className="text-lightgray" />
-              <span className="text-base">global@bbvirtuals.com</span>
+              <span className="text-base">support@commercevirtuals.com</span>
             </a>
           </div>
 
@@ -598,11 +597,10 @@ export default function Olympiad() {
                       keyDetails.slice(0, 4).map((detail: any, idx: number) => (
                         <div
                           key={idx}
-                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/10 text-xs font-semibold relative ${
-                            idx % 2 === 0
-                              ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
-                              : ''
-                          }`}
+                          className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/10 text-xs font-semibold relative ${idx % 2 === 0
+                            ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
+                            : ''
+                            }`}
                         >
                           <span className="text-white/55 uppercase tracking-[1.4px]">
                             {detail.name}
@@ -644,11 +642,10 @@ export default function Olympiad() {
 
         {/* mobile overlay button */}
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#EDF1FF] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
-            isContentInView
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-0 pointer-events-none'
-          }`}
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#EDF1FF] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${isContentInView
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+            }`}
         >
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">Free</p>
@@ -710,9 +707,8 @@ export default function Olympiad() {
                           <div key={`desktop-${idx}`}>
                             {/* Desktop */}
                             <div
-                              className={`p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8 ${
-                                idx === 0 ? 'bg-[#F5B100]/6' : ''
-                              }`}
+                              className={`p-5 hidden md:flex items-center justify-between border-b border-[#0A232F]/8 ${idx === 0 ? 'bg-[#F5B100]/6' : ''
+                                }`}
                             >
                               <div className="flex items-center justify-center gap-3">
                                 {isImage ? (
@@ -752,9 +748,8 @@ export default function Olympiad() {
 
                             {/* Mobile */}
                             <div
-                              className={`px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8 ${
-                                idx === 0 ? 'bg-[#F5B100]/6' : ''
-                              }`}
+                              className={`px-3 py-4 md:hidden flex flex-row gap-3 border-b border-[#0A232F]/8 ${idx === 0 ? 'bg-[#F5B100]/6' : ''
+                                }`}
                             >
                               {isImage ? (
                                 <img
