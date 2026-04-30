@@ -9,6 +9,7 @@ import {
 } from '@remix-run/react';
 import {
   json,
+  redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from '@remix-run/node';
@@ -59,7 +60,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       });
     }
   } catch {}
-  return json({ customer: null });
+  return redirect('/sign-in');
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -134,24 +135,6 @@ export async function action({ request }: ActionFunctionArgs) {
       board,
     },
   });
-}
-
-const STORAGE_KEY = 'bb_user_profile';
-
-function getStoredProfile(): UserProfileData | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return null;
-}
-
-function storeProfile(data: UserProfileData) {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
 }
 
 const emptyProfile: UserProfileData = {
@@ -531,35 +514,8 @@ export default function AccountLayout() {
   const [userData, setUserData] = useState<UserProfileData>(emptyProfile);
   const [profileLoaded, setProfileLoaded] = useState(false);
   console.log('AccountLayout render with activeCustomer:', activeCustomer);
+  console.log('Initial userData:', userData);
   useEffect(() => {
-    const stored = getStoredProfile();
-    const currentEmail =
-      activeCustomer?.customFields?.contactEmail ||
-      (activeCustomer?.emailAddress?.endsWith('@bbvirtuals.tech')
-        ? ''
-        : activeCustomer?.emailAddress || '');
-    const currentPhone = activeCustomer?.phoneNumber || '';
-    const storedMatchesCurrentCustomer = stored
-      ? (!currentEmail || stored.email === currentEmail) &&
-        (!currentPhone || stored.phone === currentPhone)
-      : false;
-
-    if (stored && storedMatchesCurrentCustomer) {
-      if (stored.email?.endsWith('@bbvirtuals.tech')) {
-        stored.email = currentEmail || stored.email;
-      }
-      if (!stored.phone && currentPhone) {
-        stored.phone = currentPhone;
-      }
-      setUserData(stored);
-      setProfileLoaded(true);
-      return;
-    }
-
-    if (stored && !storedMatchesCurrentCustomer) {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-
     if (
       activeCustomer &&
       activeCustomer.firstName &&
@@ -586,27 +542,13 @@ export default function AccountLayout() {
         board: cf?.board || '',
       };
       if (isProfileComplete(vendureProfile)) {
-        storeProfile(vendureProfile);
         setUserData(vendureProfile);
-        setProfileLoaded(true);
-        return;
       }
     }
-
-    if (stored && storedMatchesCurrentCustomer) {
-      setUserData(stored);
-    }
     setProfileLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (profileLoaded && isProfileComplete(userData)) {
-      storeProfile(userData);
-    }
-  }, [userData, profileLoaded]);
+  }, [activeCustomer]);
 
   const handleOnboardingComplete = (data: UserProfileData) => {
-    storeProfile(data);
     setUserData(data);
   };
 

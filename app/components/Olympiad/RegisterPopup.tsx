@@ -651,8 +651,8 @@ export default function RegisterPopup({
                   Olympiad 2026.
                   <br />
                   <br />
-                  Download the BB Virtuals app to start preparing mock tests,
-                  past papers, and practice sets are waiting.
+                  Competition is exclusively available on mobile app, please
+                  download app to play.
                 </p>
               </div>
             )}

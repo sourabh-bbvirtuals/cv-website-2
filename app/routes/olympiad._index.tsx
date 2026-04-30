@@ -275,11 +275,7 @@ export async function loader({ request }: DataFunctionArgs) {
 export default function Olympiad() {
   const { activeCustomer: customerData } = useRootLoader();
   const { slug, product, specifications } = useLoaderData<typeof loader>();
-  console.log('Loader data:', { slug, product, specifications });
-  // Log loader data once on mount to avoid infinite console logs
-  useEffect(() => {
-    console.log('🚀 Loader data:', { slug, product, specifications });
-  }, []);
+  // console.log('Loader data:', { slug, product, specifications });
 
   // Extract specifications data
   const extractSpecData = (identifier: string) => {
