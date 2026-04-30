@@ -109,22 +109,22 @@ export async function loader({ request }: DataFunctionArgs) {
     // ─── Sanitize description ───────────────────────────────────────────────
     const safeDescription = product?.description
       ? sanitizeHtml(product.description, {
-        allowedTags: [
-          'p',
-          'br',
-          'b',
-          'strong',
-          'i',
-          'em',
-          'u',
-          'ul',
-          'ol',
-          'li',
-          'div',
-          'span',
-        ],
-        allowedAttributes: { '*': ['style'] },
-      })
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
       : '';
 
     const variants = product?.variantProperties ?? [];
@@ -198,61 +198,61 @@ export async function loader({ request }: DataFunctionArgs) {
     );
     const finalDescription = shortDescSpec?.text
       ? sanitizeHtml(shortDescSpec.text, {
-        allowedTags: [
-          'p',
-          'br',
-          'b',
-          'strong',
-          'i',
-          'em',
-          'u',
-          'ul',
-          'ol',
-          'li',
-          'div',
-          'span',
-        ],
-        allowedAttributes: { '*': ['style'] },
-      })
+          allowedTags: [
+            'p',
+            'br',
+            'b',
+            'strong',
+            'i',
+            'em',
+            'u',
+            'ul',
+            'ol',
+            'li',
+            'div',
+            'span',
+          ],
+          allowedAttributes: { '*': ['style'] },
+        })
       : safeDescription;
 
     const productData = product
       ? {
-        id: product.id,
-        title: product.title,
-        description: finalDescription,
-        price: product.priceWithTax
-          ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
-          : '',
-        priceWithTax: product.priceWithTax,
-        featuredAsset: product.featuredAsset ?? null,
-        faculties,
-        facetValues: product.facetValues ?? [],
-        variantId: firstVariantId,
-        ...(hasOptions && {
-          optionGroups: optionGroups.map((og) => ({
-            id: og.id,
-            name: og.name,
-            code: og.code,
-            options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
-          })),
-          variants: variants.map((v) => ({
-            id: v.id,
-            name: v.name,
-            priceWithTax: v.priceWithTax,
-            currencyCode: v.currencyCode,
-            sku: v.sku,
-            stockLevel: v.stockLevel,
-            options: (v.options || []).map((o: any) => ({
-              id: o.id,
-              name: o.name,
-              group: o.group
-                ? { id: o.group.id, name: o.group.name }
-                : undefined,
+          id: product.id,
+          title: product.title,
+          description: finalDescription,
+          price: product.priceWithTax
+            ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
+            : '',
+          priceWithTax: product.priceWithTax,
+          featuredAsset: product.featuredAsset ?? null,
+          faculties,
+          facetValues: product.facetValues ?? [],
+          variantId: firstVariantId,
+          ...(hasOptions && {
+            optionGroups: optionGroups.map((og) => ({
+              id: og.id,
+              name: og.name,
+              code: og.code,
+              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
             })),
-          })),
-        }),
-      }
+            variants: variants.map((v) => ({
+              id: v.id,
+              name: v.name,
+              priceWithTax: v.priceWithTax,
+              currencyCode: v.currencyCode,
+              sku: v.sku,
+              stockLevel: v.stockLevel,
+              options: (v.options || []).map((o: any) => ({
+                id: o.id,
+                name: o.name,
+                group: o.group
+                  ? { id: o.group.id, name: o.group.name }
+                  : undefined,
+              })),
+            })),
+          }),
+        }
       : null;
 
     return json({ slug: normalizedSlug, product: productData, specifications });
@@ -395,7 +395,7 @@ export default function Olympiad() {
 
       <div className="min-h-screen bg-[#E5F6FE] ">
         {/* nav bar */}
-        <nav className="w-full py-5 relative z-20 hidden md:flex items-center justify-center">
+        <nav className="w-full py-5 relative z-20 hidden md:flex items-center justify-center bg-[#003FBC]">
           {/* Logo */}
           <div className="shrink-0">
             <a href="/" className="flex items-center justify-center">
@@ -596,10 +596,11 @@ export default function Olympiad() {
 
         {/* mobile overlay button */}
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${isContentInView
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none'
-            }`}
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
+            isContentInView
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-0 pointer-events-none'
+          }`}
         >
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">Free</p>
@@ -704,7 +705,10 @@ export default function Olympiad() {
                           <span className="text-[#0A232F] font-bold">
                             ₹14,000 cash{' '}
                           </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
+                          + BB Virtuals CA Foundation Course{' '}
+                          <span className="font-bold text-black">
+                            (worth ₹15,999)
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -911,7 +915,8 @@ export default function Olympiad() {
                           <span className="text-[#0A232F] font-bold">
                             ₹14,000 cash{' '}
                           </span>
-                          + BB Virtuals CA Foundation Course (worth ₹15,999)
+                          + BB Virtuals CA Foundation Course{' '}
+                          <span className="font-bold">(worth ₹15,999)</span>
                         </p>
                       </div>
 
@@ -1179,8 +1184,9 @@ export default function Olympiad() {
 
                           {/* ANSWER */}
                           <div
-                            className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                              }`}
+                            className={`grid transition-[grid-template-rows] duration-200 ${
+                              open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                            }`}
                           >
                             <div className="overflow-hidden">
                               <p className="mt-2 text-sm sm:text-base leading-relaxed text-lightgray/50">
