@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import {
@@ -9,9 +9,6 @@ import {
 } from '@remix-run/react';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { updateCustomer } from '~/providers/account/account';
-
-const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
-const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
 
 const CLEAR_PROFILE_COOKIE =
   'bb-profile-incomplete=; Path=/; Max-Age=0; SameSite=Lax';
@@ -28,13 +25,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const customer = await getActiveCustomerDetails({ request });
     const c = customer?.activeCustomer;
-    if (c?.phoneNumber) {
-      phone = c.phoneNumber.replace(/^\+91/, '');
-    }
-    if (!phone && c?.emailAddress?.endsWith('@bbvirtuals.tech')) {
-      phone = c.emailAddress
-        .replace('@bbvirtuals.tech', '')
-        .replace(/^\+?91/, '');
+
+    if (c) {
+      const hasFirstName = !!c.firstName;
+      const hasPhone = !!c.phoneNumber;
+      const gender = (c as any).customFields?.gender || '';
+      const board = (c as any).customFields?.board || '';
+      const studentClass = (c as any).customFields?.studentClass || '';
+
+      if (hasFirstName && hasPhone && gender && board && studentClass) {
+        return redirect('/account');
+      }
+
+      if (c.phoneNumber) {
+        phone = c.phoneNumber.replace(/^\+91/, '');
+      }
+      if (!phone && c.emailAddress?.endsWith('@bbvirtuals.tech')) {
+        phone = c.emailAddress
+          .replace('@bbvirtuals.tech', '')
+          .replace(/^\+?91/, '');
+      }
     }
   } catch {}
   return json({ phone });
@@ -44,6 +54,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const fullName = (formData.get('fullName') as string)?.trim();
   const email = (formData.get('email') as string)?.trim();
+  const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
+  const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
 
   if (!fullName) {
     return json({ error: 'Full Name is required' }, { status: 400 });
@@ -199,6 +211,9 @@ const SignUp: React.FC = () => {
   const isSubmitting = navigation.state !== 'idle';
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(
+      `handleInputChange called for field "${e.target.name}" with value "${e.target.value}"`,
+    );
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof FormErrors]) {
@@ -207,7 +222,11 @@ const SignUp: React.FC = () => {
   };
 
   const handleSelect = (field: keyof SignUpFormData, value: string) => {
+    console.log(
+      `handleSelect called for field "${field}" with value "${value}"`,
+    );
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field as keyof FormErrors]: undefined }));
   };
 
   const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
@@ -240,10 +259,10 @@ const SignUp: React.FC = () => {
   };
 
   const getSegmentClass = (isActive: boolean) =>
-    `flex items-center justify-center gap-2 flex-1 py-2 sm:py-3 rounded-full border text-sm sm:text-base font-geist font-medium transition-all bg-white cursor-pointer ${
+    `flex items-center justify-center gap-2 flex-1 py-2 sm:py-3 rounded-full border text-sm sm:text-base font-geist transition-all cursor-pointer ${
       isActive
-        ? 'border-[#3A6BFC] text-[#3A6BFC]'
-        : 'border-[#0816271A] text-lightgray opacity-80 hover:opacity-100 hover:border-[#3A6BFC]'
+        ? 'border-[#3A6BFC] bg-[#EFF6FF] text-[#3A6BFC] font-semibold shadow-inner opacity-100'
+        : 'border-[#0816271A] bg-white text-lightgray opacity-80 hover:opacity-100 hover:border-[#3A6BFC]'
     }`;
 
   const inputClass =
@@ -348,7 +367,11 @@ const SignUp: React.FC = () => {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => handleSelect('gender', 'Male')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelect('gender', 'Male');
+                }}
+                aria-pressed={formData.gender === 'Male'}
                 className={getSegmentClass(formData.gender === 'Male')}
               >
                 Male
@@ -356,6 +379,7 @@ const SignUp: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleSelect('gender', 'Female')}
+                aria-pressed={formData.gender === 'Female'}
                 className={getSegmentClass(formData.gender === 'Female')}
               >
                 Female
