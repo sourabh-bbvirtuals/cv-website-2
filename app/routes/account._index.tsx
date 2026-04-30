@@ -181,7 +181,6 @@ const displayValue = (val: string, fallback = '—') => val || fallback;
 
 export default function ProfileTab() {
   const { userData, setUserData } = useOutletContext<OutletContextType>();
-  console.log('ProfileTab render with userData:', userData);
   const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
   const [isEditingPreference, setIsEditingPreference] =
     useState<boolean>(false);
