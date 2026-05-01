@@ -1322,11 +1322,49 @@ export default function CourseDetailPage({
   const isInCart =
     !!activeVariantId && cartVariantIds.includes(activeVariantId);
 
-  const displayPrice = selectedVariant
-    ? `₹${(selectedVariant.priceWithTax / 100).toLocaleString('en-IN')}`
-    : product?.price || '';
   const displayPriceRaw =
     selectedVariant?.priceWithTax ?? product?.priceWithTax ?? 0;
+
+  // Calculate discount from offers and apply to display price
+  const discountInfo = (() => {
+    try {
+      const offersRaw = product?.customFields?.offers;
+      if (offersRaw) {
+        const offers =
+          typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
+        if (Array.isArray(offers) && offers.length > 0) {
+          let totalDiscountPercent = 0;
+          offers.forEach((offer: any) => {
+            if (offer.discountType === 'percentage' && offer.discountValue) {
+              totalDiscountPercent += parseFloat(offer.discountValue);
+            }
+          });
+          if (totalDiscountPercent > 0 && totalDiscountPercent <= 100) {
+            return { totalDiscountPercent };
+          }
+        }
+      }
+    } catch (e) {
+      // silently ignore
+    }
+    return { totalDiscountPercent: 0 };
+  })();
+
+  const basePrice = displayPriceRaw / 100;
+  const discountedPrice =
+    basePrice * (1 - discountInfo.totalDiscountPercent / 100);
+
+  const displayPrice = selectedVariant
+    ? `₹${Math.round(discountedPrice).toLocaleString('en-IN')}`
+    : product?.price || '';
+
+  // Calculate wasPrice from offers
+  const displayWasPrice = (() => {
+    if (discountInfo.totalDiscountPercent > 0) {
+      return `₹${Math.round(basePrice).toLocaleString('en-IN')}`; // Show base price with strikethrough
+    }
+    return '';
+  })();
 
   const handleOptionSelect = useCallback(
     (groupId: string, optionId: string) => {
@@ -1620,6 +1658,11 @@ export default function CourseDetailPage({
                 <span className="text-xl font-bold text-white">
                   {displayPrice}
                 </span>
+                {displayWasPrice && (
+                  <span className="text-lg line-through text-gray-400">
+                    {displayWasPrice}
+                  </span>
+                )}
               </div>
             )}
             <button
@@ -1840,6 +1883,11 @@ export default function CourseDetailPage({
                   <span className="text-xl font-bold text-lightgray">
                     {displayPrice}
                   </span>
+                  {displayWasPrice && (
+                    <span className="text-lg line-through text-gray-500">
+                      {displayWasPrice}
+                    </span>
+                  )}
                 </div>
               )}
               <button
