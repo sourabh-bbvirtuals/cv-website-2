@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react';
 import {
   NavLink,
   Outlet,
+  useFetcher,
   useOutletContext,
   useLoaderData,
   useRouteLoaderData,
 } from '@remix-run/react';
-import { json, type LoaderFunctionArgs } from '@remix-run/node';
+import {
+  json,
+  redirect,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from '@remix-run/node';
 import Layout from '~/components/Layout';
 import type { RootLoaderData } from '~/root';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
+import { updateCustomer } from '~/providers/account/account';
 
 export interface UserProfileData {
   firstName: string;
@@ -53,25 +60,81 @@ export async function loader({ request }: LoaderFunctionArgs) {
       });
     }
   } catch {}
-  return json({ customer: null });
+  return redirect('/sign-in');
 }
 
-const STORAGE_KEY = 'bb_user_profile';
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const fullName = (formData.get('fullName') as string | null)?.trim() || '';
+  const email = (formData.get('email') as string | null)?.trim() || '';
+  const dob = (formData.get('dob') as string | null) || '';
+  const gender = (formData.get('gender') as string | null) || '';
+  const board = (formData.get('board') as string | null) || '';
+  const classLevel = (formData.get('classLevel') as string | null) || '';
+  const rawPhone = (formData.get('phone') as string | null) || '';
+  const phone = rawPhone.replace(/\D/g, '').slice(-10);
 
-function getStoredProfile(): UserProfileData | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return null;
-}
+  const errors: Record<string, string> = {};
+  if (!fullName) errors.fullName = 'Name is required';
+  if (!phone) errors.phone = 'Phone number is required';
+  else if (phone.length !== 10) errors.phone = 'Enter a valid 10-digit number';
+  if (!gender) errors.gender = 'Please select your gender';
+  if (!board) errors.board = 'Please select your board';
+  if (!classLevel) errors.classLevel = 'Please select your class';
 
-function storeProfile(data: UserProfileData) {
-  if (typeof window === 'undefined') return;
+  if (Object.keys(errors).length > 0) {
+    return json({ errors }, { status: 400 });
+  }
+
+  const parts = fullName.split(/\s+/);
+  const firstName = parts[0] || '';
+  const lastName = parts.slice(1).join(' ') || '';
+  const phoneNumber = `+91${phone}`;
+
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
+    await updateCustomer(
+      {
+        firstName,
+        lastName,
+        phoneNumber,
+        customFields: {
+          dateOfBirth: dob || null,
+          gender: gender || null,
+          board: board || null,
+          studentClass: classLevel || null,
+          contactEmail: email || null,
+        },
+      },
+      { request },
+    );
+  } catch (error) {
+    return json(
+      {
+        errors: {
+          submit: 'Unable to save your profile. Please try again.',
+        },
+      },
+      { status: 500 },
+    );
+  }
+
+  return json({
+    success: true,
+    profile: {
+      firstName,
+      lastName,
+      email,
+      phone: `+91 ${phone}`,
+      dob,
+      gender,
+      address: '',
+      state: '',
+      city: '',
+      pincode: '',
+      classLevel,
+      board,
+    },
+  });
 }
 
 const emptyProfile: UserProfileData = {
@@ -105,6 +168,10 @@ interface ActiveCustomerInfo {
   emailAddress?: string;
   phoneNumber?: string | null;
   customFields?: {
+    dateOfBirth?: string | null;
+    gender?: string | null;
+    board?: string | null;
+    studentClass?: string | null;
     contactEmail?: string | null;
   } | null;
 }
@@ -116,6 +183,7 @@ function OnboardingForm({
   onComplete: (data: UserProfileData) => void;
   activeCustomer?: ActiveCustomerInfo | null;
 }) {
+  const fetcher = useFetcher();
   const knownName = [activeCustomer?.firstName, activeCustomer?.lastName]
     .filter(Boolean)
     .join(' ');
@@ -128,12 +196,55 @@ function OnboardingForm({
 
   const [fullName, setFullName] = useState(knownName);
   const [email, setEmail] = useState(knownEmail);
-  const [dob, setDob] = useState('');
-  const [gender, setGender] = useState('');
-  const [board, setBoard] = useState('');
-  const [classLevel, setClassLevel] = useState('');
+  const [dob, setDob] = useState(
+    activeCustomer?.customFields?.dateOfBirth || '',
+  );
+  const [gender, setGender] = useState(
+    activeCustomer?.customFields?.gender || '',
+  );
+  const [board, setBoard] = useState(activeCustomer?.customFields?.board || '');
+  const [classLevel, setClassLevel] = useState(
+    activeCustomer?.customFields?.studentClass || '',
+  );
   const [phone, setPhone] = useState(knownPhone);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState('');
+
+  useEffect(() => {
+    if (!activeCustomer) return;
+    setFullName((current) => current || knownName);
+    setEmail((current) => current || knownEmail);
+    setDob(
+      (current) => current || activeCustomer.customFields?.dateOfBirth || '',
+    );
+    setGender(
+      (current) => current || activeCustomer.customFields?.gender || '',
+    );
+    setBoard((current) => current || activeCustomer.customFields?.board || '');
+    setClassLevel(
+      (current) => current || activeCustomer.customFields?.studentClass || '',
+    );
+    setPhone((current) => current || knownPhone);
+  }, [activeCustomer, knownEmail, knownName, knownPhone]);
+
+  useEffect(() => {
+    if (!fetcher.data) return;
+    const data = fetcher.data as {
+      success?: boolean;
+      profile?: UserProfileData;
+      errors?: Record<string, string>;
+    };
+
+    if (data.profile) {
+      onComplete(data.profile);
+      return;
+    }
+
+    if (data.errors) {
+      setErrors((prev) => ({ ...prev, ...data.errors }));
+      setSubmitError(data.errors.submit || '');
+    }
+  }, [fetcher.data, onComplete]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -148,27 +259,12 @@ function OnboardingForm({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) return;
-    const parts = fullName.trim().split(/\s+/);
-    const firstName = parts[0] || '';
-    const lastName = parts.slice(1).join(' ') || '';
-
-    const profileData: UserProfileData = {
-      firstName,
-      lastName,
-      email: email.trim(),
-      phone: `+91 ${phone.replace(/\D/g, '')}`,
-      dob,
-      gender,
-      address: '',
-      state: '',
-      city: '',
-      pincode: '',
-      classLevel,
-      board,
-    };
-    onComplete(profileData);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!validate()) {
+      e.preventDefault();
+    } else {
+      setSubmitError('');
+    }
   };
 
   const getSegmentClass = (isActive: boolean) =>
@@ -197,13 +293,23 @@ function OnboardingForm({
           </p>
         </div>
 
-        <div className="bg-[#FFFFFF33] border border-[#FFFFFF] w-full max-w-120 lg:max-w-150 rounded-[30px] p-5 sm:p-8 text-left z-10 flex flex-col gap-4 sm:gap-5">
+        <fetcher.Form
+          method="post"
+          className="bg-[#FFFFFF33] border border-[#FFFFFF] w-full max-w-120 lg:max-w-150 rounded-[30px] p-5 sm:p-8 text-left z-10 flex flex-col gap-4 sm:gap-5"
+          onSubmit={handleSubmit}
+        >
+          <input type="hidden" name="gender" value={gender} />
+          <input type="hidden" name="board" value={board} />
+          <input type="hidden" name="classLevel" value={classLevel} />
+          {knownEmail && <input type="hidden" name="email" value={email} />}
+
           <div className="flex flex-col gap-1.5">
             <label className="text-lightgray/60 font-medium opacity-70 font-geist text-sm sm:text-xl">
               Full Name
             </label>
             <input
               type="text"
+              name="fullName"
               value={fullName}
               onChange={(e) => {
                 setFullName(e.target.value);
@@ -228,6 +334,7 @@ function OnboardingForm({
               </label>
               <input
                 type="email"
+                name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClass}
@@ -242,6 +349,7 @@ function OnboardingForm({
             </label>
             <input
               type="date"
+              name="dob"
               value={dob}
               onChange={(e) => setDob(e.target.value)}
               className={inputClass}
@@ -337,6 +445,7 @@ function OnboardingForm({
               </span>
               <input
                 type="tel"
+                name="phone"
                 value={phone}
                 onChange={(e) => {
                   const v = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -352,16 +461,19 @@ function OnboardingForm({
             )}
           </div>
 
+          {submitError && (
+            <div className="text-red-500 text-sm px-2">{submitError}</div>
+          )}
+
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             className="font-geist font-medium text-sm sm:text-base lg:text-lg bg-[#3A6BFC] py-3 md:py-4 min-h-[48px] md:min-h-[56px] text-white flex items-center justify-center w-full rounded-full shadow-[inset_0px_4px_8px_0px_#83A2FFBF,inset_0px_-2px_2px_0px_#0F3FCE] mt-2 transition-all"
           >
-            Create an Account
+            {fetcher.state === 'submitting' ? 'Saving...' : 'Create an Account'}
           </button>
-        </div>
+        </fetcher.Form>
 
-        <a
+        {/* <a
           href="/login"
           className="font-geist font-medium text-sm sm:text-base text-[#808591] group mt-2"
         >
@@ -369,7 +481,7 @@ function OnboardingForm({
           <span className="text-[#3A6BFC] group-hover:underline transition-all duration-300 ease-in-out">
             Login
           </span>
-        </a>
+        </a> */}
       </div>
 
       <div className="w-full text-center mt-auto pt-4">
@@ -399,48 +511,27 @@ function OnboardingForm({
 export default function AccountLayout() {
   const rootData = useRouteLoaderData('root') as RootLoaderData | undefined;
   const activeCustomer = rootData?.activeCustomer?.activeCustomer;
-  const { customer: vendureCustomer } = useLoaderData<typeof loader>();
-
   const [userData, setUserData] = useState<UserProfileData>(emptyProfile);
   const [profileLoaded, setProfileLoaded] = useState(false);
-
+  console.log('AccountLayout render with activeCustomer:', activeCustomer);
+  console.log('Initial userData:', userData);
   useEffect(() => {
-    const stored = getStoredProfile();
-    if (stored && isProfileComplete(stored)) {
-      if (stored.email?.endsWith('@bbvirtuals.tech')) {
-        stored.email =
-          vendureCustomer?.customFields?.contactEmail ||
-          activeCustomer?.customFields?.contactEmail ||
-          '';
-      }
-      if (
-        !stored.phone &&
-        (vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber)
-      ) {
-        stored.phone =
-          vendureCustomer?.phoneNumber || activeCustomer?.phoneNumber || '';
-      }
-      setUserData(stored);
-      setProfileLoaded(true);
-      return;
-    }
-
     if (
-      vendureCustomer &&
-      vendureCustomer.firstName &&
-      vendureCustomer.firstName !== 'BB Virtual'
+      activeCustomer &&
+      activeCustomer.firstName &&
+      activeCustomer.firstName !== 'BB Virtual'
     ) {
-      const cf = vendureCustomer.customFields;
+      const cf = activeCustomer.customFields;
       const email =
         cf?.contactEmail ||
-        (vendureCustomer.emailAddress?.endsWith('@bbvirtuals.tech')
+        (activeCustomer.emailAddress?.endsWith('@bbvirtuals.tech')
           ? ''
-          : vendureCustomer.emailAddress || '');
+          : activeCustomer.emailAddress || '');
       const vendureProfile: UserProfileData = {
-        firstName: vendureCustomer.firstName || '',
-        lastName: vendureCustomer.lastName || '',
+        firstName: activeCustomer.firstName || '',
+        lastName: activeCustomer.lastName || '',
         email,
-        phone: vendureCustomer.phoneNumber || '',
+        phone: activeCustomer.phoneNumber || '',
         dob: cf?.dateOfBirth || '',
         gender: cf?.gender || '',
         address: '',
@@ -451,27 +542,13 @@ export default function AccountLayout() {
         board: cf?.board || '',
       };
       if (isProfileComplete(vendureProfile)) {
-        storeProfile(vendureProfile);
         setUserData(vendureProfile);
-        setProfileLoaded(true);
-        return;
       }
     }
-
-    if (stored) {
-      setUserData(stored);
-    }
     setProfileLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (profileLoaded && isProfileComplete(userData)) {
-      storeProfile(userData);
-    }
-  }, [userData, profileLoaded]);
+  }, [activeCustomer]);
 
   const handleOnboardingComplete = (data: UserProfileData) => {
-    storeProfile(data);
     setUserData(data);
   };
 

@@ -36,6 +36,17 @@ export default function RegisterPopup({
       );
     }
   }, [skipOtp]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
   const [currentStep, setCurrentStep] = useState<'form' | 'otp' | 'completion'>(
     'form',
   );
@@ -96,11 +107,11 @@ export default function RegisterPopup({
   // Pre-fill form if customer exists
   useEffect(() => {
     if (isOpen && customer?.activeCustomer) {
-      const { firstName, lastName, emailAddress, phoneNumber } =
+      const { firstName, lastName, customFields, phoneNumber } =
         customer.activeCustomer;
       setFormData({
         name: `${firstName} ${lastName}`.trim(),
-        email: emailAddress || '',
+        email: customFields?.contactEmail || '',
         phone: phoneNumber?.replace(/\D/g, '').slice(-10) || '',
       });
     }
@@ -651,8 +662,8 @@ export default function RegisterPopup({
                   Olympiad 2026.
                   <br />
                   <br />
-                  Download the BB Virtuals app to start preparing mock tests,
-                  past papers, and practice sets are waiting.
+                  Competition is exclusively available on mobile app, please
+                  download app to play.
                 </p>
               </div>
             )}
@@ -673,7 +684,7 @@ export default function RegisterPopup({
           {/* right image */}
           <div className="hidden md:flex w-[380px] h-[520px] ml-auto shrink-0">
             <img
-              src="/assets/images/olympiad/RegistrationCompleted.png"
+              src="/assets/images/olympiad/RegistrationComplete.png"
               alt="Registration Success"
               className="w-full h-full object-cover"
             />
