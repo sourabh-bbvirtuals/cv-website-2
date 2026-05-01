@@ -15,6 +15,7 @@ interface RegisterPopupProps {
   onRegistrationComplete?: () => void;
   autoCloseDelay?: number; // in milliseconds, default: 3000
   productVariantId?: string | null; // Product variant ID for adding to cart
+  isAlreadyRegistered?: boolean; // When true, popup opens directly on completion/success screen
 }
 
 export default function RegisterPopup({
@@ -24,6 +25,7 @@ export default function RegisterPopup({
   onRegistrationComplete,
   autoCloseDelay = 3000,
   productVariantId,
+  isAlreadyRegistered = false,
 }: RegisterPopupProps) {
   // TESTING: Check environment variable or prop for OTP bypass
   const skipOtp = false;
@@ -48,8 +50,16 @@ export default function RegisterPopup({
   }, [isOpen]);
 
   const [currentStep, setCurrentStep] = useState<'form' | 'otp' | 'completion'>(
-    'form',
+    isAlreadyRegistered ? 'completion' : 'form',
   );
+
+  // If the popup is opened for an already-registered user, jump straight to
+  // the completion/success screen so they can see the confirmation & app links.
+  useEffect(() => {
+    if (isOpen && isAlreadyRegistered) {
+      setCurrentStep('completion');
+    }
+  }, [isOpen, isAlreadyRegistered]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -654,12 +664,13 @@ export default function RegisterPopup({
             ) : (
               <div className="flex flex-col items-center gap-2">
                 <h2 className="text-2xl font-semibold leading-[120%] text-[#081627]">
-                  You're in!
+                  {isAlreadyRegistered ? "You're already in!" : "You're in!"}
                 </h2>
 
                 <p className="text-[#081627]/50 leading-[150%] text-[17px] text-center">
-                  You've successfully registered for the CUET All India Commerce
-                  Olympiad 2026.
+                  {isAlreadyRegistered
+                    ? 'You have already registered for the CUET All India Commerce Olympiad 2026.'
+                    : "You've successfully registered for the CUET All India Commerce Olympiad 2026."}
                   <br />
                   <br />
                   Competition is exclusively available on mobile app, please

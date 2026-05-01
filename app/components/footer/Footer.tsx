@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Phone, Instagram, Youtube, ArrowRight } from 'lucide-react';
-import { useLocation } from '@remix-run/react';
+import { Phone, Instagram, Youtube, ArrowRight, Check } from 'lucide-react';
+import { useLocation, useMatches } from '@remix-run/react';
 
 const YOUTUBE_CHANNELS = [
   {
@@ -59,8 +59,15 @@ const Footer = () => {
   const matchedYoutube = resolveYoutubeForBoard(userBoard);
 
   const location = useLocation();
+  const matches = useMatches();
 
   const isOlyampiadPath = location.pathname.startsWith('/olympiad');
+
+  // Pick up enrollment status from the olympiad route's loader data so the
+  // footer CTA can reflect "Already Registered" when relevant.
+  const olympiadMatch = matches.find((m) => m.id === 'routes/olympiad._index');
+  const isOlympiadEnrolled =
+    !!(olympiadMatch?.data as { isEnrolled?: boolean } | undefined)?.isEnrolled;
 
   const footerLinks = [
     {
@@ -90,12 +97,16 @@ const Footer = () => {
         <div className="px-4 text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-semibold text-lightgray mb-2 md:mb-4">
             {isOlyampiadPath
-              ? 'Win your seat.'
+              ? isOlympiadEnrolled
+                ? "You're in!"
+                : 'Win your seat.'
               : 'Call us Directly for Purchase Related Queries'}
           </h2>
           {isOlyampiadPath ? (
             <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-7 text-sm md:text-xl leading-[120%]">
-              Free entry. Closes 3 May, 9:00 AM IST.
+              {isOlympiadEnrolled
+                ? 'You have already registered for the CUET All India Commerce Olympiad 2026.'
+                : 'Free entry. Closes 3 May, 9:00 AM IST.'}
             </p>
           ) : (
             <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
@@ -114,7 +125,15 @@ const Footer = () => {
                 }
                 className="flex cursor-pointer w-full md:max-w-max text-base font-semibold items-center justify-center gap-2  text-white px-8 py-3 rounded-full primary-btn"
               >
-                Register For Free <ArrowRight className="w-5 h-5" />
+                {isOlympiadEnrolled ? (
+                  <>
+                    Already Registered <Check className="w-5 h-5" />
+                  </>
+                ) : (
+                  <>
+                    Register For Free <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </div>
             </div>
           ) : (

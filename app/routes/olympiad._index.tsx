@@ -25,6 +25,7 @@ import { getProductBySlug } from '~/providers/course2';
 import { getCollectionBySlug } from '~/providers/collections/collections';
 import sanitizeHtml from 'sanitize-html';
 import { API_URL } from '~/constants';
+import { getSessionStorage } from '~/sessions';
 import {
   instagramPages,
   SocialDropdown,
@@ -60,6 +61,64 @@ export async function loader({ request }: DataFunctionArgs) {
     // ─── Product ────────────────────────────────────────────────────────────
     const product =
       productResult.status === 'fulfilled' ? productResult.value : null;
+
+    // ─── Check Enrollment ───────────────────────────────────────────────────
+    let isEnrolled = false;
+    try {
+      const sessionStorage = await getSessionStorage();
+      const session = await sessionStorage.getSession(
+        request.headers.get('Cookie'),
+      );
+      const authToken = session.get('authToken') as string | undefined;
+
+      if (authToken) {
+        const ordersRes = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            query: `
+              query {
+                activeCustomer {
+                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
+                    items {
+                      lines {
+                        productVariant {
+                          product { slug }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+        const ordersData = (await ordersRes.json()) as {
+          data?: {
+            activeCustomer?: {
+              orders?: {
+                items?: Array<{
+                  lines?: Array<{
+                    productVariant?: { product?: { slug?: string } };
+                  }>;
+                }>;
+              };
+            };
+          };
+        };
+        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
+        isEnrolled = items.some((order) =>
+          (order.lines || []).some(
+            (line) => line.productVariant?.product?.slug === slug,
+          ),
+        );
+      }
+    } catch (e) {
+      console.error('Failed to check olympiad enrollment status', e);
+    }
 
     // ─── Specifications (Priority: Product customFields -> Collection customFields) ──
     let specifications: any = null;
@@ -265,16 +324,27 @@ export async function loader({ request }: DataFunctionArgs) {
         }
       : null;
 
-    return json({ slug: slug, product: productData, specifications });
+    return json({
+      slug: slug,
+      product: productData,
+      specifications,
+      isEnrolled,
+    });
   } catch (error) {
     console.error('Error loading course detail:', error);
-    return json({ slug: slug, product: null, specifications: null });
+    return json({
+      slug: slug,
+      product: null,
+      specifications: null,
+      isEnrolled: false,
+    });
   }
 }
 
 export default function Olympiad() {
   const { activeCustomer: customerData } = useRootLoader();
-  const { slug, product, specifications } = useLoaderData<typeof loader>();
+  const { slug, product, specifications, isEnrolled } =
+    useLoaderData<typeof loader>();
   // console.log('Loader data:', { slug, product, specifications });
 
   // Extract specifications data
@@ -571,7 +641,15 @@ export default function Olympiad() {
                     60%, 100% { left: 150%; }
                   }
                 `}</style>
-                Register For Free <ArrowRight className="w-4 h-4" />
+                {isEnrolled ? (
+                  <>
+                    Already Registered <Check className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    Register For Free <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
 
@@ -670,7 +748,15 @@ export default function Olympiad() {
                 onClick={() => setIsRegisterPopupOpen(true)}
                 className="hero-shine-btn flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40 relative overflow-hidden"
               >
-                Register For Free <ArrowRight className="w-4 h-4" />
+                {isEnrolled ? (
+                  <>
+                    Already Registered <Check className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    Register For Free <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
 
@@ -692,16 +778,28 @@ export default function Olympiad() {
           }`}
         >
           <div className="flex items-start flex-col gap-1">
-            <p className="font-bold text-xl text-[#081627]">Free</p>
+            <p className="font-bold text-xl text-[#081627]">
+              {isEnrolled ? "You're in" : 'Free'}
+            </p>
             <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
-              Closes 3 May, 9:00 AM IST
+              {isEnrolled
+                ? 'Download the app to play'
+                : 'Closes 3 May, 9:00 AM IST'}
             </p>
           </div>
           <button
             onClick={() => setIsRegisterPopupOpen(true)}
             className="flex cursor-pointer text-[14px] font-semibold items-center justify-center gap-1  text-white px-4 py-3 rounded-full primary-btn"
           >
-            Register For Free <ArrowRight className="w-4 h-4" />
+            {isEnrolled ? (
+              <>
+                Already Registered <Check className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                Register For Free <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </div>
 
@@ -1130,10 +1228,20 @@ export default function Olympiad() {
                     onClick={() => setIsRegisterPopupOpen(true)}
                     className="flex cursor-pointer text-base font-semibold items-center justify-center gap-2  text-white primary-btn px-4 py-3 rounded-full w-full "
                   >
-                    Register For Free <ArrowRight className="w-4 h-4" />
+                    {isEnrolled ? (
+                      <>
+                        Already Registered <Check className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        Register For Free <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
                   <div className="text-[#0A232F]/80 font-medium text-sm">
-                    Takes under 60 seconds
+                    {isEnrolled
+                      ? 'See registration details'
+                      : 'Takes under 60 seconds'}
                   </div>
                 </div>
               </div>
@@ -1148,6 +1256,7 @@ export default function Olympiad() {
         onRegistrationComplete={handleRegistrationComplete}
         autoCloseDelay={3000}
         productVariantId={product?.variantId || null}
+        isAlreadyRegistered={isEnrolled}
       />
     </>
   );
