@@ -430,7 +430,7 @@ export default function Olympiad() {
 
   useEffect(() => {
     const calculateCountdown = () => {
-      const targetDate = new Date('2026-05-03T00:00:00').getTime();
+      const targetDate = new Date('2026-05-06T00:00:00').getTime();
       const now = new Date().getTime();
       const distance = targetDate - now;
 
@@ -611,7 +611,7 @@ export default function Olympiad() {
                 </div>
                 <p className="flex lg:hidden text-white text-base md:text-xl font-medium tracking-wide">
                   Result will be announced on{' '}
-                  <span className="font-bold">6th May , 2026</span>
+                  <span className="font-bold">9th May - 6PM</span>
                 </p>
               </div>
               {/* button */}
@@ -738,7 +738,7 @@ export default function Olympiad() {
                   </div>
                   <p className="text-white text-sm sm:text-base font-medium tracking-wide mt-0 md:mt-6">
                     Result will be announced on{' '}
-                    <span className="font-bold">6th May , 2026</span>
+                    <span className="font-bold">9th May - 6PM</span>
                   </p>
                 </div>
               </div>
@@ -1153,13 +1153,13 @@ export default function Olympiad() {
                   Exam dates
                 </p>
                 <p className="font-semibold text-3xl leading-[120%] uppercase font-oswald">
-                  3–5 May 2026
+                  6–8 May 2026
                 </p>
                 <div className="bg-[#F4F7FF] border border-[#E0E7FF] rounded-full px-4 py-2 flex items-center justify-center">
                   <p className="text-[13px] text-[#3B82F6] font-medium leading-tight">
                     Result will be announced on{' '}
                     <span className="font-bold text-[#1D4ED8]">
-                      6th May , 2026
+                      9th May - 6PM
                     </span>
                   </p>
                 </div>
