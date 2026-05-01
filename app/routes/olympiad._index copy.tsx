@@ -109,22 +109,22 @@ export async function loader({ request }: DataFunctionArgs) {
     // ─── Sanitize description ───────────────────────────────────────────────
     const safeDescription = product?.description
       ? sanitizeHtml(product.description, {
-          allowedTags: [
-            'p',
-            'br',
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ul',
-            'ol',
-            'li',
-            'div',
-            'span',
-          ],
-          allowedAttributes: { '*': ['style'] },
-        })
+        allowedTags: [
+          'p',
+          'br',
+          'b',
+          'strong',
+          'i',
+          'em',
+          'u',
+          'ul',
+          'ol',
+          'li',
+          'div',
+          'span',
+        ],
+        allowedAttributes: { '*': ['style'] },
+      })
       : '';
 
     const variants = product?.variantProperties ?? [];
@@ -198,61 +198,61 @@ export async function loader({ request }: DataFunctionArgs) {
     );
     const finalDescription = shortDescSpec?.text
       ? sanitizeHtml(shortDescSpec.text, {
-          allowedTags: [
-            'p',
-            'br',
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ul',
-            'ol',
-            'li',
-            'div',
-            'span',
-          ],
-          allowedAttributes: { '*': ['style'] },
-        })
+        allowedTags: [
+          'p',
+          'br',
+          'b',
+          'strong',
+          'i',
+          'em',
+          'u',
+          'ul',
+          'ol',
+          'li',
+          'div',
+          'span',
+        ],
+        allowedAttributes: { '*': ['style'] },
+      })
       : safeDescription;
 
     const productData = product
       ? {
-          id: product.id,
-          title: product.title,
-          description: finalDescription,
-          price: product.priceWithTax
-            ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
-            : '',
-          priceWithTax: product.priceWithTax,
-          featuredAsset: product.featuredAsset ?? null,
-          faculties,
-          facetValues: product.facetValues ?? [],
-          variantId: firstVariantId,
-          ...(hasOptions && {
-            optionGroups: optionGroups.map((og) => ({
-              id: og.id,
-              name: og.name,
-              code: og.code,
-              options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+        id: product.id,
+        title: product.title,
+        description: finalDescription,
+        price: product.priceWithTax
+          ? `₹${(product.priceWithTax / 100).toLocaleString('en-IN')}`
+          : '',
+        priceWithTax: product.priceWithTax,
+        featuredAsset: product.featuredAsset ?? null,
+        faculties,
+        facetValues: product.facetValues ?? [],
+        variantId: firstVariantId,
+        ...(hasOptions && {
+          optionGroups: optionGroups.map((og) => ({
+            id: og.id,
+            name: og.name,
+            code: og.code,
+            options: og.options.map((o: any) => ({ id: o.id, name: o.name })),
+          })),
+          variants: variants.map((v) => ({
+            id: v.id,
+            name: v.name,
+            priceWithTax: v.priceWithTax,
+            currencyCode: v.currencyCode,
+            sku: v.sku,
+            stockLevel: v.stockLevel,
+            options: (v.options || []).map((o: any) => ({
+              id: o.id,
+              name: o.name,
+              group: o.group
+                ? { id: o.group.id, name: o.group.name }
+                : undefined,
             })),
-            variants: variants.map((v) => ({
-              id: v.id,
-              name: v.name,
-              priceWithTax: v.priceWithTax,
-              currencyCode: v.currencyCode,
-              sku: v.sku,
-              stockLevel: v.stockLevel,
-              options: (v.options || []).map((o: any) => ({
-                id: o.id,
-                name: o.name,
-                group: o.group
-                  ? { id: o.group.id, name: o.group.name }
-                  : undefined,
-              })),
-            })),
-          }),
-        }
+          })),
+        }),
+      }
       : null;
 
     return json({ slug: normalizedSlug, product: productData, specifications });
@@ -307,7 +307,7 @@ export default function Olympiad() {
 
   useEffect(() => {
     const calculateCountdown = () => {
-      const targetDate = new Date('2026-05-03T00:00:00').getTime();
+      const targetDate = new Date('2026-05-06T14:00:00+05:30').getTime();
       const now = new Date().getTime();
       const distance = targetDate - now;
 
@@ -596,16 +596,15 @@ export default function Olympiad() {
 
         {/* mobile overlay button */}
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${
-            isContentInView
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-0 pointer-events-none'
-          }`}
+          className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#E5F6FE] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${isContentInView
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+            }`}
         >
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">Free</p>
             <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
-              Closes 3 May, 9:00 AM IST
+              Closes 6 May, 2:00 PM IST
             </p>
           </div>
           <button
@@ -1184,9 +1183,8 @@ export default function Olympiad() {
 
                           {/* ANSWER */}
                           <div
-                            className={`grid transition-[grid-template-rows] duration-200 ${
-                              open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                            }`}
+                            className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                              }`}
                           >
                             <div className="overflow-hidden">
                               <p className="mt-2 text-sm sm:text-base leading-relaxed text-lightgray/50">
