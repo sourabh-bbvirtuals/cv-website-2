@@ -75,6 +75,7 @@ export type ProductData = {
   facetValues?: Array<{ name: string; facet: { name: string } }>;
   customFields?: {
     customData?: string | null;
+    offers?: string | null;
   };
   variantId?: string | null;
   optionGroups?: OptionGroup[];
