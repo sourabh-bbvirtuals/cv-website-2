@@ -1333,26 +1333,29 @@ export default function CourseDetailPage({
         const offers =
           typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
         if (Array.isArray(offers) && offers.length > 0) {
-          let totalDiscountPercent = 0;
+          const basePrice = displayPriceRaw / 100;
+          let totalDiscount = 0;
           offers.forEach((offer: any) => {
             if (offer.discountType === 'percentage' && offer.discountValue) {
-              totalDiscountPercent += parseFloat(offer.discountValue);
+              totalDiscount +=
+                basePrice * (parseFloat(offer.discountValue) / 100);
+            } else if (offer.discountType === 'fixed' && offer.discountValue) {
+              totalDiscount += parseFloat(offer.discountValue);
             }
           });
-          if (totalDiscountPercent > 0 && totalDiscountPercent <= 100) {
-            return { totalDiscountPercent };
+          if (totalDiscount > 0) {
+            return { totalDiscount };
           }
         }
       }
     } catch (e) {
       // silently ignore
     }
-    return { totalDiscountPercent: 0 };
+    return { totalDiscount: 0 };
   })();
 
   const basePrice = displayPriceRaw / 100;
-  const discountedPrice =
-    basePrice * (1 - discountInfo.totalDiscountPercent / 100);
+  const discountedPrice = Math.max(0, basePrice - discountInfo.totalDiscount);
 
   const displayPrice = selectedVariant
     ? `₹${Math.round(discountedPrice).toLocaleString('en-IN')}`
@@ -1360,7 +1363,7 @@ export default function CourseDetailPage({
 
   // Calculate wasPrice from offers
   const displayWasPrice = (() => {
-    if (discountInfo.totalDiscountPercent > 0) {
+    if (discountInfo.totalDiscount > 0) {
       return `₹${Math.round(basePrice).toLocaleString('en-IN')}`; // Show base price with strikethrough
     }
     return '';

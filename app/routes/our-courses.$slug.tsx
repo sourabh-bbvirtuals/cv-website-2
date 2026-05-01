@@ -3,7 +3,6 @@ import { useLoaderData } from '@remix-run/react';
 import { getCollectionBySlug } from '~/providers/collections/collections';
 import sanitizeHtml from 'sanitize-html';
 import { API_URL } from '~/constants';
-import { getSessionStorage } from '~/sessions';
 import CourseDetailPage from '~/components/our-courses/CourseDetailPage';
 
 /**
@@ -141,53 +140,11 @@ export async function loader({ params, request }: DataFunctionArgs) {
     const product =
       productResult.status === 'fulfilled' ? productResult.value : null;
 
-    // ─── Check Enrollment ───────────────────────────────────────────────────
+    // ─── Enrollment Check ───────────────────────────────────────────────────
+    // For normal courses, always set isEnrolled to false
+    // (customers can order the same product multiple times)
+    // Enrollment restrictions are only for Olympiad (handled in olympiad._index.tsx)
     let isEnrolled = false;
-    try {
-      const sessionStorage = await getSessionStorage();
-      const session = await sessionStorage.getSession(
-        request.headers.get('Cookie'),
-      );
-      const authToken = session.get('authToken') as string | undefined;
-
-      if (authToken) {
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        };
-        const ordersRes = await fetch(API_URL, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            query: `
-              query {
-                activeCustomer {
-                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
-                    items {
-                      lines {
-                        productVariant {
-                          product { slug }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `,
-          }),
-        });
-        const ordersData = await ordersRes.json();
-        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
-        isEnrolled = items.some((order: any) =>
-          (order.lines || []).some(
-            (line: any) =>
-              line.productVariant?.product?.slug === normalizedSlug,
-          ),
-        );
-      }
-    } catch (e) {
-      console.error('Failed to check enrollment status', e);
-    }
 
     // ─── Specifications (Priority: Product customFields -> Collection customFields) ──
     let specifications: any = null;
