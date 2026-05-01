@@ -107,9 +107,9 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
   const meta: string[] = [...facetNames];
 
   // 4. Extract wasPrice from offers array & apply discount to current price
-  // Offers format: [{"offerId":"31","discountType":"percentage","discountValue":25,...}]
+  // Offers format: [{"offerId":"31","discountType":"percentage","discountValue":25,...}, {"offerId":"30","discountType":"fixed","discountValue":1000,...}]
   // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
-  // Example: 8000 - (8000*25/100) - (8000*10/100) = 5200
+  // Example: 8000 - (8000*25/100) - 1000 = 6200
   let wasPrice = '';
   let displayPrice = priceVal; // Default to base price if no discounts
 
@@ -120,17 +120,21 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
       const offers =
         typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
       if (Array.isArray(offers) && offers.length > 0) {
-        // Sum all percentage discounts
-        let totalDiscountPercent = 0;
+        // Sum all discounts (both percentage and fixed, converted to rupees)
+        let totalDiscount = 0;
         offers.forEach((offer: any) => {
           if (offer.discountType === 'percentage' && offer.discountValue) {
-            totalDiscountPercent += parseFloat(offer.discountValue);
+            // Percentage: convert to rupee amount
+            totalDiscount += priceVal * (parseFloat(offer.discountValue) / 100);
+          } else if (offer.discountType === 'fixed' && offer.discountValue) {
+            // Fixed: already in rupees
+            totalDiscount += parseFloat(offer.discountValue);
           }
         });
 
-        // Apply discount: discountedPrice = basePrice * (1 - totalDiscountPercent/100)
-        if (totalDiscountPercent > 0 && totalDiscountPercent <= 100) {
-          displayPrice = priceVal * (1 - totalDiscountPercent / 100);
+        // Apply discount: discountedPrice = basePrice - totalDiscount
+        if (totalDiscount > 0) {
+          displayPrice = Math.max(0, priceVal - totalDiscount);
           wasPrice = `₹${priceVal.toLocaleString('en-IN')}`; // Show base price with strikethrough
         }
       }
