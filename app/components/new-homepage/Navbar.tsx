@@ -211,7 +211,11 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
           {/* 1. Desktop Board Dropdown (Pill UI) */}
           {showBoardDropdown && (
             <div className="hidden lg:block">
-              <BoardDropdown isMobile={false} />
+              <BoardDropdown
+                isMobile={false}
+                savedBoard={customer?.customFields?.board}
+                savedClass={customer?.customFields?.studentClass}
+              />
             </div>
           )}
 
@@ -363,7 +367,11 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
           {/* 2. Mobile Board Dropdown (Card UI) */}
           {showBoardDropdown && (
             <div className="w-full">
-              <BoardDropdown isMobile={true} />
+              <BoardDropdown
+                isMobile={true}
+                savedBoard={customer?.customFields?.board}
+                savedClass={customer?.customFields?.studentClass}
+              />
             </div>
           )}
         </div>

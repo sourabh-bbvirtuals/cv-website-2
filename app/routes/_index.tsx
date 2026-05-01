@@ -182,7 +182,7 @@ function mapProductsToCourses(products: any[]) {
 
     // Extract wasPrice from offers array & apply discount to display price
     // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
-    // Example: 8000 - (8000*25/100) - (8000*10/100) = 5200
+    // Example: 8000 - (8000*25/100) - 1000 = 6200
     let wasPrice = '';
     let displayPrice = priceVal; // Default to base price if no discounts
 
@@ -192,14 +192,17 @@ function mapProductsToCourses(products: any[]) {
         const offers =
           typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
         if (Array.isArray(offers) && offers.length > 0) {
-          let totalDiscountPercent = 0;
+          let totalDiscount = 0;
           offers.forEach((offer: any) => {
             if (offer.discountType === 'percentage' && offer.discountValue) {
-              totalDiscountPercent += parseFloat(offer.discountValue);
+              totalDiscount +=
+                priceVal * (parseFloat(offer.discountValue) / 100);
+            } else if (offer.discountType === 'fixed' && offer.discountValue) {
+              totalDiscount += parseFloat(offer.discountValue);
             }
           });
-          if (totalDiscountPercent > 0 && totalDiscountPercent <= 100) {
-            displayPrice = priceVal * (1 - totalDiscountPercent / 100);
+          if (totalDiscount > 0) {
+            displayPrice = Math.max(0, priceVal - totalDiscount);
             wasPrice = `₹${Math.round(priceVal).toLocaleString('en-IN')}`; // Show base price with strikethrough
           }
         }
@@ -300,7 +303,7 @@ function mapVariantsToCourses(items: any[]) {
 
     // Extract wasPrice from offers array & apply discount to display price
     // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
-    // Example: 8000 - (8000*25/100) - (8000*10/100) = 5200
+    // Example: 8000 - (8000*25/100) - 1000 = 6200
     let wasPrice = '';
     let displayPrice = priceVal; // Default to base price if no discounts
 
@@ -310,14 +313,17 @@ function mapVariantsToCourses(items: any[]) {
         const offers =
           typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
         if (Array.isArray(offers) && offers.length > 0) {
-          let totalDiscountPercent = 0;
+          let totalDiscount = 0;
           offers.forEach((offer: any) => {
             if (offer.discountType === 'percentage' && offer.discountValue) {
-              totalDiscountPercent += parseFloat(offer.discountValue);
+              totalDiscount +=
+                priceVal * (parseFloat(offer.discountValue) / 100);
+            } else if (offer.discountType === 'fixed' && offer.discountValue) {
+              totalDiscount += parseFloat(offer.discountValue);
             }
           });
-          if (totalDiscountPercent > 0 && totalDiscountPercent <= 100) {
-            displayPrice = priceVal * (1 - totalDiscountPercent / 100);
+          if (totalDiscount > 0) {
+            displayPrice = Math.max(0, priceVal - totalDiscount);
             wasPrice = `₹${Math.round(priceVal).toLocaleString('en-IN')}`; // Show base price with strikethrough
           }
         }
