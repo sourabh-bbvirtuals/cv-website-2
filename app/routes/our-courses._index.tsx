@@ -32,6 +32,7 @@ export async function loader() {
                 description
                 customFields {
                   customData
+                  offers
                 }
                 featuredAsset {
                   preview

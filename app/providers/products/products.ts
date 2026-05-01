@@ -89,6 +89,7 @@ export const detailedProductFragment = gql`
     description
     customFields {
       customData
+      offers
     }
     collections {
       id
@@ -185,7 +186,7 @@ export const listedProductFragment = gql`
         value
       }
     }
-    # offers
+    offers
   }
 `;
 

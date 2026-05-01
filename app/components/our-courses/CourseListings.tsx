@@ -106,6 +106,39 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
 
   const meta: string[] = [...facetNames];
 
+  // 4. Extract wasPrice from offers array & apply discount to current price
+  // Offers format: [{"offerId":"31","discountType":"percentage","discountValue":25,...}]
+  // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
+  // Example: 8000 - (8000*25/100) - (8000*10/100) = 5200
+  let wasPrice = '';
+  let displayPrice = priceVal; // Default to base price if no discounts
+
+  try {
+    // console.log('Raw offers data for', product.name, product.customFields?.offers);
+    const offersRaw = product.customFields?.offers;
+    if (offersRaw) {
+      const offers =
+        typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
+      if (Array.isArray(offers) && offers.length > 0) {
+        // Sum all percentage discounts
+        let totalDiscountPercent = 0;
+        offers.forEach((offer: any) => {
+          if (offer.discountType === 'percentage' && offer.discountValue) {
+            totalDiscountPercent += parseFloat(offer.discountValue);
+          }
+        });
+
+        // Apply discount: discountedPrice = basePrice * (1 - totalDiscountPercent/100)
+        if (totalDiscountPercent > 0 && totalDiscountPercent <= 100) {
+          displayPrice = priceVal * (1 - totalDiscountPercent / 100);
+          wasPrice = `₹${priceVal.toLocaleString('en-IN')}`; // Show base price with strikethrough
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing offers for', product.name, e);
+  }
+
   return {
     id: String(product.id || Math.random()),
     title: product.name || 'Untitled Course',
@@ -119,8 +152,8 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
     imageBg: '#f0f4ff',
     starts: table['Start Date'] || 'TBA',
     ends: table['End Date'] || 'TBA',
-    price: `₹${priceVal.toLocaleString('en-IN')}`,
-    wasPrice: '',
+    price: `₹${displayPrice.toLocaleString('en-IN')}`,
+    wasPrice,
     language,
     lectureMode,
     faculty,
@@ -289,8 +322,6 @@ function FilterDropdown({
   triggerClassName?: string;
 }) {
   const { x, y, strategy, refs } = useFloating({
-    open: isOpen,
-    onOpenChange,
     placement: align === 'left' ? 'bottom-start' : 'bottom-end',
     strategy: 'fixed',
     middleware: [offset(8), flip(), shift({ padding: 8 })],
@@ -302,9 +333,13 @@ function FilterDropdown({
     function handleClickOutside(event: MouseEvent) {
       if (
         refs.reference.current &&
-        !refs.reference.current.contains(event.target as Node) &&
+        'contains' in refs.reference.current &&
+        !(refs.reference.current as HTMLElement).contains(
+          event.target as Node,
+        ) &&
         refs.floating.current &&
-        !refs.floating.current.contains(event.target as Node)
+        'contains' in refs.floating.current &&
+        !(refs.floating.current as HTMLElement).contains(event.target as Node)
       ) {
         onOpenChange(false);
       }
@@ -362,6 +397,8 @@ export default function CourseListings({
     () => products.map(mapVendureToFeaturedCourse),
     [products],
   );
+
+  console.log('Mapped courses:', allCourses);
 
   const subjectOptions = useMemo(() => {
     const set = new Set<string>();

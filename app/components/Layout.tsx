@@ -14,6 +14,7 @@ export default function Layout({ children, bare }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
+  const isHomePage = location.pathname === '/';
   const isOurCoursesPage = location.pathname === '/our-courses';
   const isOurCoursesDetailPage = location.pathname.startsWith('/our-courses/');
 
@@ -31,41 +32,45 @@ export default function Layout({ children, bare }: LayoutProps) {
 
           {/* Navbar */}
           <Navbar isOurCoursesDetailPage={isOurCoursesDetailPage} />
+          {/* Banner */}
+          {isHomePage && (
+            <div className="w-full hidden min-[426px]:block">
+              <Link to="/olympiad" className="block w-full">
+                <div className="relative h-[90px] w-full flex justify-center items-center overflow-hidden bg-[#125BFF] -mt-12.5">
+                  <div className="absolute inset-0 bg-[url('/assets/images/olympiad/home-banner.png')] bg-cover bg-center bg-no-repeat pointer-events-none" />
+                  <div className="flex items-center justify-center gap-2 text-white mt-8 text-base md:text-xl font-black uppercase font-oswald z-10 relative cursor-pointer">
+                    <span className="font-bold text-[24px] leading-none">
+                      OLYMPIAD 2026
+                    </span>
+                    <span className="leading-none">
+                      <ArrowRight className="w-6 h-6" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          )}
+        </div>
 
-          <div className="w-full hidden min-[426px]:block">
+        {/* Olympiad Announcement Bar */}
+        {isHomePage && (
+          <div className="block min-[426px]:hidden w-full mt-4 md:mt-6">
             <Link to="/olympiad" className="block w-full">
-              <div className="relative h-[90px] w-full flex justify-center items-center overflow-hidden bg-[#125BFF] -mt-12.5">
-                <div className="absolute inset-0 bg-[url('/assets/images/olympiad/home-banner.png')] bg-cover bg-center bg-no-repeat pointer-events-none" />
-                <div className="flex items-center justify-center gap-2 text-white mt-8 text-base md:text-xl font-black uppercase font-oswald z-10 relative cursor-pointer">
-                  <span className="font-bold text-[24px] leading-none">
-                    OLYMPIAD 2026
-                  </span>
+              <div className="relative py-2 lg:py-3 w-full flex justify-center items-center overflow-hidden bg-[#125BFF] -mt-3.5">
+                <div className="absolute inset-0 bg-[url('/assets/images/olympiad/announcementbar.png')] bg-cover bg-center bg-no-repeat pointer-events-none" />
+
+                <div className="flex items-center justify-center gap-2 text-white text-base md:text-xl font-black uppercase font-oswald z-10 relative cursor-pointer">
+                  <span className="leading-none">OLYMPIAD 2026</span>
                   <span className="leading-none">
-                    <ArrowRight className="w-6 h-6" />
+                    <span className="leading-none">
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
                   </span>
                 </div>
               </div>
             </Link>
           </div>
-        </div>
-
-        {/* Olympiad Announcement Bar */}
-        <div className="block min-[426px]:hidden w-full mt-4 md:mt-6">
-          <Link to="/olympiad" className="block w-full">
-            <div className="relative py-2 lg:py-3 w-full flex justify-center items-center overflow-hidden bg-[#125BFF] -mt-3.5">
-              <div className="absolute inset-0 bg-[url('/assets/images/olympiad/announcementbar.png')] bg-cover bg-center bg-no-repeat pointer-events-none" />
-
-              <div className="flex items-center justify-center gap-2 text-white text-base md:text-xl font-black uppercase font-oswald z-10 relative cursor-pointer">
-                <span className="leading-none">OLYMPIAD 2026</span>
-                <span className="leading-none">
-                  <span className="leading-none">
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                </span>
-              </div>
-            </div>
-          </Link>
-        </div>
+        )}
 
         {/* Mobile Overlay */}
         {mobileOpen && (
