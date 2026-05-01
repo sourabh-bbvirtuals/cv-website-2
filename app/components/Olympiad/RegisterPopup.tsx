@@ -826,12 +826,13 @@ export default function RegisterPopup({
                   <input
                     type="number"
                     id="phone"
+                    min={0}
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     maxLength={10}
                     placeholder="Enter phone number"
-                    className="flex-1 outline-none bg-transparent"
+                    className="flex-1 outline-none bg-transparent [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 {errors.phone && (
