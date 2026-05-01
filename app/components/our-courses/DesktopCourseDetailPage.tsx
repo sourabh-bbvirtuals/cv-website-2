@@ -1099,6 +1099,10 @@ export default function CourseDetailPage({
   // Calculate discount from offers and apply to display price
   const discountInfo = (() => {
     try {
+      console.log(
+        'Calculating discount for product:',
+        product?.customFields?.offers,
+      );
       const offersRaw = product?.customFields?.offers;
       if (offersRaw) {
         const offers =
@@ -1128,9 +1132,9 @@ export default function CourseDetailPage({
   const basePrice = displayPriceRaw / 100;
   const discountedPrice = Math.max(0, basePrice - discountInfo.totalDiscount);
 
-  const displayPrice = selectedVariant
-    ? `₹${Math.round(discountedPrice).toLocaleString('en-IN')}`
-    : product?.price || '';
+  const displayPrice = `₹${Math.round(discountedPrice).toLocaleString(
+    'en-IN',
+  )}`;
 
   // Calculate wasPrice from offers
   const displayWasPrice = (() => {
