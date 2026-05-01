@@ -430,7 +430,8 @@ export default function Olympiad() {
 
   useEffect(() => {
     const calculateCountdown = () => {
-      const targetDate = new Date('2026-05-06T00:00:00').getTime();
+      const targetDate = new Date('2026-05-06T14:00:00+05:30').getTime();
+
       const now = new Date().getTime();
       const distance = targetDate - now;
 
@@ -478,8 +479,8 @@ export default function Olympiad() {
       {cartMessage && (
         <div
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-in fade-in duration-300 ${cartMessage.type === 'success'
-              ? 'bg-green-500 text-white'
-              : 'bg-red-500 text-white'
+            ? 'bg-green-500 text-white'
+            : 'bg-red-500 text-white'
             }`}
         >
           {cartMessage.text}
@@ -713,8 +714,8 @@ export default function Olympiad() {
                         <div
                           key={idx}
                           className={`flex items-center gap-2 px-3 py-3 backdrop-blur-2xl bg-white/10 text-xs font-semibold relative ${idx % 2 === 0
-                              ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
-                              : ''
+                            ? 'after:absolute after:top-0 after:right-0 after:w-px after:h-full after:bg-white/20'
+                            : ''
                             }`}
                         >
                           <span className="text-white/55 uppercase tracking-[1.4px]">
@@ -770,8 +771,8 @@ export default function Olympiad() {
         {/* mobile overlay button */}
         <div
           className={`md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 gap-4 z-50 bg-[#EDF1FF] backdrop-blur-sm border-t border-[#0A232F]/10 transition-all duration-300 ${isContentInView
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-0 pointer-events-none'
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
             }`}
         >
           <div className="flex items-start flex-col gap-1">

@@ -307,7 +307,7 @@ export default function Olympiad() {
 
   useEffect(() => {
     const calculateCountdown = () => {
-      const targetDate = new Date('2026-05-03T00:00:00').getTime();
+      const targetDate = new Date('2026-05-06T14:00:00+05:30').getTime();
       const now = new Date().getTime();
       const distance = targetDate - now;
 
