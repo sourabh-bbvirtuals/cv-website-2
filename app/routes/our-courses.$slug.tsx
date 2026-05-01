@@ -1,11 +1,105 @@
 import { json, type DataFunctionArgs } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
-import { getProductBySlug } from '~/providers/course2';
 import { getCollectionBySlug } from '~/providers/collections/collections';
 import sanitizeHtml from 'sanitize-html';
 import { API_URL } from '~/constants';
 import { getSessionStorage } from '~/sessions';
 import CourseDetailPage from '~/components/our-courses/CourseDetailPage';
+
+/**
+ * Fetch product directly via GraphQL with all required fields including offers
+ */
+async function getProductDirectly(slug: string) {
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        query getProductBySlug($slug: String!) {
+          product(slug: $slug) {
+            id
+            name
+            slug
+            description
+            customFields {
+              customData
+              offers
+            }
+            featuredAsset {
+              id
+              preview
+            }
+            facetValues {
+              facet {
+                id
+                code
+                name
+              }
+              id
+              code
+              name
+            }
+            optionGroups {
+              id
+              name
+              code
+              options {
+                id
+                name
+              }
+            }
+            variants {
+              id
+              name
+              priceWithTax
+              currencyCode
+              sku
+              stockLevel
+              options {
+                id
+                name
+                group {
+                  id
+                  name
+                }
+              }
+              featuredAsset {
+                id
+                preview
+              }
+            }
+          }
+        }
+      `,
+      variables: { slug },
+    }),
+  }).then((res) => res.json());
+
+  const rawProduct = response?.data?.product;
+  if (!rawProduct) return null;
+
+  return {
+    id: rawProduct.id,
+    title: rawProduct.name,
+    slug: rawProduct.slug,
+    description: rawProduct.description || '',
+    priceWithTax: rawProduct.variants?.[0]?.priceWithTax ?? 0,
+    featuredAsset: rawProduct.featuredAsset || null,
+    facetValues: rawProduct.facetValues || [],
+    customFields: rawProduct.customFields || {},
+    optionGroups: rawProduct.optionGroups || [],
+    variants: (rawProduct.variants || []).map((v: any) => ({
+      id: v.id,
+      name: v.name,
+      priceWithTax: v.priceWithTax,
+      currencyCode: v.currencyCode,
+      sku: v.sku,
+      stockLevel: v.stockLevel,
+      options: v.options || [],
+      featuredAsset: v.featuredAsset || null,
+    })),
+  };
+}
 
 /**
  * Course detail (Figma: 3_Course Details, node 1:1387)
@@ -38,7 +132,7 @@ export async function loader({ params, request }: DataFunctionArgs) {
 
     const [productResult, collectionResult, teamResult] =
       await Promise.allSettled([
-        getProductBySlug(normalizedSlug, { request }),
+        getProductDirectly(normalizedSlug),
         getCollectionBySlug(normalizedSlug, { request }),
         teamFetch,
       ]);
@@ -171,8 +265,8 @@ export async function loader({ params, request }: DataFunctionArgs) {
         })
       : '';
 
-    const variants = product?.variantProperties ?? [];
-    const allOptionGroups = product?.optionProperties ?? [];
+    const variants = product?.variants ?? [];
+    const allOptionGroups = product?.optionGroups ?? [];
     const firstVariantId = variants[0]?.id ?? null;
 
     // Collect only the option group IDs that variants actually reference
@@ -313,6 +407,7 @@ export async function loader({ params, request }: DataFunctionArgs) {
           featuredAsset: product.featuredAsset ?? null,
           faculties,
           facetValues: product.facetValues ?? [],
+          customFields: product.customFields ?? null,
           variantId: firstVariantId,
           ...(hasOptions && {
             optionGroups: optionGroups.map((og) => ({
