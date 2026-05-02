@@ -230,6 +230,17 @@ function mapProductsToCourses(products: any[]) {
   });
 }
 
+/** Match `our-courses._index` — Olympiad is only promoted via /olympiad and nav, not in course grids. */
+function filterOutOlympiadProducts<T extends { title?: string; slug?: string }>(
+  courses: T[],
+): T[] {
+  return courses.filter((c) => {
+    const name = (c.title || '').toLowerCase();
+    const slug = (c.slug || '').toLowerCase();
+    return !name.includes('olympiad') && !slug.includes('olympiad');
+  });
+}
+
 function parseCollectionData(raw: string | null | undefined): any {
   if (!raw) return null;
   try {
@@ -469,6 +480,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         .catch(() => []);
       featuredCourses = mapProductsToCourses(allProducts);
     }
+
+    featuredCourses = filterOutOlympiadProducts(featuredCourses);
 
     return json({
       isLoggedIn,
