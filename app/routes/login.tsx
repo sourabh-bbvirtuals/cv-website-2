@@ -49,12 +49,20 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   try {
+    // Parse name into firstName and lastName if provided
+    const nameParts = name.trim().split(/\s+/) ?? [];
+    const firstName = nameParts[0] ?? '';
+    const lastName = nameParts.slice(1).join(' ') ?? '';
+
     const result = await sdk.Authenticate(
       {
         input: {
           otp: {
             identifier: normalizedPhone,
             otp,
+            ...(embedRegistration && firstName && { firstName }),
+            ...(embedRegistration && lastName && { lastName }),
+            ...(embedRegistration && email && { contactEmail: email }),
           },
         } as any,
       },
@@ -103,66 +111,81 @@ export async function action({ request }: ActionFunctionArgs) {
         );
 
         // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
-        // If this is embedded registration, always update the customer when
-        // name/email/phone are supplied from the popup.
+        // If this is embedded registration, update the customer ONLY if backend
+        // didn't already update it during OTP verification (firstName was provided)
         if (embedRegistration && c && (name || email || phone)) {
           try {
-            const { updateCustomer } = await import(
-              '~/providers/account/account'
-            );
-            const updatePayload: any = {};
+            const nameParts = name.trim().split(/\s+/) ?? [];
+            const firstName = nameParts[0] ?? '';
+            const lastName = nameParts.slice(1).join(' ') ?? '';
 
-            if (name) {
-              const nameParts = name.trim().split(/\s+/);
-              const firstName = nameParts[0] || '';
-              const lastName = nameParts.slice(1).join(' ') || '';
-              if (
-                !c.firstName ||
-                c.firstName === 'BB Virtual' ||
-                c.firstName !== firstName
-              ) {
-                updatePayload.firstName = firstName;
-              }
-              if (!c.lastName || c.lastName !== lastName) {
-                updatePayload.lastName = lastName;
-              }
-            }
-
-            if (email) {
-              const isPlaceholderEmail =
-                c.emailAddress?.endsWith('@bbvirtuals.tech');
-              const currentContactEmail = c.customFields?.contactEmail;
-              if (
-                !c.emailAddress ||
-                isPlaceholderEmail ||
-                c.emailAddress !== email ||
-                !currentContactEmail ||
-                currentContactEmail !== email
-              ) {
-                updatePayload.customFields = {
-                  ...(updatePayload.customFields || {}),
-                  contactEmail: email,
-                };
-              }
-            }
-
-            if (phone) {
-              if (c.phoneNumber !== rawPhone) {
-                updatePayload.phoneNumber = rawPhone;
-              }
-            }
-
-            if (Object.keys(updatePayload).length > 0) {
-              console.log('[login] updateCustomer payload:', updatePayload);
-              await updateCustomer(updatePayload, { request: authedRequest });
+            // Skip update if backend already updated these fields during OTP verification
+            const alreadyUpdatedByBackend =
+              firstName && c.firstName === firstName;
+            if (
+              alreadyUpdatedByBackend &&
+              email &&
+              c.customFields?.contactEmail === email
+            ) {
               console.log(
-                '[login] Updated customer profile with registration data:',
-                updatePayload,
+                '[login] Customer already updated by backend during OTP verification, skipping redundant update',
               );
             } else {
-              console.log(
-                '[login] No customer profile update required after auth',
+              // Perform update only if backend didn't already do it
+              const { updateCustomer } = await import(
+                '~/providers/account/account'
               );
+              const updatePayload: any = {};
+
+              if (name) {
+                if (
+                  !c.firstName ||
+                  c.firstName === 'BB Virtual' ||
+                  c.firstName !== firstName
+                ) {
+                  updatePayload.firstName = firstName;
+                }
+                if (!c.lastName || c.lastName !== lastName) {
+                  updatePayload.lastName = lastName;
+                }
+              }
+
+              if (email) {
+                const isPlaceholderEmail =
+                  c.emailAddress?.endsWith('@bbvirtuals.tech');
+                const currentContactEmail = c.customFields?.contactEmail;
+                if (
+                  !c.emailAddress ||
+                  isPlaceholderEmail ||
+                  c.emailAddress !== email ||
+                  !currentContactEmail ||
+                  currentContactEmail !== email
+                ) {
+                  updatePayload.customFields = {
+                    ...(updatePayload.customFields || {}),
+                    contactEmail: email,
+                  };
+                }
+              }
+
+              if (phone) {
+                if (c.phoneNumber !== rawPhone) {
+                  updatePayload.phoneNumber = rawPhone;
+                }
+              }
+
+              if (Object.keys(updatePayload).length > 0) {
+                console.log('[login] updateCustomer payload:', updatePayload);
+                await updateCustomer(updatePayload, { request: authedRequest });
+                console.log(
+                  '[login] Updated customer profile with registration data:',
+                  updatePayload,
+                );
+              } else {
+                console.log(
+                  '[login] No customer profile update required after auth',
+                );
+              }
             }
           } catch (e) {
             console.error('[login] failed to update customer profile:', e);
