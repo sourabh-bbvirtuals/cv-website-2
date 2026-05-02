@@ -247,19 +247,6 @@ const SignUp: React.FC = () => {
       setErrors(newErrors);
       return;
     }
-
-    try {
-      localStorage.setItem(
-        'bb_user_profile',
-        JSON.stringify({
-          board: formData.board,
-          classLevel: formData.studentClass,
-          dob: formData.dob,
-          gender: formData.gender,
-          email: formData.email.trim(),
-        }),
-      );
-    } catch {}
   };
 
   const getSegmentClass = (isActive: boolean) =>
