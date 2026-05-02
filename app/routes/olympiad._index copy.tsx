@@ -604,7 +604,7 @@ export default function Olympiad() {
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">Free</p>
             <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
-              Closes 6 May, 2:00 PM IST
+              Free entry. Registration open till the last minute!
             </p>
           </div>
           <button

@@ -782,7 +782,7 @@ export default function Olympiad() {
             <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
               {isEnrolled
                 ? 'Download the app to play'
-                : 'Closes 6 May, 2:00 PM IST'}
+                : 'Free entry. Registration open till the last minute!'}
             </p>
           </div>
           <button

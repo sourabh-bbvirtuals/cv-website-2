@@ -107,7 +107,7 @@ const Footer = () => {
               {/* {isOlympiadEnrolled
                 ? 'You have already registered for the CUET All India Commerce Olympiad 2026.'
                 : 'Free entry. Closes 3 May, 9:00 AM IST.'} */}
-              Free entry. Closes 6 May - 2:00 PM IST.
+              Free entry. Registration open till the last minute!
             </p>
           ) : (
             <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
