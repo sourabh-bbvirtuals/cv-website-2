@@ -212,7 +212,7 @@ function mapProductsToCourses(products: any[]) {
     }
 
     return {
-      id: variant.id || product.id,
+      id: product.id,
       title: product.name,
       slug: product.slug || '',
       meta: facetNames,
@@ -263,103 +263,38 @@ function parseChildCustomData(
   return null;
 }
 
-function mapVariantsToCourses(items: any[]) {
-  return (items || []).map((variant: any) => {
-    const product = variant.product || {};
-    const productFacets = product.facetValues || [];
-    const variantFacets = variant.facetValues || [];
-    const facetNames = [...productFacets, ...variantFacets]
-      .map((fv: any) => fv.name)
-      .filter(Boolean);
+/**
+ * Homepage collections return variants; cards are one per product.
+ * Preserves collection order; merges variants for min-price and product-level fields.
+ */
+function groupCollectionVariantsByProduct(items: any[] | undefined): any[] {
+  const list = items || [];
+  const order: string[] = [];
+  const byId = new Map<string, any>();
 
-    const byGroup = (group: string) => {
-      const fromProduct = productFacets
-        .filter(
-          (fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase(),
-        )
-        .map((fv: any) => fv.name);
-      if (fromProduct.length > 0) return fromProduct;
-      return variantFacets
-        .filter(
-          (fv: any) => fv?.facet?.name?.toLowerCase() === group.toLowerCase(),
-        )
-        .map((fv: any) => fv.name);
+  for (const row of list) {
+    const product = row?.product;
+    if (!product?.id) continue;
+
+    const variantShape = {
+      id: row.id,
+      name: row.name,
+      priceWithTax: row.priceWithTax,
+      featuredAsset: row.featuredAsset,
+      facetValues: row.facetValues,
     };
 
-    let table: any = {};
-    try {
-      const customDataRaw = product.customFields?.customData;
-      if (customDataRaw) {
-        const parsed =
-          typeof customDataRaw === 'string'
-            ? JSON.parse(customDataRaw)
-            : customDataRaw;
-        const specsObj = parsed.specifications || {};
-        const specs = Array.isArray(specsObj.product) ? specsObj.product : [];
-        const courseInfo =
-          specs.find(
-            (s: any) =>
-              s && (s.identifier === 'course_info' || s.name === 'Course Info'),
-          ) || {};
-        table = courseInfo?.table || {};
-      }
-    } catch {
-      /* ignore */
+    const existing = byId.get(product.id);
+    if (existing) {
+      existing.variants.push(variantShape);
+      continue;
     }
 
-    const priceVal = variant.priceWithTax ? variant.priceWithTax / 100 : 0;
+    byId.set(product.id, { ...product, variants: [variantShape] });
+    order.push(product.id);
+  }
 
-    const language = byGroup('language')[0] || '';
-    const lectureMode = byGroup('lecture mode')[0] || '';
-
-    // Extract wasPrice from offers array & apply discount to display price
-    // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
-    // Example: 8000 - (8000*25/100) - 1000 = 6200
-    let wasPrice = '';
-    let displayPrice = priceVal; // Default to base price if no discounts
-
-    try {
-      const offersRaw = product.customFields?.offers;
-      if (offersRaw) {
-        const offers =
-          typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
-        if (Array.isArray(offers) && offers.length > 0) {
-          let totalDiscount = 0;
-          offers.forEach((offer: any) => {
-            if (offer.discountType === 'percentage' && offer.discountValue) {
-              totalDiscount +=
-                priceVal * (parseFloat(offer.discountValue) / 100);
-            } else if (offer.discountType === 'fixed' && offer.discountValue) {
-              totalDiscount += parseFloat(offer.discountValue);
-            }
-          });
-          if (totalDiscount > 0) {
-            displayPrice = Math.max(0, priceVal - totalDiscount);
-            wasPrice = `₹${Math.round(priceVal).toLocaleString('en-IN')}`; // Show base price with strikethrough
-          }
-        }
-      }
-    } catch (e) {
-      // silently ignore offer parsing errors
-    }
-
-    return {
-      id: variant.id,
-      title: variant.name,
-      slug: product.slug || '',
-      meta: facetNames,
-      enrolled: '1240+ Students Enrolled',
-      image:
-        product.featuredAsset?.preview || variant.featuredAsset?.preview || '',
-      badge: table['Badge'] || null,
-      starts: table['Start Date'] || 'TBA',
-      ends: table['End Date'] || 'TBA',
-      price: `₹${Math.round(displayPrice).toLocaleString('en-IN')}`,
-      wasPrice,
-      language,
-      lectureMode,
-    };
-  });
+  return order.map((id) => byId.get(id)!);
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -468,8 +403,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         .catch(() => null);
 
       if (childResult) {
-        featuredCourses = mapVariantsToCourses(
-          childResult.productVariants?.items,
+        featuredCourses = mapProductsToCourses(
+          groupCollectionVariantsByProduct(childResult.productVariants?.items),
         );
       }
     }
