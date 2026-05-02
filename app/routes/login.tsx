@@ -38,6 +38,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const normalizedPhone = normalizePhone(phone);
   const rawPhone = getRawPhone(phone);
 
+  // ─── ENVIRONMENT VARIABLES ──────────────────────────────────────────────
+  const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
+  const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
+
   console.log('[login] action input phone values:', {
     originalPhone: phone,
     normalizedPhone,
@@ -49,20 +53,12 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   try {
-    // Parse name into firstName and lastName if provided
-    const nameParts = name.trim().split(/\s+/) ?? [];
-    const firstName = nameParts[0] ?? '';
-    const lastName = nameParts.slice(1).join(' ') ?? '';
-
     const result = await sdk.Authenticate(
       {
         input: {
           otp: {
             identifier: normalizedPhone,
             otp,
-            ...(embedRegistration && firstName && { firstName }),
-            ...(embedRegistration && lastName && { lastName }),
-            ...(embedRegistration && email && { contactEmail: email }),
           },
         } as any,
       },
@@ -111,81 +107,68 @@ export async function action({ request }: ActionFunctionArgs) {
         );
 
         // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
-        // If this is embedded registration, update the customer ONLY if backend
-        // didn't already update it during OTP verification (firstName was provided)
+        // If this is embedded registration, always update the customer when
+        // name/email/phone are supplied from the popup.
+        let profileWasUpdated = false; // Track if profile was updated for webhook
         if (embedRegistration && c && (name || email || phone)) {
           try {
-            const nameParts = name.trim().split(/\s+/) ?? [];
-            const firstName = nameParts[0] ?? '';
-            const lastName = nameParts.slice(1).join(' ') ?? '';
+            const { updateCustomer } = await import(
+              '~/providers/account/account'
+            );
+            const updatePayload: any = {};
 
-            // Skip update if backend already updated these fields during OTP verification
-            const alreadyUpdatedByBackend =
-              firstName && c.firstName === firstName;
-            if (
-              alreadyUpdatedByBackend &&
-              email &&
-              c.customFields?.contactEmail === email
-            ) {
+            if (name) {
+              const nameParts = name.trim().split(/\s+/);
+              const firstName = nameParts[0] || '';
+              const lastName = nameParts.slice(1).join(' ') || '';
+              if (
+                !c.firstName ||
+                c.firstName === 'BB Virtual' ||
+                c.firstName !== firstName
+              ) {
+                updatePayload.firstName = firstName;
+              }
+              if (!c.lastName || c.lastName !== lastName) {
+                updatePayload.lastName = lastName;
+              }
+            }
+
+            if (email) {
+              const isPlaceholderEmail =
+                c.emailAddress?.endsWith('@bbvirtuals.tech');
+              const currentContactEmail = c.customFields?.contactEmail;
+              if (
+                !c.emailAddress ||
+                isPlaceholderEmail ||
+                c.emailAddress !== email ||
+                !currentContactEmail ||
+                currentContactEmail !== email
+              ) {
+                updatePayload.customFields = {
+                  ...(updatePayload.customFields || {}),
+                  contactEmail: email,
+                };
+              }
+            }
+
+            if (phone) {
+              if (c.phoneNumber !== rawPhone) {
+                updatePayload.phoneNumber = rawPhone;
+              }
+            }
+
+            if (Object.keys(updatePayload).length > 0) {
+              console.log('[login] updateCustomer payload:', updatePayload);
+              await updateCustomer(updatePayload, { request: authedRequest });
+              profileWasUpdated = true; // Mark profile as updated
               console.log(
-                '[login] Customer already updated by backend during OTP verification, skipping redundant update',
+                '[login] Updated customer profile with registration data:',
+                updatePayload,
               );
             } else {
-              // Perform update only if backend didn't already do it
-              const { updateCustomer } = await import(
-                '~/providers/account/account'
+              console.log(
+                '[login] No customer profile update required after auth',
               );
-              const updatePayload: any = {};
-
-              if (name) {
-                if (
-                  !c.firstName ||
-                  c.firstName === 'BB Virtual' ||
-                  c.firstName !== firstName
-                ) {
-                  updatePayload.firstName = firstName;
-                }
-                if (!c.lastName || c.lastName !== lastName) {
-                  updatePayload.lastName = lastName;
-                }
-              }
-
-              if (email) {
-                const isPlaceholderEmail =
-                  c.emailAddress?.endsWith('@bbvirtuals.tech');
-                const currentContactEmail = c.customFields?.contactEmail;
-                if (
-                  !c.emailAddress ||
-                  isPlaceholderEmail ||
-                  c.emailAddress !== email ||
-                  !currentContactEmail ||
-                  currentContactEmail !== email
-                ) {
-                  updatePayload.customFields = {
-                    ...(updatePayload.customFields || {}),
-                    contactEmail: email,
-                  };
-                }
-              }
-
-              if (phone) {
-                if (c.phoneNumber !== rawPhone) {
-                  updatePayload.phoneNumber = rawPhone;
-                }
-              }
-
-              if (Object.keys(updatePayload).length > 0) {
-                console.log('[login] updateCustomer payload:', updatePayload);
-                await updateCustomer(updatePayload, { request: authedRequest });
-                console.log(
-                  '[login] Updated customer profile with registration data:',
-                  updatePayload,
-                );
-              } else {
-                console.log(
-                  '[login] No customer profile update required after auth',
-                );
-              }
             }
           } catch (e) {
             console.error('[login] failed to update customer profile:', e);
@@ -211,6 +194,61 @@ export async function action({ request }: ActionFunctionArgs) {
             );
           } catch (e) {
             console.error('[login] failed to normalize customer phone:', e);
+          }
+        }
+
+        // ─── FIRE CUSTOMER-ONBOARDED WEBHOOK ────────────────────────────────
+        // If embedRegistration=true and profile was updated, fire webhook to
+        // notify BB Server of the customer's updated details (name, email, phone).
+        // This mirrors the behavior in /sign-up action.
+        if (embedRegistration && profileWasUpdated && c?.id) {
+          try {
+            console.log(
+              '[login] Firing customer-onboarded webhook (embedRegistration=true, profile updated)',
+            );
+            const updatedDetails = await getActiveCustomerDetails({
+              request: authedRequest,
+            });
+            const updatedC = updatedDetails?.activeCustomer;
+
+            if (updatedC?.id) {
+              const fullName =
+                name || `${updatedC.firstName} ${updatedC.lastName}`.trim();
+              const contactEmail =
+                email ||
+                updatedC.customFields?.contactEmail ||
+                updatedC.emailAddress;
+
+              const webhookPayload = {
+                vendureCustomerId: String(updatedC.id),
+                businessVerticalId: BUSINESS_VERTICAL_ID,
+                name: fullName,
+                phone: rawPhone,
+                email: contactEmail,
+                board: '', // Not available in RegisterPopup form yet
+                studentClass: '', // Not available in RegisterPopup form yet
+              };
+
+              console.log('[login] Webhook payload:', webhookPayload);
+
+              // Fire-and-forget: don't await, don't block response
+              fetch(`${BB_SERVER_URL}/webhooks/vendure/customer-onboarded`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(webhookPayload),
+              }).catch((err) =>
+                console.error(
+                  '[login] customer-onboarded webhook failed:',
+                  err,
+                ),
+              );
+            }
+          } catch (webhookErr) {
+            console.error(
+              '[login] Failed to fire customer-onboarded webhook:',
+              webhookErr,
+            );
+            // Don't throw - webhook failure should not block the login response
           }
         }
 
