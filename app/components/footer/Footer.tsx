@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Phone, Instagram, Youtube, ArrowRight, Check } from 'lucide-react';
 import { useLocation, useMatches } from '@remix-run/react';
+import { useBoardSelection } from '~/context/BoardSelectionContext';
 
 const YOUTUBE_CHANNELS = [
   {
@@ -29,17 +30,9 @@ const INSTAGRAM_PAGES = [
 ];
 
 function useUserBoard(): string | null {
-  const [board, setBoard] = useState<string | null>(null);
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('bb_user_profile');
-      if (!stored) return;
-      const profile = JSON.parse(stored);
-      const raw = (profile.board || '').toLowerCase().trim();
-      if (raw) setBoard(raw);
-    } catch { }
-  }, []);
-  return board;
+  const { selectedSlug, boardOptions } = useBoardSelection();
+  const selectedOption = boardOptions.find((o) => o.slug === selectedSlug);
+  return selectedOption?.board?.toLowerCase() || null;
 }
 
 function resolveYoutubeForBoard(board: string | null) {
@@ -66,8 +59,9 @@ const Footer = () => {
   // Pick up enrollment status from the olympiad route's loader data so the
   // footer CTA can reflect "Already Registered" when relevant.
   const olympiadMatch = matches.find((m) => m.id === 'routes/olympiad._index');
-  const isOlympiadEnrolled =
-    !!(olympiadMatch?.data as { isEnrolled?: boolean } | undefined)?.isEnrolled;
+  const isOlympiadEnrolled = !!(
+    olympiadMatch?.data as { isEnrolled?: boolean } | undefined
+  )?.isEnrolled;
 
   const footerLinks = [
     {

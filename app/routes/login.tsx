@@ -38,6 +38,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const normalizedPhone = normalizePhone(phone);
   const rawPhone = getRawPhone(phone);
 
+  // ─── ENVIRONMENT VARIABLES ──────────────────────────────────────────────
+  const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
+  const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
+
   console.log('[login] action input phone values:', {
     originalPhone: phone,
     normalizedPhone,
@@ -105,6 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
         // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
         // If this is embedded registration, always update the customer when
         // name/email/phone are supplied from the popup.
+        let profileWasUpdated = false; // Track if profile was updated for webhook
         if (embedRegistration && c && (name || email || phone)) {
           try {
             const { updateCustomer } = await import(
@@ -155,6 +160,7 @@ export async function action({ request }: ActionFunctionArgs) {
             if (Object.keys(updatePayload).length > 0) {
               console.log('[login] updateCustomer payload:', updatePayload);
               await updateCustomer(updatePayload, { request: authedRequest });
+              profileWasUpdated = true; // Mark profile as updated
               console.log(
                 '[login] Updated customer profile with registration data:',
                 updatePayload,
@@ -188,6 +194,61 @@ export async function action({ request }: ActionFunctionArgs) {
             );
           } catch (e) {
             console.error('[login] failed to normalize customer phone:', e);
+          }
+        }
+
+        // ─── FIRE CUSTOMER-ONBOARDED WEBHOOK ────────────────────────────────
+        // If embedRegistration=true and profile was updated, fire webhook to
+        // notify BB Server of the customer's updated details (name, email, phone).
+        // This mirrors the behavior in /sign-up action.
+        if (embedRegistration && profileWasUpdated && c?.id) {
+          try {
+            console.log(
+              '[login] Firing customer-onboarded webhook (embedRegistration=true, profile updated)',
+            );
+            const updatedDetails = await getActiveCustomerDetails({
+              request: authedRequest,
+            });
+            const updatedC = updatedDetails?.activeCustomer;
+
+            if (updatedC?.id) {
+              const fullName =
+                name || `${updatedC.firstName} ${updatedC.lastName}`.trim();
+              const contactEmail =
+                email ||
+                updatedC.customFields?.contactEmail ||
+                updatedC.emailAddress;
+
+              const webhookPayload = {
+                vendureCustomerId: String(updatedC.id),
+                businessVerticalId: BUSINESS_VERTICAL_ID,
+                name: fullName,
+                phone: rawPhone,
+                email: contactEmail,
+                board: '', // Not available in RegisterPopup form yet
+                studentClass: '', // Not available in RegisterPopup form yet
+              };
+
+              console.log('[login] Webhook payload:', webhookPayload);
+
+              // Fire-and-forget: don't await, don't block response
+              fetch(`${BB_SERVER_URL}/webhooks/vendure/customer-onboarded`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(webhookPayload),
+              }).catch((err) =>
+                console.error(
+                  '[login] customer-onboarded webhook failed:',
+                  err,
+                ),
+              );
+            }
+          } catch (webhookErr) {
+            console.error(
+              '[login] Failed to fire customer-onboarded webhook:',
+              webhookErr,
+            );
+            // Don't throw - webhook failure should not block the login response
           }
         }
 
