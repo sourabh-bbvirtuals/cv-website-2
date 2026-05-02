@@ -22,7 +22,7 @@ import {
   Dot,
 } from 'lucide-react';
 import parse from 'html-react-parser';
-import { useFetcher, useNavigate } from '@remix-run/react';
+import { useFetcher, useNavigate, useOutletContext } from '@remix-run/react';
 import {
   ProductData,
   SpecItem,
@@ -1044,12 +1044,16 @@ export default function CourseDetailPage({
   slug,
   product: propProduct,
   specifications: propSpecifications,
+  isEnrolled,
 }: CourseDetailPageProps) {
   const product = propProduct;
   const specifications = propSpecifications;
   const navigate = useNavigate();
   const addToCartFetcher = useFetcher();
   const isAdding = addToCartFetcher.state !== 'idle';
+
+  // activeOrder context for duplicate detection (populated after activeVariantId is computed)
+  const { activeOrder } = (useOutletContext() as any) ?? {};
 
   const optionGroups = product?.optionGroups ?? [];
   const variants = product?.variants ?? [];
@@ -1082,11 +1086,63 @@ export default function CourseDetailPage({
 
   const activeVariantId = selectedVariant?.id ?? product?.variantId ?? null;
 
-  const displayPrice = selectedVariant
-    ? `₹${(selectedVariant.priceWithTax / 100).toLocaleString('en-IN')}`
-    : product?.price || '';
+  // ── Duplicate detection: is the selected variant already in cart? ──────────
+  const cartVariantIds: string[] = (activeOrder?.lines ?? []).map(
+    (l: any) => l?.productVariant?.id,
+  );
+  const isInCart =
+    !!activeVariantId && cartVariantIds.includes(activeVariantId);
+
   const displayPriceRaw =
     selectedVariant?.priceWithTax ?? product?.priceWithTax ?? 0;
+
+  // Calculate discount from offers and apply to display price
+  const discountInfo = (() => {
+    try {
+      console.log(
+        'Calculating discount for product:',
+        product?.customFields?.offers,
+      );
+      const offersRaw = product?.customFields?.offers;
+      if (offersRaw) {
+        const offers =
+          typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
+        if (Array.isArray(offers) && offers.length > 0) {
+          const basePrice = displayPriceRaw / 100;
+          let totalDiscount = 0;
+          offers.forEach((offer: any) => {
+            if (offer.discountType === 'percentage' && offer.discountValue) {
+              totalDiscount +=
+                basePrice * (parseFloat(offer.discountValue) / 100);
+            } else if (offer.discountType === 'fixed' && offer.discountValue) {
+              totalDiscount += parseFloat(offer.discountValue);
+            }
+          });
+          if (totalDiscount > 0) {
+            return { totalDiscount };
+          }
+        }
+      }
+    } catch (e) {
+      // silently ignore
+    }
+    return { totalDiscount: 0 };
+  })();
+
+  const basePrice = displayPriceRaw / 100;
+  const discountedPrice = Math.max(0, basePrice - discountInfo.totalDiscount);
+
+  const displayPrice = `₹${Math.round(discountedPrice).toLocaleString(
+    'en-IN',
+  )}`;
+
+  // Calculate wasPrice from offers
+  const displayWasPrice = (() => {
+    if (discountInfo.totalDiscount > 0) {
+      return `₹${Math.round(basePrice).toLocaleString('en-IN')}`; // Show base price with strikethrough
+    }
+    return '';
+  })();
 
   const handleOptionSelect = useCallback(
     (groupId: string, optionId: string) => {
@@ -1106,7 +1162,7 @@ export default function CourseDetailPage({
   useEffect(() => {
     if (addToCartFetcher.state === 'idle' && addToCartFetcher.data) {
       const data = addToCartFetcher.data as any;
-      if (data?.order) {
+      if (data?.order || data?.already_in_cart) {
         navigate('/cart');
       }
     }
@@ -1285,18 +1341,54 @@ export default function CourseDetailPage({
                     <span className="text-3xl font-bold text-[#0f172a] sm:text-4xl">
                       {displayPrice}
                     </span>
+                    {displayWasPrice && (
+                      <span className="text-lg line-through text-gray-500 sm:text-xl">
+                        {displayWasPrice}
+                      </span>
+                    )}
                   </div>
                 )}
                 <button
                   type="button"
-                  onClick={handleEnroll}
-                  disabled={isAdding || !activeVariantId}
-                  className="primary-btn flex w-[449px] items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%]"
+                  onClick={
+                    isEnrolled
+                      ? () => navigate('/account/orders')
+                      : isInCart
+                      ? () => navigate('/cart')
+                      : handleEnroll
+                  }
+                  disabled={isAdding || (!activeVariantId && !isEnrolled)}
+                  className={`flex w-[449px] items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%] transition-all ${
+                    isEnrolled || isInCart
+                      ? 'bg-green-500 cursor-pointer text-white shadow-[0_4px_20px_rgba(34,197,94,0.35)] hover:bg-green-600'
+                      : 'primary-btn'
+                  }`}
                 >
                   {isAdding ? (
                     <span className="inline-flex items-center gap-2">
                       <Loader2 className="size-5 animate-spin" />
                       Adding…
+                    </span>
+                  ) : isEnrolled ? (
+                    <span className="inline-flex items-center gap-2">
+                      <CheckCircle2 className="size-5" />
+                      Enrolled
+                    </span>
+                  ) : isInCart ? (
+                    <span className="inline-flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="size-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Added to Cart
                     </span>
                   ) : (
                     'Enroll Now'
@@ -1599,6 +1691,11 @@ export default function CourseDetailPage({
                       <p className="text-3xl font-bold text-slate-900 leading-none">
                         {displayPrice}
                       </p>
+                      {displayWasPrice && (
+                        <p className="text-lg line-through text-gray-500 leading-none">
+                          {displayWasPrice}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1607,14 +1704,45 @@ export default function CourseDetailPage({
               {/* Action Section */}
               <button
                 type="button"
-                onClick={handleEnroll}
-                disabled={isAdding || !activeVariantId}
-                className="primary-btn flex w-full mt-8 items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%]"
+                onClick={
+                  isEnrolled
+                    ? () => navigate('/account/orders')
+                    : isInCart
+                    ? () => navigate('/cart')
+                    : handleEnroll
+                }
+                disabled={isAdding || (!activeVariantId && !isEnrolled)}
+                className={`flex w-full mt-8 items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%] transition-all ${
+                  isEnrolled || isInCart
+                    ? 'bg-green-500 cursor-pointer text-white shadow-[0_4px_20px_rgba(34,197,94,0.35)] hover:bg-green-600'
+                    : 'primary-btn shadow-xl shadow-blue-500/20'
+                }`}
               >
                 {isAdding ? (
                   <span className="inline-flex items-center gap-2">
                     <Loader2 className="size-5 animate-spin" />
                     Adding…
+                  </span>
+                ) : isEnrolled ? (
+                  <span className="inline-flex items-center gap-2">
+                    <CheckCircle2 className="size-5" />
+                    Enrolled
+                  </span>
+                ) : isInCart ? (
+                  <span className="inline-flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="size-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Added to Cart
                   </span>
                 ) : (
                   'Enroll Now'

@@ -1,6 +1,7 @@
 import gql from 'graphql-tag';
 import { sdk, QueryOptions } from '../../graphqlWrapper';
 import { CollectionListOptions } from '~/generated/graphql';
+import { API_URL } from '~/constants';
 
 export function getCollections(
   request: Request,
@@ -20,9 +21,6 @@ export async function getCollectionWithChildren(
   slug: string,
   options: QueryOptions,
 ) {
-  const API_URL =
-    process.env.VENDURE_API_URL || 'http://localhost:3000/shop-api';
-
   const { getSessionStorage } = await import('../../sessions');
   const query = `
     query($slug: String!) {

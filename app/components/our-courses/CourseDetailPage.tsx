@@ -75,6 +75,7 @@ export type ProductData = {
   facetValues?: Array<{ name: string; facet: { name: string } }>;
   customFields?: {
     customData?: string | null;
+    offers?: string | null;
   };
   variantId?: string | null;
   optionGroups?: OptionGroup[];
@@ -94,6 +95,7 @@ export type CourseDetailPageProps = {
     product?: SpecItem[];
     includedProducts?: IncludedProduct[];
   } | null;
+  isEnrolled?: boolean;
 };
 
 // ─── Custom Dropdown Component ────────────────────────────────────────────────
@@ -429,6 +431,7 @@ export default function CourseDetailPage({
   slug,
   product: propProduct,
   specifications: propSpecifications,
+  isEnrolled,
 }: CourseDetailPageProps) {
   return (
     <>
@@ -437,6 +440,7 @@ export default function CourseDetailPage({
           slug={slug}
           product={propProduct}
           specifications={propSpecifications}
+          isEnrolled={isEnrolled}
         />
       </div>
       <div className="md:hidden">
@@ -444,6 +448,7 @@ export default function CourseDetailPage({
           slug={slug}
           product={propProduct}
           specifications={propSpecifications}
+          isEnrolled={isEnrolled}
         />
       </div>
     </>

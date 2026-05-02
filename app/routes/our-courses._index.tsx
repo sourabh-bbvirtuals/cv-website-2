@@ -32,6 +32,7 @@ export async function loader() {
                 description
                 customFields {
                   customData
+                  offers
                 }
                 featuredAsset {
                   preview
@@ -54,7 +55,14 @@ export async function loader() {
       }),
     }).then((r) => r.json());
 
-    const products = (productsResult as any)?.data?.products?.items || [];
+    const allProducts = (productsResult as any)?.data?.products?.items || [];
+
+    // Filter out Olympiad products - they should only appear on the dedicated Olympiad page
+    const products = allProducts.filter((product: any) => {
+      const name = product.name?.toLowerCase() || '';
+      const slug = product.slug?.toLowerCase() || '';
+      return !name.includes('olympiad') && !slug.includes('olympiad');
+    });
 
     return json({ products, error: null });
   } catch (error: any) {
@@ -92,7 +100,7 @@ const COURSE_CATEGORIES = [
 /** Listings only — layout + outlet live in `our-courses.tsx` */
 export default function OurCoursesIndexRoute() {
   const { products, error } = useLoaderData<typeof loader>();
-
+  // console.log('🚀 Fetched products:', products);
   return (
     <>
       <Hero />

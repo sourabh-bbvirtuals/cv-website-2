@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Phone, Instagram, Youtube } from 'lucide-react';
+import { Phone, Instagram, Youtube, ArrowRight, Check } from 'lucide-react';
+import { useLocation, useMatches } from '@remix-run/react';
 
 const YOUTUBE_CHANNELS = [
   {
@@ -36,7 +37,7 @@ function useUserBoard(): string | null {
       const profile = JSON.parse(stored);
       const raw = (profile.board || '').toLowerCase().trim();
       if (raw) setBoard(raw);
-    } catch {}
+    } catch { }
   }, []);
   return board;
 }
@@ -57,6 +58,17 @@ const Footer = () => {
   const userBoard = useUserBoard();
   const matchedYoutube = resolveYoutubeForBoard(userBoard);
 
+  const location = useLocation();
+  const matches = useMatches();
+
+  const isOlyampiadPath = location.pathname.startsWith('/olympiad');
+
+  // Pick up enrollment status from the olympiad route's loader data so the
+  // footer CTA can reflect "Already Registered" when relevant.
+  const olympiadMatch = matches.find((m) => m.id === 'routes/olympiad._index');
+  const isOlympiadEnrolled =
+    !!(olympiadMatch?.data as { isEnrolled?: boolean } | undefined)?.isEnrolled;
+
   const footerLinks = [
     {
       title: 'Know More',
@@ -72,10 +84,11 @@ const Footer = () => {
 
   return (
     <footer
-      className="w-full bg-[#f7f8ff]  pt-10 lg:pt-25 "
+      className="w-full  pt-10 lg:pt-25 "
       style={{
-        background:
-          'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 0, 0) )',
+        background: isOlyampiadPath
+          ? 'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(237, 241, 255, 1)'
+          : 'linear-gradient(360deg, #3A7FFF 0%, rgba(58, 127, 255, 0.18) 10%, rgba(255, 255, 0, 0) )',
       }}
     >
       {/* 1. Main Footer Wrapper with Bottom-to-Top Gradient */}
@@ -83,20 +96,56 @@ const Footer = () => {
         {/* CTA Section */}
         <div className="px-4 text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-semibold text-lightgray mb-2 md:mb-4">
-            Call us Directly for Purchase Related Queries
+            {isOlyampiadPath
+              ? isOlympiadEnrolled
+                ? "You're in!"
+                : 'Win your seat.'
+              : 'Call us Directly for Purchase Related Queries'}
           </h2>
-          <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
-            Get instant assistance from our team for any purchase-related
-            questions. <br />
-            We're here to help you make the right decision, faster.
-          </p>
-          <a
-            href="tel:+916291040600"
-            className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[270px] sm:w-[340px] md:w-[420px] h-[52px] md:h-[64px] font-medium py-4 px-8 text-[13px] sm:text-base md:text-xl leading-[120%]!"
-          >
-            <Phone size={20} fill="currentColor" />
-            Call Now (+91 6291 040 600)
-          </a>
+          {isOlyampiadPath ? (
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-7 text-sm md:text-xl leading-[120%]">
+              {/* {isOlympiadEnrolled
+                ? 'You have already registered for the CUET All India Commerce Olympiad 2026.'
+                : 'Free entry. Closes 3 May, 9:00 AM IST.'} */}
+              Free entry. Registration open till the last minute!
+            </p>
+          ) : (
+            <p className="text-lightgray/50 max-w-full md:max-w-3xl mx-auto mb-6 lg:mb-9 text-sm md:text-xl leading-[120%]">
+              Get instant assistance from our team for any purchase-related
+              questions. <br />
+              We're here to help you make the right decision, faster.
+            </p>
+          )}
+          {isOlyampiadPath ? (
+            <div className="flex items-center justify-center text-center">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  window.dispatchEvent(new Event('bb-olympiad-register-open'))
+                }
+                className="flex cursor-pointer w-full md:max-w-max text-base font-semibold items-center justify-center gap-2  text-white px-8 py-3 rounded-full primary-btn"
+              >
+                {isOlympiadEnrolled ? (
+                  <>
+                    Already Registered <Check className="w-5 h-5" />
+                  </>
+                ) : (
+                  <>
+                    Register For Free <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <a
+              href="tel:+916291040600"
+              className="inline-flex items-center justify-center text-center text-base gap-2 primary-btn w-[270px] sm:w-[340px] md:w-[420px] h-[52px] md:h-[64px] font-medium py-4 px-8 text-[13px] sm:text-base md:text-xl leading-[120%]!"
+            >
+              <Phone size={20} fill="currentColor" />
+              Call Now (+91 6291 040 600)
+            </a>
+          )}
         </div>
 
         {/* 2. Watermark Text Container */}

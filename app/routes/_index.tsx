@@ -75,7 +75,7 @@ function childQuery(slug: string) {
               id
               name
               slug
-              customFields { customData }
+              customFields { customData offers }
               featuredAsset { preview }
               facetValues { name facet { name } }
             }
@@ -111,7 +111,7 @@ const ALL_PRODUCTS_QUERY = `
         name
         slug
         featuredAsset { preview }
-        customFields { customData }
+        customFields { customData offers }
         facetValues { name facet { name } }
         variants {
           id
@@ -180,6 +180,37 @@ function mapProductsToCourses(products: any[]) {
     const language = byGroup('language')[0] || '';
     const lectureMode = byGroup('lecture mode')[0] || '';
 
+    // Extract wasPrice from offers array & apply discount to display price
+    // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
+    // Example: 8000 - (8000*25/100) - 1000 = 6200
+    let wasPrice = '';
+    let displayPrice = priceVal; // Default to base price if no discounts
+
+    try {
+      const offersRaw = product.customFields?.offers;
+      if (offersRaw) {
+        const offers =
+          typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
+        if (Array.isArray(offers) && offers.length > 0) {
+          let totalDiscount = 0;
+          offers.forEach((offer: any) => {
+            if (offer.discountType === 'percentage' && offer.discountValue) {
+              totalDiscount +=
+                priceVal * (parseFloat(offer.discountValue) / 100);
+            } else if (offer.discountType === 'fixed' && offer.discountValue) {
+              totalDiscount += parseFloat(offer.discountValue);
+            }
+          });
+          if (totalDiscount > 0) {
+            displayPrice = Math.max(0, priceVal - totalDiscount);
+            wasPrice = `₹${Math.round(priceVal).toLocaleString('en-IN')}`; // Show base price with strikethrough
+          }
+        }
+      }
+    } catch (e) {
+      // silently ignore offer parsing errors
+    }
+
     return {
       id: variant.id || product.id,
       title: product.name,
@@ -191,8 +222,8 @@ function mapProductsToCourses(products: any[]) {
       badge: table['Badge'] || null,
       starts: table['Start Date'] || 'TBA',
       ends: table['End Date'] || 'TBA',
-      price: `₹${Math.round(priceVal).toLocaleString('en-IN')}`,
-      wasPrice: '',
+      price: `₹${Math.round(displayPrice).toLocaleString('en-IN')}`,
+      wasPrice,
       language,
       lectureMode,
     };
@@ -270,6 +301,37 @@ function mapVariantsToCourses(items: any[]) {
     const language = byGroup('language')[0] || '';
     const lectureMode = byGroup('lecture mode')[0] || '';
 
+    // Extract wasPrice from offers array & apply discount to display price
+    // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
+    // Example: 8000 - (8000*25/100) - 1000 = 6200
+    let wasPrice = '';
+    let displayPrice = priceVal; // Default to base price if no discounts
+
+    try {
+      const offersRaw = product.customFields?.offers;
+      if (offersRaw) {
+        const offers =
+          typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
+        if (Array.isArray(offers) && offers.length > 0) {
+          let totalDiscount = 0;
+          offers.forEach((offer: any) => {
+            if (offer.discountType === 'percentage' && offer.discountValue) {
+              totalDiscount +=
+                priceVal * (parseFloat(offer.discountValue) / 100);
+            } else if (offer.discountType === 'fixed' && offer.discountValue) {
+              totalDiscount += parseFloat(offer.discountValue);
+            }
+          });
+          if (totalDiscount > 0) {
+            displayPrice = Math.max(0, priceVal - totalDiscount);
+            wasPrice = `₹${Math.round(priceVal).toLocaleString('en-IN')}`; // Show base price with strikethrough
+          }
+        }
+      }
+    } catch (e) {
+      // silently ignore offer parsing errors
+    }
+
     return {
       id: variant.id,
       title: variant.name,
@@ -281,8 +343,8 @@ function mapVariantsToCourses(items: any[]) {
       badge: table['Badge'] || null,
       starts: table['Start Date'] || 'TBA',
       ends: table['End Date'] || 'TBA',
-      price: `₹${Math.round(priceVal).toLocaleString('en-IN')}`,
-      wasPrice: '',
+      price: `₹${Math.round(displayPrice).toLocaleString('en-IN')}`,
+      wasPrice,
       language,
       lectureMode,
     };

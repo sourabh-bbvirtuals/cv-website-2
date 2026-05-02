@@ -606,9 +606,7 @@ export async function action({ request }: LoaderFunctionArgs) {
         request.headers.get('X-Forwarded-Proto') ||
         url.protocol.replace(':', '');
       const origin = `${forwardedProto}://${forwardedHost}`;
-      const siteUrl = forwardedHost.includes('localhost')
-        ? 'http://localhost:8080'
-        : origin;
+      const siteUrl = forwardedHost.includes('localhost') ? origin : origin;
 
       const initiateBody = new URLSearchParams({
         key: ebKey,

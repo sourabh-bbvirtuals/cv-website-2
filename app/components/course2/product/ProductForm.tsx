@@ -11,6 +11,7 @@ interface ProductFormProps {
   isAddingToCart?: boolean;
   validationErrors?: Record<string, string>;
   className?: string;
+  isEnrolled?: boolean;
 }
 
 export function ProductForm({
@@ -22,6 +23,7 @@ export function ProductForm({
   isAddingToCart = false,
   validationErrors = {},
   className = '',
+  isEnrolled = false,
 }: ProductFormProps) {
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -592,25 +594,36 @@ export function ProductForm({
 
         {/* Action Buttons */}
         <div className="flex gap-4 pt-4">
-          <button
-            type="button"
-            onClick={() => onAddToCart()}
-            disabled={isAddingToCart}
-            className={`flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl text-white font-bold transition-all duration-300 shadow-sm shadow-[#4aaeed] hover:shadow-md hover:shadow-[#3a9de0] hover:-translate-y-0.5 active:scale-95 ${
-              isAddingToCart
-                ? 'bg-[#4aaeed] cursor-not-allowed'
-                : 'bg-[#4aaeed] hover:bg-[#3a9de0]'
-            }`}
-          >
-            {isAddingToCart ? (
-              <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <>
-                <ShoppingBag className="w-5 h-5" />
-                <span>Add To Cart</span>
-              </>
-            )}
-          </button>
+          {isEnrolled ? (
+            <button
+              type="button"
+              onClick={() => (window.location.href = '/account/orders')}
+              className="flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl text-white font-bold transition-all duration-300 bg-green-500 shadow-sm hover:bg-green-600"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              <span>Enrolled (Continue Learning)</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAddToCart()}
+              disabled={isAddingToCart}
+              className={`flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl text-white font-bold transition-all duration-300 shadow-sm shadow-[#4aaeed] hover:shadow-md hover:shadow-[#3a9de0] hover:-translate-y-0.5 active:scale-95 ${
+                isAddingToCart
+                  ? 'bg-[#4aaeed] cursor-not-allowed'
+                  : 'bg-[#4aaeed] hover:bg-[#3a9de0]'
+              }`}
+            >
+              {isAddingToCart ? (
+                <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <ShoppingBag className="w-5 h-5" />
+                  <span>Add To Cart</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </form>
     </div>

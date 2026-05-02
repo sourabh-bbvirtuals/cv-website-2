@@ -9,18 +9,51 @@ import { getActiveCustomerDetails } from '~/providers/customer/customer';
 const PROFILE_INCOMPLETE_COOKIE =
   'bb-profile-incomplete=1; Path=/; Max-Age=86400; SameSite=Lax';
 
+function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91'))
+    return `+91${digits.slice(2)}`;
+  if (digits.length === 11 && digits.startsWith('0'))
+    return `+91${digits.slice(1)}`;
+  return `+91${digits.slice(-10)}`;
+}
+
+function getRawPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits.slice(-10);
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const phone = formData.get('phone') as string;
+  const phone = (formData.get('phone') as string) || '';
   const otp = formData.get('otp') as string;
+  const name = (formData.get('name') as string) || '';
+  const email = (formData.get('email') as string) || '';
   const redirectTo = (formData.get('redirectTo') as string) || '/';
+  const embedRegistration = formData.get('embedRegistration') === 'true';
+  const fetcherSubmit = formData.get('fetcher') === 'true';
+  const normalizedPhone = normalizePhone(phone);
+  const rawPhone = getRawPhone(phone);
+
+  console.log('[login] action input phone values:', {
+    originalPhone: phone,
+    normalizedPhone,
+    rawPhone,
+    name,
+    email,
+    redirectTo,
+    embedRegistration,
+  });
 
   try {
     const result = await sdk.Authenticate(
       {
         input: {
           otp: {
-            identifier: phone,
+            identifier: normalizedPhone,
             otp,
           },
         } as any,
@@ -63,25 +96,109 @@ export async function action({ request }: ActionFunctionArgs) {
           c?.id,
           c?.firstName,
           c?.lastName,
+          'email=',
+          c?.emailAddress,
+          'phone=',
+          c?.phoneNumber,
         );
 
-        if (c && !c.phoneNumber && phone) {
+        // ─── UPDATE PROFILE WITH REGISTRATION DATA ────────────────────────
+        // If this is embedded registration, always update the customer when
+        // name/email/phone are supplied from the popup.
+        if (embedRegistration && c && (name || email || phone)) {
           try {
             const { updateCustomer } = await import(
               '~/providers/account/account'
             );
+            const updatePayload: any = {};
+
+            if (name) {
+              const nameParts = name.trim().split(/\s+/);
+              const firstName = nameParts[0] || '';
+              const lastName = nameParts.slice(1).join(' ') || '';
+              if (
+                !c.firstName ||
+                c.firstName === 'BB Virtual' ||
+                c.firstName !== firstName
+              ) {
+                updatePayload.firstName = firstName;
+              }
+              if (!c.lastName || c.lastName !== lastName) {
+                updatePayload.lastName = lastName;
+              }
+            }
+
+            if (email) {
+              const isPlaceholderEmail =
+                c.emailAddress?.endsWith('@bbvirtuals.tech');
+              const currentContactEmail = c.customFields?.contactEmail;
+              if (
+                !c.emailAddress ||
+                isPlaceholderEmail ||
+                c.emailAddress !== email ||
+                !currentContactEmail ||
+                currentContactEmail !== email
+              ) {
+                updatePayload.customFields = {
+                  ...(updatePayload.customFields || {}),
+                  contactEmail: email,
+                };
+              }
+            }
+
+            if (phone) {
+              if (c.phoneNumber !== rawPhone) {
+                updatePayload.phoneNumber = rawPhone;
+              }
+            }
+
+            if (Object.keys(updatePayload).length > 0) {
+              console.log('[login] updateCustomer payload:', updatePayload);
+              await updateCustomer(updatePayload, { request: authedRequest });
+              console.log(
+                '[login] Updated customer profile with registration data:',
+                updatePayload,
+              );
+            } else {
+              console.log(
+                '[login] No customer profile update required after auth',
+              );
+            }
+          } catch (e) {
+            console.error('[login] failed to update customer profile:', e);
+          }
+        }
+
+        // Correct malformed or prefixed phone numbers stored in customer profile
+        // Only run this when embedRegistration did not already normalize the phone.
+        if (!embedRegistration && c && phone && c.phoneNumber !== rawPhone) {
+          try {
+            const { updateCustomer } = await import(
+              '~/providers/account/account'
+            );
+            console.log(
+              '[login] correcting customer phone from',
+              c.phoneNumber,
+              'to',
+              rawPhone,
+            );
             await updateCustomer(
-              { phoneNumber: phone },
+              { phoneNumber: rawPhone },
               { request: authedRequest },
             );
           } catch (e) {
-            console.error('[login] failed to set phoneNumber:', e);
+            console.error('[login] failed to normalize customer phone:', e);
           }
         }
 
         const isIncomplete = !c || !c.firstName || c.firstName === 'BB Virtual';
 
         if (isIncomplete) {
+          if (embedRegistration) {
+            // Embedded registration flow should not force a redirect to /sign-up.
+            // The popup handles onboarding, so we return success without setting the cookie.
+            return json({ ok: true as const }, { headers });
+          }
           headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
           return redirect('/sign-up', { headers });
         }
@@ -106,10 +223,17 @@ export async function action({ request }: ActionFunctionArgs) {
         }
       } catch (e) {
         console.error('[login] getActiveCustomerDetails failed:', e);
+        if (embedRegistration) {
+          // Embedded registration should not fall back to the global profile interruption path.
+          return json({ ok: true as const }, { headers });
+        }
         headers.append('Set-Cookie', PROFILE_INCOMPLETE_COOKIE);
         return redirect('/sign-up', { headers });
       }
 
+      if (embedRegistration || fetcherSubmit) {
+        return json({ ok: true as const, redirectTo }, { headers });
+      }
       return redirect(redirectTo, { headers });
     }
 
@@ -183,10 +307,11 @@ const Login: React.FC = () => {
 
     setIsLoading(true);
     setServerError('');
+    const normalizedPhone = normalizePhone(phoneNumber);
+    console.log('[login] requestOtp phone:', normalizedPhone);
 
     try {
       // GraphQL mutation to request OTP
-      const fullPhone = `+91${phoneNumber}`;
       const query = `
         mutation RequestOtp($phone: String!) {
           requestOtp(phone: $phone)
@@ -197,7 +322,7 @@ const Login: React.FC = () => {
         cleanApiUrl,
         {
           query,
-          variables: { phone: fullPhone },
+          variables: { phone: normalizedPhone },
         },
         {
           headers: {
@@ -262,7 +387,8 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setServerError('');
 
-    const fullPhone = `+91${phoneNumber}`;
+    const fullPhone = normalizePhone(phoneNumber);
+    console.log('[login] verifyPhoneOtp phone:', fullPhone);
     fetcher.submit({ phone: fullPhone, otp: otpValue }, { method: 'POST' });
   };
 
