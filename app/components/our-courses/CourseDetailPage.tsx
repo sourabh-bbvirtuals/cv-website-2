@@ -95,6 +95,7 @@ export type CourseDetailPageProps = {
     includedProducts?: IncludedProduct[];
   } | null;
   isEnrolled?: boolean;
+  enrolledVariantIds?: string[];
 };
 
 // ─── Custom Dropdown Component ────────────────────────────────────────────────
@@ -431,6 +432,7 @@ export default function CourseDetailPage({
   product: propProduct,
   specifications: propSpecifications,
   isEnrolled,
+  enrolledVariantIds = [],
 }: CourseDetailPageProps) {
   return (
     <>
@@ -440,6 +442,7 @@ export default function CourseDetailPage({
           product={propProduct}
           specifications={propSpecifications}
           isEnrolled={isEnrolled}
+          enrolledVariantIds={enrolledVariantIds}
         />
       </div>
       <div className="md:hidden">
@@ -448,6 +451,7 @@ export default function CourseDetailPage({
           product={propProduct}
           specifications={propSpecifications}
           isEnrolled={isEnrolled}
+          enrolledVariantIds={enrolledVariantIds}
         />
       </div>
     </>

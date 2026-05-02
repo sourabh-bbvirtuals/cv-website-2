@@ -15,6 +15,7 @@ interface RegisterPopupProps {
   onRegistrationComplete?: () => void;
   autoCloseDelay?: number; // in milliseconds, default: 3000
   productVariantId?: string | null; // Product variant ID for adding to cart
+  isEnrolled?: boolean;
 }
 
 export default function RegisterPopup({
@@ -24,6 +25,7 @@ export default function RegisterPopup({
   onRegistrationComplete,
   autoCloseDelay = 3000,
   productVariantId,
+  isEnrolled,
 }: RegisterPopupProps) {
   // TESTING: Check environment variable or prop for OTP bypass
   const skipOtp = false;
@@ -95,16 +97,20 @@ export default function RegisterPopup({
 
   // Pre-fill form if customer exists
   useEffect(() => {
-    if (isOpen && customer?.activeCustomer) {
-      const { firstName, lastName, emailAddress, phoneNumber } =
-        customer.activeCustomer;
-      setFormData({
-        name: `${firstName} ${lastName}`.trim(),
-        email: emailAddress || '',
-        phone: phoneNumber?.replace(/\D/g, '').slice(-10) || '',
-      });
+    if (isOpen) {
+      if (isEnrolled) {
+        setCurrentStep('completion');
+      } else if (customer?.activeCustomer) {
+        const { firstName, lastName, emailAddress, phoneNumber } =
+          customer.activeCustomer;
+        setFormData({
+          name: `${firstName} ${lastName}`.trim(),
+          email: emailAddress || '',
+          phone: phoneNumber?.replace(/\D/g, '').slice(-10) || '',
+        });
+      }
     }
-  }, [isOpen, customer?.activeCustomer]);
+  }, [isOpen, isEnrolled, customer?.activeCustomer]);
 
   const normalizePhone = (phone: string) => {
     const digits = phone.replace(/\D/g, '');
@@ -265,19 +271,13 @@ export default function RegisterPopup({
       return;
     }
 
-    // TESTING: Skip OTP verification if flag is enabled
-    if (skipOtp) {
-      console.log(
-        '[TESTING] Skipping OTP - going directly to free enrollment (bypassing profile update for new user)',
-      );
-      // For new users, don't call /sign-up - go directly to free enrollment
-      // Backend will handle customer creation
-      handleProfileUpdateIfNeeded();
-      return;
-    }
-
-    // Normal flow: Send OTP for non-logged-in users
-    sendPhoneOtp();
+    // Direct guest enrollment for Olympiad (bypasses OTP and main website registration)
+    // We pass the email to create a guest enrollment without logging the user into the main site
+    console.log(
+      '[RegisterPopup] Performing guest enrollment for Olympiad:',
+      formData.email,
+    );
+    submitToFreeEnrollment(formData.email);
   };
 
   const sendPhoneOtp = () => {
@@ -315,9 +315,18 @@ export default function RegisterPopup({
       console.error('[RegisterPopup] Enrollment error:', d.error);
 
       // Check if it's a duplicate enrollment error
-      if (d.error.includes('already enrolled')) {
-        setCartError('You have already enrolled in this course.');
-        // Stay on form step to allow retry with different email
+      if (d.error.toLowerCase().includes('already enrolled')) {
+        console.log(
+          '[RegisterPopup] User already enrolled, switching to completion step',
+        );
+        setCartError(null);
+
+        // Set localStorage flag for guest persistence on same device
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('bb_olympiad_registered', 'true');
+        }
+
+        setCurrentStep('completion');
       } else {
         setCartError(d.error);
         // Stay on current step for other errors
@@ -325,6 +334,12 @@ export default function RegisterPopup({
     } else if (d.order) {
       // Cart added successfully, move to completion
       setCartError(null);
+
+      // Set localStorage flag for guest persistence on same device
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bb_olympiad_registered', 'true');
+      }
+
       setCurrentStep('completion');
       onRegistrationComplete?.();
     }

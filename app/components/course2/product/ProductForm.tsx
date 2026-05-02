@@ -12,6 +12,7 @@ interface ProductFormProps {
   validationErrors?: Record<string, string>;
   className?: string;
   isEnrolled?: boolean;
+  enrolledVariantIds?: string[];
 }
 
 export function ProductForm({
@@ -24,6 +25,7 @@ export function ProductForm({
   validationErrors = {},
   className = '',
   isEnrolled = false,
+  enrolledVariantIds = [],
 }: ProductFormProps) {
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -389,6 +391,35 @@ export function ProductForm({
     );
   }, [plainDescription, product.facetProperties]);
 
+  const activeVariantId = React.useMemo(() => {
+    if (!product || !formData) return null;
+
+    if (product.facetProperties?.type?.value?.toLowerCase() === 'combo') {
+      return (
+        formData.selectedVariant ||
+        (product.variantProperties?.length === 1
+          ? product.variantProperties[0].id
+          : null)
+      );
+    } else {
+      const selectedOptionIds = product.optionProperties
+        ?.map((op) => formData[`option_${op.id}`])
+        .filter(Boolean);
+
+      if (!selectedOptionIds || selectedOptionIds.length === 0) return null;
+
+      const selectedVariant = product.variantProperties?.find((v) => {
+        const variantOptionIds = v.options.map((o) => o.id);
+        return selectedOptionIds.every((id) => variantOptionIds.includes(id));
+      });
+      return selectedVariant?.id || null;
+    }
+  }, [product, formData]);
+
+  const isCurrentlyEnrolled =
+    !!activeVariantId &&
+    enrolledVariantIds.some((evid) => String(evid) === String(activeVariantId));
+
   return (
     <div className={`space-y-8 ${className}`}>
       {/* Product Info Section */}
@@ -594,7 +625,7 @@ export function ProductForm({
 
         {/* Action Buttons */}
         <div className="flex gap-4 pt-4">
-          {isEnrolled ? (
+          {isCurrentlyEnrolled ? (
             <button
               type="button"
               onClick={() => (window.location.href = '/account/orders')}

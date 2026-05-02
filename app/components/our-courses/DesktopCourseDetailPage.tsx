@@ -1045,7 +1045,8 @@ export default function CourseDetailPage({
   product: propProduct,
   specifications: propSpecifications,
   isEnrolled,
-}: CourseDetailPageProps) {
+  enrolledVariantIds = [],
+}: CourseDetailPageProps & { enrolledVariantIds?: string[] }) {
   const product = propProduct;
   const specifications = propSpecifications;
   const navigate = useNavigate();
@@ -1085,6 +1086,11 @@ export default function CourseDetailPage({
     : variants[0] ?? null;
 
   const activeVariantId = selectedVariant?.id ?? product?.variantId ?? null;
+
+  // ── Enrollment detection: is the specific selected variant owned? ──────────
+  const isEnrolledForActiveVariant =
+    !!activeVariantId &&
+    enrolledVariantIds.some((evid) => String(evid) === String(activeVariantId));
 
   // ── Duplicate detection: is the selected variant already in cart? ──────────
   const cartVariantIds: string[] = (activeOrder?.lines ?? []).map(
@@ -1301,15 +1307,18 @@ export default function CourseDetailPage({
                 <button
                   type="button"
                   onClick={
-                    isEnrolled
+                    isEnrolledForActiveVariant
                       ? () => navigate('/account/orders')
                       : isInCart
                       ? () => navigate('/cart')
                       : handleEnroll
                   }
-                  disabled={isAdding || (!activeVariantId && !isEnrolled)}
+                  disabled={
+                    isAdding ||
+                    (!activeVariantId && !isEnrolledForActiveVariant)
+                  }
                   className={`flex w-[449px] items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%] transition-all ${
-                    isEnrolled || isInCart
+                    isEnrolledForActiveVariant || isInCart
                       ? 'bg-green-500 cursor-pointer text-white shadow-[0_4px_20px_rgba(34,197,94,0.35)] hover:bg-green-600'
                       : 'primary-btn'
                   }`}
@@ -1319,7 +1328,7 @@ export default function CourseDetailPage({
                       <Loader2 className="size-5 animate-spin" />
                       Adding…
                     </span>
-                  ) : isEnrolled ? (
+                  ) : isEnrolledForActiveVariant ? (
                     <span className="inline-flex items-center gap-2">
                       <CheckCircle2 className="size-5" />
                       Enrolled
@@ -1650,15 +1659,17 @@ export default function CourseDetailPage({
               <button
                 type="button"
                 onClick={
-                  isEnrolled
+                  isEnrolledForActiveVariant
                     ? () => navigate('/account/orders')
                     : isInCart
                     ? () => navigate('/cart')
                     : handleEnroll
                 }
-                disabled={isAdding || (!activeVariantId && !isEnrolled)}
+                disabled={
+                  isAdding || (!activeVariantId && !isEnrolledForActiveVariant)
+                }
                 className={`flex w-full mt-8 items-center justify-center gap-2 rounded-full text-xl font-medium py-4 leading-[120%] transition-all ${
-                  isEnrolled || isInCart
+                  isEnrolledForActiveVariant || isInCart
                     ? 'bg-green-500 cursor-pointer text-white shadow-[0_4px_20px_rgba(34,197,94,0.35)] hover:bg-green-600'
                     : 'primary-btn shadow-xl shadow-blue-500/20'
                 }`}
@@ -1668,7 +1679,7 @@ export default function CourseDetailPage({
                     <Loader2 className="size-5 animate-spin" />
                     Adding…
                   </span>
-                ) : isEnrolled ? (
+                ) : isEnrolledForActiveVariant ? (
                   <span className="inline-flex items-center gap-2">
                     <CheckCircle2 className="size-5" />
                     Enrolled

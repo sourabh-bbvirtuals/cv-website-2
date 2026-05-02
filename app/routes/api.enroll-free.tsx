@@ -108,7 +108,10 @@ export async function action({ request }: DataFunctionArgs) {
     });
 
     const vendureAuthToken = res.headers.get('vendure-auth-token');
-    if (vendureAuthToken) {
+    // ⚠️ CRITICAL: Only set the authToken if we're NOT doing a guest enrollment.
+    // If customerEmail is present, it's a guest registration for Olympiad, etc.
+    // and we DON'T want the user to be automatically registered/logged-in to the main website.
+    if (vendureAuthToken && !customerEmail) {
       session.set('authToken', vendureAuthToken);
     }
 

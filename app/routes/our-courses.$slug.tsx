@@ -47,54 +47,6 @@ export async function loader({ params, request }: DataFunctionArgs) {
     const product =
       productResult.status === 'fulfilled' ? productResult.value : null;
 
-    // ─── Check Enrollment ───────────────────────────────────────────────────
-    let isEnrolled = false;
-    try {
-      const sessionStorage = await getSessionStorage();
-      const session = await sessionStorage.getSession(
-        request.headers.get('Cookie'),
-      );
-      const authToken = session.get('authToken') as string | undefined;
-
-      if (authToken) {
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        };
-        const ordersRes = await fetch(API_URL, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            query: `
-              query {
-                activeCustomer {
-                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
-                    items {
-                      lines {
-                        productVariant {
-                          product { slug }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `,
-          }),
-        });
-        const ordersData = await ordersRes.json();
-        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
-        isEnrolled = items.some((order: any) =>
-          (order.lines || []).some(
-            (line: any) =>
-              line.productVariant?.product?.slug === normalizedSlug,
-          ),
-        );
-      }
-    } catch (e) {
-      console.error('Failed to check enrollment status', e);
-    }
-
     // ─── Specifications (Priority: Product customFields -> Collection customFields) ──
     let specifications: any = null;
 
@@ -340,11 +292,79 @@ export async function loader({ params, request }: DataFunctionArgs) {
         }
       : null;
 
+    // ─── Check Enrollment ───────────────────────────────────────────────────
+    let isEnrolled = false;
+    let enrolledVariantIds: string[] = [];
+    try {
+      const sessionStorage = await getSessionStorage();
+      const session = await sessionStorage.getSession(
+        request.headers.get('Cookie'),
+      );
+      const authToken = session.get('authToken') as string | undefined;
+
+      if (authToken) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        };
+        const ordersRes = await fetch(API_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            query: `
+              query {
+                activeCustomer {
+                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
+                    items {
+                      lines {
+                        productVariant {
+                          id
+                          product { 
+                            id
+                            slug 
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+        const ordersData = await ordersRes.json();
+        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
+
+        const currentProductId = product?.id;
+
+        items.forEach((order: any) => {
+          (order.lines || []).forEach((line: any) => {
+            const variantId = line.productVariant?.id;
+            const productId = line.productVariant?.product?.id;
+            const productSlug = line.productVariant?.product?.slug;
+
+            // Match by product ID (best) or slug (fallback)
+            if (
+              variantId &&
+              ((currentProductId && productId === currentProductId) ||
+                productSlug === normalizedSlug)
+            ) {
+              enrolledVariantIds.push(variantId);
+            }
+          });
+        });
+        isEnrolled = enrolledVariantIds.length > 0;
+      }
+    } catch (e) {
+      console.error('Failed to check enrollment status', e);
+    }
+
     return json({
       slug: normalizedSlug,
       product: productData,
       specifications,
       isEnrolled,
+      enrolledVariantIds,
     });
   } catch (error) {
     console.error('Error loading course detail:', error);
@@ -353,12 +373,13 @@ export async function loader({ params, request }: DataFunctionArgs) {
       product: null,
       specifications: null,
       isEnrolled: false,
+      enrolledVariantIds: [],
     });
   }
 }
 
 export default function OurCoursesCourseDetailRoute() {
-  const { slug, product, specifications, isEnrolled } =
+  const { slug, product, specifications, isEnrolled, enrolledVariantIds } =
     useLoaderData<typeof loader>();
   return (
     <CourseDetailPage
@@ -366,6 +387,7 @@ export default function OurCoursesCourseDetailRoute() {
       product={product}
       specifications={specifications}
       isEnrolled={isEnrolled}
+      enrolledVariantIds={enrolledVariantIds}
     />
   );
 }

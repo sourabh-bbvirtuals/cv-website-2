@@ -141,8 +141,7 @@ export async function loader({ params, request }: DataFunctionArgs) {
       getCollectionContentBySlug('reviews', { request }),
     ]);
 
-    // ─── Check Enrollment ───────────────────────────────────────────────────
-    let isEnrolled = false;
+    const enrolledVariantIds: string[] = [];
     try {
       const sessionStorage = await getSessionStorage();
       const session = await sessionStorage.getSession(
@@ -166,7 +165,11 @@ export async function loader({ params, request }: DataFunctionArgs) {
                     items {
                       lines {
                         productVariant {
-                          product { slug }
+                          id
+                          product {
+                            id
+                            slug
+                          }
                         }
                       }
                     }
@@ -178,17 +181,38 @@ export async function loader({ params, request }: DataFunctionArgs) {
         });
         const ordersData = await ordersRes.json();
         const items = ordersData?.data?.activeCustomer?.orders?.items || [];
-        isEnrolled = items.some((order: any) =>
-          (order.lines || []).some(
-            (line: any) => line.productVariant?.product?.slug === productSlug,
-          ),
-        );
+
+        const currentProductId = safeProduct?.id;
+
+        items.forEach((order: any) => {
+          (order.lines || []).forEach((line: any) => {
+            const variantId = line.productVariant?.id;
+            const productId = line.productVariant?.product?.id;
+            const lineProductSlug = line.productVariant?.product?.slug;
+
+            // Match by product ID (best) or slug (fallback)
+            if (
+              variantId &&
+              ((currentProductId && productId === currentProductId) ||
+                lineProductSlug === productSlug)
+            ) {
+              enrolledVariantIds.push(variantId);
+            }
+          });
+        });
+        isEnrolled = enrolledVariantIds.length > 0;
       }
     } catch (e) {
       console.error('Failed to check enrollment status', e);
     }
 
-    return { product: safeProduct, notes, reviews, isEnrolled };
+    return {
+      product: safeProduct,
+      notes,
+      reviews,
+      isEnrolled,
+      enrolledVariantIds,
+    };
   } catch (error) {
     console.error('Error loading product:', error);
     throw new Response('Product Not Found2', {
@@ -423,8 +447,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function Course2ProductPage() {
-  const { product, notes, reviews, isEnrolled } =
-    useLoaderData<typeof loader>();
+  const {
+    product,
+    notes,
+    reviews,
+    isEnrolled,
+    enrolledVariantIds = [],
+  } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const addToCartFetcher = useFetcher<typeof action>();
   const googleSheetsFetcher = useFetcher<typeof action>();
@@ -972,6 +1001,7 @@ export default function Course2ProductPage() {
                 onAddToCart={handleAddProductToCart}
                 isAddingToCart={addToCartFetcher.state === 'submitting'}
                 isEnrolled={isEnrolled}
+                enrolledVariantIds={enrolledVariantIds}
               />
             </div>
           </div>

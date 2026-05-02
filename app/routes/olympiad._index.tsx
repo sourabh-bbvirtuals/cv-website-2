@@ -265,7 +265,71 @@ export async function loader({ request }: DataFunctionArgs) {
         }
       : null;
 
-    return json({ slug: slug, product: productData, specifications });
+    // ─── Check Enrollment ───────────────────────────────────────────────────
+    let isEnrolled = false;
+    try {
+      const { getSessionStorage } = await import('~/sessions');
+      const sessionStorage = await getSessionStorage();
+      const session = await sessionStorage.getSession(
+        request.headers.get('Cookie'),
+      );
+      const authToken = session.get('authToken') as string | undefined;
+
+      if (authToken) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        };
+        const ordersRes = await fetch(API_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            query: `
+              query {
+                activeCustomer {
+                  orders(options: { filter: { state: { in: ["PaymentSettled", "PartiallyShipped", "Shipped", "Delivered", "Fulfilled"] } } }) {
+                    items {
+                      lines {
+                        productVariant {
+                          product { 
+                            id
+                            slug 
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+        const ordersData = await ordersRes.json();
+        const items = ordersData?.data?.activeCustomer?.orders?.items || [];
+
+        const currentProductId = product?.id;
+
+        isEnrolled = items.some((order: any) =>
+          (order.lines || []).some((line: any) => {
+            const productId = line.productVariant?.product?.id;
+            const productSlug = line.productVariant?.product?.slug;
+            return (
+              (currentProductId && productId === currentProductId) ||
+              productSlug === slug
+            );
+          }),
+        );
+      }
+    } catch (e) {
+      console.error('Failed to check enrollment status', e);
+    }
+
+    return json({
+      slug: slug,
+      product: productData,
+      specifications,
+      isEnrolled,
+    });
   } catch (error) {
     console.error('Error loading course detail:', error);
     return json({ slug: slug, product: null, specifications: null });
@@ -274,7 +338,8 @@ export async function loader({ request }: DataFunctionArgs) {
 
 export default function Olympiad() {
   const { activeCustomer: customerData } = useRootLoader();
-  const { slug, product, specifications } = useLoaderData<typeof loader>();
+  const { slug, product, specifications, isEnrolled } =
+    useLoaderData<typeof loader>();
 
   // Log loader data once on mount to avoid infinite console logs
   useEffect(() => {
@@ -330,12 +395,31 @@ export default function Olympiad() {
     seconds: 0,
   });
   const [isContentInView, setIsContentInView] = useState(false);
-  const [isRegisterPopupOpen, setIsRegisterPopupOpen] = useState(false);
   const [cartMessage, setCartMessage] = useState<{
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [isRegisterPopupOpen, setIsRegisterPopupOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [localRegistered, setLocalRegistered] = useState(false);
+
+  // Check localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isRegistered =
+        localStorage.getItem('bb_olympiad_registered') === 'true';
+      if (isRegistered) {
+        setLocalRegistered(true);
+      }
+    }
+  }, []);
+
+  // Sync isEnrolled from loader into localRegistered
+  useEffect(() => {
+    if (isEnrolled) {
+      setLocalRegistered(true);
+    }
+  }, [isEnrolled]);
 
   useEffect(() => {
     const handleFooterRegisterClick = () => setIsRegisterPopupOpen(true);
@@ -1146,6 +1230,7 @@ export default function Olympiad() {
       <RegisterPopup
         customer={customerData}
         isOpen={isRegisterPopupOpen}
+        isEnrolled={localRegistered}
         onClose={() => setIsRegisterPopupOpen(false)}
         onRegistrationComplete={handleRegistrationComplete}
         autoCloseDelay={3000}
