@@ -6,9 +6,11 @@ export const DEMO_API_URL =
   'https://staging-vendure.bbvirtuals.tech/shop-api?vendure-token=bbv-bb-virtual-commerce-mn1ydkov';
 export let API_URL =
   typeof process !== 'undefined'
-    ? process.env.VENDURE_API_URL ??
-      process.env.VENDURE_LOCAL_API_URL ??
-      DEMO_API_URL
+    ? process.env.NODE_ENV === 'development'
+      ? process.env.VENDURE_LOCAL_API_URL ?? DEMO_API_URL
+      : process.env.VENDURE_API_URL ??
+        process.env.VENDURE_LOCAL_API_URL ??
+        DEMO_API_URL
     : DEMO_API_URL;
 export const APP_META_TITLE = 'Commerce Virtuals';
 

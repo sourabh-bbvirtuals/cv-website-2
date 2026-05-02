@@ -116,6 +116,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
     name: '',
     phone: '',
   });
+  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
   const formBoardOptions: string[] = ['MH', 'CBSE', 'CUET UG'];
@@ -127,19 +128,41 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const newErrors: { name?: string; phone?: string } = {};
+    const nameTrimmed = formData.name.trim();
+    const phoneTrimmed = formData.phone.trim();
+
+    if (!nameTrimmed) {
+      newErrors.name = 'Name is required';
+    }
+
+    if (!phoneTrimmed) {
+      newErrors.phone = 'Phone number is required';
+    } else if (phoneTrimmed.length < 10) {
+      newErrors.phone = 'Phone number must be 10 digits';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     setSubmitting(true);
 
-    if (formData.name.trim() && formData.phone.trim()) {
-      fetch('/api/lead', {
+    try {
+      await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name.trim(),
-          phone: formData.phone.trim(),
+          name: nameTrimmed,
+          phone: phoneTrimmed,
           board: formData.board,
           courseInterest: `${formData.board} - ${formData.class}`,
         }),
-      }).catch(() => {});
+      });
+    } catch (err) {
+      // ignore
     }
 
     const classMap: Record<string, string> = { XI: '11', XII: '12' };
@@ -173,6 +196,7 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
     setSubmitting(false);
     window.location.href = '/sign-in';
   };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
@@ -183,16 +207,25 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
     value = value.slice(0, 10);
 
     setFormData({ ...formData, phone: value });
+    if (errors.phone) {
+      setErrors({ ...errors, phone: undefined });
+    }
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, name: e.target.value });
+    let value = e.target.value;
+    // Allow only alphabets and spaces
+    value = value.replace(/[^a-zA-Z\s]/g, '');
+    setFormData({ ...formData, name: value });
+    if (errors.name) {
+      setErrors({ ...errors, name: undefined });
+    }
   };
 
   return (
     <section className="bg-[url('/assets/images/homepage/hero-bg.png')] bg-no-repeat bg-cover bg-center relative">
       <div className="custom-container pb-10 lg:pb-12 4xl:pb-28! pt-28.5 md:pt-57.5 xl:pt-65.75 w-full">
-        <div className="flex flex-col lg:flex-row gap-8 sm:gap-4">
+        <div className="flex flex-col lg:flex-row gap-8 sm:gap-4 mt-7">
           {/* Left Column: Content & Stats */}
           <div
             className={`w-full sm:p-4 lg:py-9 lg:pr-12 rounded-3xl max-sm:bg-none! flex flex-col ${
@@ -346,7 +379,11 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                   <label className="block text-xs sm:text-lg 4xl:text-xl! text-lightgray mb-1 xl:mb-2 font-medium opacity-50">
                     Your Name
                   </label>
-                  <div className="flex items-center w-full border border-slate-200 rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors">
+                  <div
+                    className={`flex items-center w-full border ${
+                      errors.name ? 'border-red-500' : 'border-slate-200'
+                    } rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors`}
+                  >
                     <input
                       type="text"
                       className="w-full text-sm xl:text-xl text-slate-800 placeholder:text-gray-400 font-medium focus-within:outline-0! focus:outline-0! focus:shadow-white! focus-within:shadow-white! bg-transparent outline-0! border-0! py-0! leading-[120%]"
@@ -355,13 +392,22 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                       onChange={handleNameChange}
                     />
                   </div>
+                  {errors.name && (
+                    <span className="text-xs text-red-500 mt-1 ml-4 block font-medium">
+                      {errors.name}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mb-3 sm:mb-4">
                   <label className="block text-xs sm:text-lg 4xl:text-xl! text-lightgray mb-1 xl:mb-2 font-medium opacity-50">
                     Phone Number
                   </label>
-                  <div className="flex items-center w-full border border-slate-200 rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors">
+                  <div
+                    className={`flex items-center w-full border ${
+                      errors.phone ? 'border-red-500' : 'border-slate-200'
+                    } rounded-full px-3 sm:px-6 py-2 sm:py-3.5 bg-white focus-within:border-blue-500 transition-colors`}
+                  >
                     <span className="text-sm mr-2 sm:text-base xl:text-xl font-medium text-lightgray leading-[120%]">
                       +91
                     </span>
@@ -374,6 +420,11 @@ const Hero: React.FC<{ isLoggedIn?: boolean }> = ({ isLoggedIn }) => {
                       onChange={handlePhoneChange}
                     />
                   </div>
+                  {errors.phone && (
+                    <span className="text-xs text-red-500 mt-1 ml-4 block font-medium">
+                      {errors.phone}
+                    </span>
+                  )}
                 </div>
                 <div className="grow flex items-end">
                   <button

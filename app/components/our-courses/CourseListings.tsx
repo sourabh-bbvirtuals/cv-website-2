@@ -106,6 +106,43 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
 
   const meta: string[] = [...facetNames];
 
+  // 4. Extract wasPrice from offers array & apply discount to current price
+  // Offers format: [{"offerId":"31","discountType":"percentage","discountValue":25,...}, {"offerId":"30","discountType":"fixed","discountValue":1000,...}]
+  // Logic: basePrice - discount1 - discount2 - ... = discountedPrice
+  // Example: 8000 - (8000*25/100) - 1000 = 6200
+  let wasPrice = '';
+  let displayPrice = priceVal; // Default to base price if no discounts
+
+  try {
+    // console.log('Raw offers data for', product.name, product.customFields?.offers);
+    const offersRaw = product.customFields?.offers;
+    if (offersRaw) {
+      const offers =
+        typeof offersRaw === 'string' ? JSON.parse(offersRaw) : offersRaw;
+      if (Array.isArray(offers) && offers.length > 0) {
+        // Sum all discounts (both percentage and fixed, converted to rupees)
+        let totalDiscount = 0;
+        offers.forEach((offer: any) => {
+          if (offer.discountType === 'percentage' && offer.discountValue) {
+            // Percentage: convert to rupee amount
+            totalDiscount += priceVal * (parseFloat(offer.discountValue) / 100);
+          } else if (offer.discountType === 'fixed' && offer.discountValue) {
+            // Fixed: already in rupees
+            totalDiscount += parseFloat(offer.discountValue);
+          }
+        });
+
+        // Apply discount: discountedPrice = basePrice - totalDiscount
+        if (totalDiscount > 0) {
+          displayPrice = Math.max(0, priceVal - totalDiscount);
+          wasPrice = `₹${priceVal.toLocaleString('en-IN')}`; // Show base price with strikethrough
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing offers for', product.name, e);
+  }
+
   return {
     id: String(product.id || Math.random()),
     title: product.name || 'Untitled Course',
@@ -119,8 +156,8 @@ function mapVendureToFeaturedCourse(product: any): FeaturedCourse {
     imageBg: '#f0f4ff',
     starts: table['Start Date'] || 'TBA',
     ends: table['End Date'] || 'TBA',
-    price: `₹${priceVal.toLocaleString('en-IN')}`,
-    wasPrice: '',
+    price: `₹${displayPrice.toLocaleString('en-IN')}`,
+    wasPrice,
     language,
     lectureMode,
     faculty,
@@ -289,8 +326,6 @@ function FilterDropdown({
   triggerClassName?: string;
 }) {
   const { x, y, strategy, refs } = useFloating({
-    open: isOpen,
-    onOpenChange,
     placement: align === 'left' ? 'bottom-start' : 'bottom-end',
     strategy: 'fixed',
     middleware: [offset(8), flip(), shift({ padding: 8 })],
@@ -302,9 +337,13 @@ function FilterDropdown({
     function handleClickOutside(event: MouseEvent) {
       if (
         refs.reference.current &&
-        !refs.reference.current.contains(event.target as Node) &&
+        'contains' in refs.reference.current &&
+        !(refs.reference.current as HTMLElement).contains(
+          event.target as Node,
+        ) &&
         refs.floating.current &&
-        !refs.floating.current.contains(event.target as Node)
+        'contains' in refs.floating.current &&
+        !(refs.floating.current as HTMLElement).contains(event.target as Node)
       ) {
         onOpenChange(false);
       }
@@ -362,6 +401,8 @@ export default function CourseListings({
     () => products.map(mapVendureToFeaturedCourse),
     [products],
   );
+
+  console.log('Mapped courses:', allCourses);
 
   const subjectOptions = useMemo(() => {
     const set = new Set<string>();
@@ -517,21 +558,6 @@ export default function CourseListings({
         ? 'bg-lightgray text-white border-lightgray'
         : 'bg-white text-lightgray border-lightgray/10 hover:bg-lightgray/5'
     }`;
-
-  // Close any open dropdown when clicking outside the filter bar
-  useEffect(() => {
-    if (!activeModal) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        filterScrollRef.current &&
-        !filterScrollRef.current.contains(e.target as Node)
-      ) {
-        setActiveModal(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [activeModal]);
 
   return (
     <section className="w-full bg-white py-4 lg:py-8 4xl:py-16!">
