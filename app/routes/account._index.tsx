@@ -35,15 +35,6 @@ type AccountProfileActionData = {
   errors?: Record<string, string>;
 };
 
-const STORAGE_KEY = 'bb_user_profile';
-
-function persistProfile(data: UserProfileData) {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
-}
-
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const formType = formData.get('formType');
@@ -207,7 +198,6 @@ export default function ProfileTab() {
           ...current,
           ...actionData.profile,
         };
-        persistProfile(updated);
         return updated;
       });
       setErrors({});
