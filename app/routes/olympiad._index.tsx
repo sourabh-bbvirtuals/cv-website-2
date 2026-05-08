@@ -616,40 +616,10 @@ export default function Olympiad() {
               </div>
               {/* button */}
               <button
-                onClick={() => setIsRegisterPopupOpen(true)}
-                className="hero-shine-btn flex text-base md:text-lg lg:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40 relative overflow-hidden"
+                disabled
+                className="flex text-base md:text-lg lg:text-xl max-w-max font-bold items-center justify-center gap-2 text-[#0A232F]/50 bg-white/70 px-5 md:px-8 py-2 md:py-4 rounded-full cursor-not-allowed"
               >
-                <style>{`
-                  .hero-shine-btn::before {
-                    content: "";
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 50%;
-                    height: 100%;
-                    background: linear-gradient(
-                      100deg,
-                      rgba(255,255,255,0) 0%,
-                      rgba(255,255,255,0.8) 50%,
-                      rgba(255,255,255,0) 100%
-                    );
-                    transform: skewX(-20deg);
-                    animation: hero-btn-shine 3s ease-in-out infinite;
-                  }
-                  @keyframes hero-btn-shine {
-                    0% { left: -100%; }
-                    60%, 100% { left: 150%; }
-                  }
-                `}</style>
-                {isEnrolled ? (
-                  <>
-                    Already Registered <Check className="w-4 h-4" />
-                  </>
-                ) : (
-                  <>
-                    Register For Free <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                Registration Closed
               </button>
             </div>
 
@@ -744,18 +714,10 @@ export default function Olympiad() {
 
               {/* button */}
               <button
-                onClick={() => setIsRegisterPopupOpen(true)}
-                className="hero-shine-btn flex md:text-xl max-w-max cursor-pointer font-bold items-center justify-center gap-2 text-[#0A232F] bg-white px-5 md:px-8 py-2 md:py-4 rounded-full shadow-xl shadow-white/40 relative overflow-hidden"
+                disabled
+                className="flex md:text-xl max-w-max font-bold items-center justify-center gap-2 text-[#0A232F]/50 bg-white/70 px-5 md:px-8 py-2 md:py-4 rounded-full cursor-not-allowed"
               >
-                {isEnrolled ? (
-                  <>
-                    Already Registered <Check className="w-4 h-4" />
-                  </>
-                ) : (
-                  <>
-                    Register For Free <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                Registration Closed
               </button>
             </div>
 
@@ -777,27 +739,19 @@ export default function Olympiad() {
         >
           <div className="flex items-start flex-col gap-1">
             <p className="font-bold text-xl text-[#081627]">
-              {isEnrolled ? "You're in" : 'Free'}
+              {isEnrolled ? "You're in" : 'Closed'}
             </p>
             <p className="text-xs text-[#0A232F]/50 font-medium leading-[150%]">
               {isEnrolled
                 ? 'Download the app to play'
-                : 'Free entry. Registration open till the last minute!'}
+                : 'Registration is now closed.'}
             </p>
           </div>
           <button
-            onClick={() => setIsRegisterPopupOpen(true)}
-            className="flex cursor-pointer text-[14px] font-semibold items-center justify-center gap-1  text-white px-4 py-3 rounded-full primary-btn"
+            disabled
+            className="flex text-[14px] font-semibold items-center justify-center gap-1 text-[#0A232F]/40 px-4 py-3 rounded-full bg-white cursor-not-allowed"
           >
-            {isEnrolled ? (
-              <>
-                Already Registered <Check className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                Register For Free <ArrowRight className="w-4 h-4" />
-              </>
-            )}
+            Registration Closed
           </button>
         </div>
 
@@ -1221,23 +1175,15 @@ export default function Olympiad() {
                 {/* button */}
                 <div className="flex items-center flex-col justify-center gap-3 mt-4">
                   <button
-                    onClick={() => setIsRegisterPopupOpen(true)}
-                    className="flex cursor-pointer text-base font-semibold items-center justify-center gap-2  text-white primary-btn px-4 py-3 rounded-full w-full "
+                    disabled
+                    className="flex text-base font-semibold items-center justify-center gap-2 text-[#0A232F]/40 bg-white px-4 py-3 rounded-full w-full cursor-not-allowed border border-[#0A232F]/10"
                   >
-                    {isEnrolled ? (
-                      <>
-                        Already Registered <Check className="w-4 h-4" />
-                      </>
-                    ) : (
-                      <>
-                        Register For Free <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
+                    Registration Closed
                   </button>
                   <div className="text-[#0A232F]/80 font-medium text-sm">
                     {isEnrolled
                       ? 'See registration details'
-                      : 'Takes under 60 seconds'}
+                      : 'Registration is now closed'}
                   </div>
                 </div>
               </div>
