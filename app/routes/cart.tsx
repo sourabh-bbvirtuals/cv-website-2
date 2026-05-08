@@ -9,7 +9,6 @@ import {
 } from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { API_URL } from '~/constants';
-import { COUNTRY_OPTIONS } from '~/countries';
 import { getSessionStorage } from '~/sessions';
 import {
   Loader2,
@@ -81,6 +80,22 @@ const REMOVE_COUPON = `
 const ELIGIBLE_SHIPPING_QUERY = `
   query { eligibleShippingMethods { id name priceWithTax } }
 `;
+
+/** Shop API: countries enabled in Vendure (Channels / defaults). */
+const AVAILABLE_COUNTRIES_QUERY = `
+  query AvailableCountriesForCart {
+    availableCountries {
+      id
+      code
+      name
+    }
+  }
+`;
+
+/** Only used when Vendure returns no `availableCountries` (misconfiguration / error). */
+const FALLBACK_COUNTRY_OPTIONS: Array<{ code: string; name: string }> = [
+  { code: 'IN', name: 'India' },
+];
 
 const REMOVE_LINE_MUTATION = `
   mutation RemoveOrderLine($orderLineId: ID!) {
@@ -157,14 +172,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let authToken: string | undefined = session.get('authToken');
 
   try {
-    const [orderRes, customerRes, shippingRes, addressRes] = await Promise.all([
-      gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken),
-      gqlFetch(CUSTOMER_QUERY, undefined, authToken),
-      gqlFetch(ELIGIBLE_SHIPPING_QUERY, undefined, authToken),
-      gqlFetch(CUSTOMER_ADDRESSES_QUERY, undefined, authToken),
-    ]);
+    const [orderRes, customerRes, shippingRes, addressRes, countriesRes] =
+      await Promise.all([
+        gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken),
+        gqlFetch(CUSTOMER_QUERY, undefined, authToken),
+        gqlFetch(ELIGIBLE_SHIPPING_QUERY, undefined, authToken),
+        gqlFetch(CUSTOMER_ADDRESSES_QUERY, undefined, authToken),
+        gqlFetch(AVAILABLE_COUNTRIES_QUERY, undefined, authToken),
+      ]);
 
-    for (const r of [orderRes, customerRes, shippingRes, addressRes]) {
+    for (const r of [
+      orderRes,
+      customerRes,
+      shippingRes,
+      addressRes,
+      countriesRes,
+    ]) {
       if (r.newToken) {
         authToken = r.newToken;
         session.set('authToken', r.newToken);
@@ -176,6 +199,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const shippingMethods =
       shippingRes.body?.data?.eligibleShippingMethods || [];
     const addresses = addressRes.body?.data?.activeCustomer?.addresses || [];
+    const rawCountries =
+      countriesRes.body?.data?.availableCountries ?? ([] as Array<{
+        id: string;
+        code: string;
+        name: string;
+      }>);
+    const byCode = new Map<string, { code: string; name: string }>();
+    for (const c of rawCountries) {
+      const code = String(c.code ?? '')
+        .trim()
+        .slice(0, 2)
+        .toUpperCase();
+      if (!/^[A-Z]{2}$/.test(code)) continue;
+      const name = String(c.name ?? '').trim() || code;
+      if (!byCode.has(code)) byCode.set(code, { code, name });
+    }
+    const vendureCountries = [...byCode.values()].sort((a, b) =>
+      a.name.localeCompare(b.name, 'en'),
+    );
 
     if (activeOrder?.state && activeOrder.state !== 'AddingItems') {
       const tr = await gqlFetch(
@@ -200,7 +242,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     return json(
-      { activeOrder, customer, shippingMethods, addresses, error: null },
+      {
+        activeOrder,
+        customer,
+        shippingMethods,
+        addresses,
+        vendureCountries,
+        error: null,
+      },
       {
         headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
       },
@@ -212,6 +261,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       customer: null,
       shippingMethods: [],
       addresses: [],
+      vendureCountries: [],
       error: err.message,
     });
   }
@@ -704,7 +754,8 @@ const ShieldIcon = () => (
 );
 
 export default function CartPage() {
-  const { activeOrder, customer, addresses } = useLoaderData<typeof loader>();
+  const { activeOrder, customer, addresses, vendureCountries } =
+    useLoaderData<typeof loader>();
   const removeFetcher = useFetcher();
   const buyFetcher = useFetcher();
   const couponFetcher = useFetcher();
@@ -1043,14 +1094,19 @@ export default function CartPage() {
   ]);
 
   const countrySelectOptions = useMemo(() => {
-    if (COUNTRY_OPTIONS.some((c) => c.code === countryCode)) {
-      return COUNTRY_OPTIONS;
+    const vc = (vendureCountries ?? []) as Array<{
+      code: string;
+      name: string;
+    }>;
+    const fromApi = vc.length > 0 ? vc : FALLBACK_COUNTRY_OPTIONS;
+    if (fromApi.some((c) => c.code === countryCode)) {
+      return fromApi;
     }
     return [
-      { code: countryCode, name: `${countryCode} (custom)` },
-      ...COUNTRY_OPTIONS,
+      { code: countryCode, name: `${countryCode} (saved)` },
+      ...fromApi,
     ];
-  }, [countryCode]);
+  }, [countryCode, vendureCountries]);
 
   return (
     <Layout>
