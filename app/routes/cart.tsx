@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node';
 import {
   useLoaderData,
@@ -9,6 +9,7 @@ import {
 } from '@remix-run/react';
 import Layout from '~/components/Layout';
 import { API_URL } from '~/constants';
+import { COUNTRY_OPTIONS } from '~/countries';
 import { getSessionStorage } from '~/sessions';
 import {
   Loader2,
@@ -751,6 +752,13 @@ export default function CartPage() {
   const [postalCode, setPostalCode] = useState(defaultAddr?.postalCode || '');
   const [city, setCity] = useState(defaultAddr?.city || '');
   const [province, setProvince] = useState(defaultAddr?.province || '');
+  const [countryCode, setCountryCode] = useState(() => {
+    const raw = defaultAddr?.countryCode;
+    if (typeof raw === 'string' && /^[A-Za-z]{2}$/.test(raw.trim())) {
+      return raw.trim().toUpperCase();
+    }
+    return 'IN';
+  });
   const [pincodeLoading, setPincodeLoading] = useState(false);
 
   const [couponCode, setCouponCode] = useState('');
@@ -789,6 +797,12 @@ export default function CartPage() {
           if (info.postalCode) setPostalCode(info.postalCode);
           if (info.city) setCity(info.city);
           if (info.province) setProvince(info.province);
+          if (
+            info.countryCode &&
+            /^[A-Za-z]{2}$/.test(String(info.countryCode).trim())
+          ) {
+            setCountryCode(String(info.countryCode).trim().toUpperCase());
+          }
           const savedCoupons = (info.coupons || []) as string[];
           if (savedCoupons.length > 0) {
             setAppliedCoupons(savedCoupons);
@@ -847,7 +861,7 @@ export default function CartPage() {
           city: city.trim(),
           province: province.trim(),
           postalCode: postalCode.trim(),
-          countryCode: 'IN',
+          countryCode: countryCode.trim().toUpperCase() || 'IN',
           coupons: JSON.stringify(couponsToSend),
         },
         { method: 'post' },
@@ -865,6 +879,8 @@ export default function CartPage() {
     streetLine1,
     postalCode,
     city,
+    province,
+    countryCode,
     savedCouponsForServer,
     appliedCoupons,
   ]);
@@ -958,6 +974,7 @@ export default function CartPage() {
             postalCode,
             city,
             province,
+            countryCode,
             coupons: appliedCoupons,
           }),
         );
@@ -1004,7 +1021,7 @@ export default function CartPage() {
         city: city.trim(),
         province: province.trim(),
         postalCode: postalCode.trim(),
-        countryCode: 'IN',
+        countryCode: countryCode.trim().toUpperCase() || 'IN',
         coupons: JSON.stringify(appliedCoupons),
       },
       { method: 'post' },
@@ -1019,8 +1036,21 @@ export default function CartPage() {
     city,
     province,
     postalCode,
+    countryCode,
+    email,
+    appliedCoupons,
     buyFetcher,
   ]);
+
+  const countrySelectOptions = useMemo(() => {
+    if (COUNTRY_OPTIONS.some((c) => c.code === countryCode)) {
+      return COUNTRY_OPTIONS;
+    }
+    return [
+      { code: countryCode, name: `${countryCode} (custom)` },
+      ...COUNTRY_OPTIONS,
+    ];
+  }, [countryCode]);
 
   return (
     <Layout>
@@ -1246,12 +1276,19 @@ export default function CartPage() {
                       <label className="block text-sm font-medium text-lightgray opacity-60 mb-1.5">
                         Country
                       </label>
-                      <input
-                        type="text"
-                        value="India"
-                        disabled
-                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base bg-slate-50 opacity-70"
-                      />
+                      <select
+                        value={countryCode}
+                        onChange={(e) =>
+                          setCountryCode(e.target.value.toUpperCase())
+                        }
+                        className="w-full h-11 xl:h-12 px-4 rounded-xl border border-[#0816271A] text-lightgray text-sm xl:text-base bg-white focus:outline-none focus:ring-2 focus:ring-[#3A6BFC]/30 focus:border-[#3A6BFC] transition"
+                      >
+                        {countrySelectOptions.map(({ code, name }) => (
+                          <option key={code} value={code}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
