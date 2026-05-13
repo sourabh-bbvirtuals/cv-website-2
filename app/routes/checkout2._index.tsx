@@ -411,6 +411,19 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         try {
+          const activeOrder = await getActiveOrder({ request });
+          const existingCoupons = activeOrder?.couponCodes || [];
+          if (existingCoupons.length > 0) {
+            return json({
+              success: false,
+              error: {
+                errorCode: 'ONE_COUPON_LIMIT',
+                message:
+                  'Only one coupon can be applied at a time. Please remove the existing coupon first.',
+              },
+            });
+          }
+
           const result = await applyCouponCode(couponCode, { request });
           const couponResult = result.applyCouponCode;
 

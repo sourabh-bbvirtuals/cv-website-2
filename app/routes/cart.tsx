@@ -266,6 +266,19 @@ export async function action({ request }: LoaderFunctionArgs) {
       return json({ error: 'Coupon code is required' }, await commit());
     const oCheck = await gqlFetch(ACTIVE_ORDER_QUERY, undefined, authToken);
     updateToken(oCheck.newToken);
+
+    // Check if a coupon is already applied
+    const existingCoupons = oCheck.body?.data?.activeOrder?.couponCodes || [];
+    if (existingCoupons.length > 0) {
+      return json(
+        {
+          couponError:
+            'Only one coupon can be applied at a time. Please remove the existing coupon first.',
+        },
+        await commit(),
+      );
+    }
+
     if (
       oCheck.body?.data?.activeOrder?.state &&
       oCheck.body.data.activeOrder.state !== 'AddingItems'
@@ -387,6 +400,10 @@ export async function action({ request }: LoaderFunctionArgs) {
       } catch {}
       console.log('[BuyNow] Parsed coupons to apply:', couponsToApply);
       if (couponsToApply.length > 0) {
+        // Limit to only one coupon as per requirement
+        const coupon = couponsToApply[0];
+        console.log('[BuyNow] Applying only the first coupon:', coupon);
+
         // Check which coupons are already on the order
         const activeOrd = await gqlFetch(
           ACTIVE_ORDER_QUERY,
@@ -396,28 +413,26 @@ export async function action({ request }: LoaderFunctionArgs) {
         updateToken(activeOrd.newToken);
         const existingCoupons: string[] =
           activeOrd.body?.data?.activeOrder?.couponCodes || [];
-        for (const coupon of couponsToApply) {
-          if (!existingCoupons.includes(coupon)) {
-            console.log('[BuyNow] Applying coupon:', coupon);
-            const cr = await gqlFetch(
-              APPLY_COUPON,
-              { couponCode: coupon },
-              authToken,
+        if (!existingCoupons.includes(coupon)) {
+          console.log('[BuyNow] Applying coupon:', coupon);
+          const cr = await gqlFetch(
+            APPLY_COUPON,
+            { couponCode: coupon },
+            authToken,
+          );
+          updateToken(cr.newToken);
+          const crResult = cr.body?.data?.applyCouponCode;
+          if (crResult?.errorCode) {
+            console.error(
+              '[BuyNow] Coupon apply failed:',
+              coupon,
+              crResult.message,
             );
-            updateToken(cr.newToken);
-            const crResult = cr.body?.data?.applyCouponCode;
-            if (crResult?.errorCode) {
-              console.error(
-                '[BuyNow] Coupon apply failed:',
-                coupon,
-                crResult.message,
-              );
-            } else {
-              console.log('[BuyNow] Coupon applied:', coupon);
-            }
           } else {
-            console.log('[BuyNow] Coupon already on order:', coupon);
+            console.log('[BuyNow] Coupon applied:', coupon);
           }
+        } else {
+          console.log('[BuyNow] Coupon already on order:', coupon);
         }
       }
 
