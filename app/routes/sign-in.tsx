@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { MetaFunction, useFetcher, useSearchParams } from '@remix-run/react';
+import {
+  MetaFunction,
+  useFetcher,
+  useSearchParams,
+  Link,
+} from '@remix-run/react';
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { API_URL } from '~/constants';
@@ -316,6 +321,17 @@ export default function SignInPage() {
                     {phoneOtpBusy ? 'Sending...' : 'Send OTP'}
                   </button>
                 </form>
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <p className="text-lightgray opacity-50 font-geist text-sm sm:text-base">
+                    Don't have an account?
+                  </p>
+                  <Link
+                    to="/sign-up"
+                    className="text-[#3A6BFC] font-semibold font-geist text-base sm:text-lg hover:underline transition-all"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
               </div>
             )}
 

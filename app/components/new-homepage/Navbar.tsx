@@ -277,12 +277,20 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
               )}
             </div>
           ) : (
-            <Link
-              to="/sign-in"
-              className="primary-btn text-xs sm:text-base font-medium leading-3 sm:leading-[120%] px-2 md:px-3 sm:px-6 py-2 sm:py-2.75"
-            >
-              Start For Free
-            </Link>
+            <div className="hidden lg:flex items-center gap-6 mr-2">
+              <Link
+                to="/sign-in"
+                className="text-lightgray font-medium hover:text-blue-600 transition-colors text-base"
+              >
+                Sign In
+              </Link>
+              {/* <Link
+                to="/sign-up"
+                className="primary-btn text-xs sm:text-base font-medium leading-3 sm:leading-[120%] px-4 sm:px-8 py-2 sm:py-3 shadow-lg"
+              >
+                Sign Up
+              </Link> */}
+            </div>
           )}
 
           {/* Mobile Menu Toggle */}
@@ -351,12 +359,20 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
                 </button>
               </>
             ) : (
-              <a
-                href="/sign-in"
-                className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2"
-              >
-                Login / Sign Up
-              </a>
+              <>
+                <Link
+                  to="/sign-in"
+                  className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors pt-2"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/sign-up"
+                  className="text-lightgray font-medium text-lg hover:text-blue-600 transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
             )}
           </div>
 

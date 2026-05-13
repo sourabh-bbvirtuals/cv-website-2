@@ -6,12 +6,10 @@ import {
   useActionData,
   useLoaderData,
   useNavigation,
+  Link,
 } from '@remix-run/react';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { updateCustomer } from '~/providers/account/account';
-
-const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
-const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
 
 const CLEAR_PROFILE_COOKIE =
   'bb-profile-incomplete=; Path=/; Max-Age=0; SameSite=Lax';
@@ -41,6 +39,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const BB_SERVER_URL = process.env.BB_SERVER_URL ?? 'http://localhost:3001';
+  const BUSINESS_VERTICAL_ID = process.env.BUSINESS_VERTICAL_ID ?? '';
   const formData = await request.formData();
   const fullName = (formData.get('fullName') as string)?.trim();
   const email = (formData.get('email') as string)?.trim();
@@ -445,6 +445,17 @@ const SignUp: React.FC = () => {
               'Save & Continue'
             )}
           </button>
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <p className="text-lightgray opacity-50 font-geist text-sm sm:text-base">
+              Already have an account?
+            </p>
+            <Link
+              to="/sign-in"
+              className="text-[#3A6BFC] font-semibold font-geist text-base sm:text-lg hover:underline transition-all"
+            >
+              Sign In
+            </Link>
+          </div>
         </Form>
       </div>
 
