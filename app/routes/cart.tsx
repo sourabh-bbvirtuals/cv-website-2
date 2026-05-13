@@ -710,7 +710,11 @@ export default function CartPage() {
 
   const lines = activeOrder?.lines || [];
   const isEmpty = lines.length === 0;
-  const subtotal = activeOrder?.subTotalWithTax ?? 0;
+  // Calculate undiscounted subtotal from line prices (which exclude discounts)
+  const subtotal = lines.reduce(
+    (sum: number, line: any) => sum + line.linePriceWithTax,
+    0,
+  );
   const total = activeOrder?.totalWithTax ?? 0;
   const discountTotal = (activeOrder?.discounts || []).reduce(
     (sum: number, d: any) => sum + Math.abs(d.amount),
