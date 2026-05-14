@@ -93,7 +93,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
-          <Link
+          {/* <Link
             to="/olympiad"
             style={{
               position: 'relative',
@@ -151,7 +151,6 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
                 }
                 .olympiad-nav-btn:hover { filter: brightness(1.08); }
                 .olympiad-nav-btn:active { filter: brightness(0.95); }
-                /* Responsive sizing: Hidden on mobile, shown after 425px */
                 .olympiad-nav-btn { display: none !important; }
                 @media (min-width: 426px) {
                   .olympiad-nav-btn { height: 36px; padding: 0 14px; font-size: 12px; display: inline-flex !important; }
@@ -206,7 +205,7 @@ const Navbar = ({ isOurCoursesDetailPage = false }: NavbarProps) => {
             >
               ✦
             </span>
-          </Link>
+          </Link> */}
 
           {/* 1. Desktop Board Dropdown (Pill UI) */}
           {showBoardDropdown && (
