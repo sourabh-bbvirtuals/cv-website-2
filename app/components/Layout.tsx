@@ -33,7 +33,7 @@ export default function Layout({ children, bare }: LayoutProps) {
           {/* Navbar */}
           <Navbar isOurCoursesDetailPage={isOurCoursesDetailPage} />
           {/* Banner */}
-          {isHomePage && (
+          {/* {isHomePage && (
             <div className="w-full hidden min-[426px]:block">
               <Link to="/olympiad" className="block w-full">
                 <div className="relative h-[90px] w-full flex justify-center items-center overflow-hidden bg-[#125BFF] -mt-12.5">
@@ -49,11 +49,11 @@ export default function Layout({ children, bare }: LayoutProps) {
                 </div>
               </Link>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Olympiad Announcement Bar */}
-        {isHomePage && (
+        {/* {isHomePage && (
           <div className="block min-[426px]:hidden w-full mt-4 md:mt-6">
             <Link to="/olympiad" className="block w-full">
               <div className="relative py-2 lg:py-3 w-full flex justify-center items-center overflow-hidden bg-[#125BFF] -mt-3.5">
@@ -70,7 +70,7 @@ export default function Layout({ children, bare }: LayoutProps) {
               </div>
             </Link>
           </div>
-        )}
+        )} */}
 
         {/* Mobile Overlay */}
         {mobileOpen && (
